@@ -69,14 +69,18 @@ const Charts = {
         const ctx = document.getElementById('temp-humidity-chart');
         if (!ctx) return;
 
-        // Destroy existing chart
-        if (this.charts.tempHumidity) {
-            this.charts.tempHumidity.destroy();
-        }
-
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         const textColor = isDark ? '#E0E0E0' : '#212121';
         const gridColor = isDark ? '#333333' : '#E0E0E0';
+
+        // Update existing chart if it exists, otherwise create new
+        if (this.charts.tempHumidity) {
+            this.charts.tempHumidity.data.labels = data.map(d => new Date(d.reading_time));
+            this.charts.tempHumidity.data.datasets[0].data = data.map(d => d.air_temperature);
+            this.charts.tempHumidity.data.datasets[1].data = data.map(d => d.air_humidity);
+            this.charts.tempHumidity.update('none'); // 'none' mode for faster updates
+            return;
+        }
 
         this.charts.tempHumidity = new Chart(ctx, {
             type: 'line',
@@ -154,13 +158,17 @@ const Charts = {
         const ctx = document.getElementById('soil-moisture-chart');
         if (!ctx) return;
 
-        if (this.charts.soilMoisture) {
-            this.charts.soilMoisture.destroy();
-        }
-
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         const textColor = isDark ? '#E0E0E0' : '#212121';
         const gridColor = isDark ? '#333333' : '#E0E0E0';
+
+        // Update existing chart if it exists
+        if (this.charts.soilMoisture) {
+            this.charts.soilMoisture.data.labels = data.map(d => new Date(d.reading_time));
+            this.charts.soilMoisture.data.datasets[0].data = data.map(d => d.soil_moisture);
+            this.charts.soilMoisture.update('none');
+            return;
+        }
 
         this.charts.soilMoisture = new Chart(ctx, {
             type: 'line',
@@ -227,13 +235,18 @@ const Charts = {
         const ctx = document.getElementById('ph-ec-chart');
         if (!ctx) return;
 
-        if (this.charts.phEc) {
-            this.charts.phEc.destroy();
-        }
-
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         const textColor = isDark ? '#E0E0E0' : '#212121';
         const gridColor = isDark ? '#333333' : '#E0E0E0';
+
+        // Update existing chart if it exists
+        if (this.charts.phEc) {
+            this.charts.phEc.data.labels = data.map(d => new Date(d.reading_time));
+            this.charts.phEc.data.datasets[0].data = data.map(d => d.ph_value);
+            this.charts.phEc.data.datasets[1].data = data.map(d => d.ec_value);
+            this.charts.phEc.update('none');
+            return;
+        }
 
         this.charts.phEc = new Chart(ctx, {
             type: 'line',
@@ -311,13 +324,19 @@ const Charts = {
         const ctx = document.getElementById('npk-chart');
         if (!ctx) return;
 
-        if (this.charts.npk) {
-            this.charts.npk.destroy();
-        }
-
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         const textColor = isDark ? '#E0E0E0' : '#212121';
         const gridColor = isDark ? '#333333' : '#E0E0E0';
+
+        // Update existing chart if it exists
+        if (this.charts.npk) {
+            this.charts.npk.data.labels = data.map(d => new Date(d.reading_time));
+            this.charts.npk.data.datasets[0].data = data.map(d => d.nitrogen_ppm);
+            this.charts.npk.data.datasets[1].data = data.map(d => d.phosphorus_ppm);
+            this.charts.npk.data.datasets[2].data = data.map(d => d.potassium_ppm);
+            this.charts.npk.update('none');
+            return;
+        }
 
         this.charts.npk = new Chart(ctx, {
             type: 'line',
@@ -387,10 +406,6 @@ const Charts = {
         const ctx = document.getElementById('disease-risk-chart');
         if (!ctx) return;
 
-        if (this.charts.diseaseRisk) {
-            this.charts.diseaseRisk.destroy();
-        }
-
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         const textColor = isDark ? '#E0E0E0' : '#212121';
         const gridColor = isDark ? '#333333' : '#E0E0E0';
@@ -405,6 +420,16 @@ const Charts = {
                 powderyMildew: risks.powderyMildew
             };
         });
+
+        // Update existing chart if it exists
+        if (this.charts.diseaseRisk) {
+            this.charts.diseaseRisk.data.labels = diseaseRisks.map(d => d.time);
+            this.charts.diseaseRisk.data.datasets[0].data = diseaseRisks.map(d => d.lateBlight);
+            this.charts.diseaseRisk.data.datasets[1].data = diseaseRisks.map(d => d.earlyBlight);
+            this.charts.diseaseRisk.data.datasets[2].data = diseaseRisks.map(d => d.powderyMildew);
+            this.charts.diseaseRisk.update('none');
+            return;
+        }
 
         this.charts.diseaseRisk = new Chart(ctx, {
             type: 'line',
@@ -510,5 +535,95 @@ const Charts = {
     // Refresh charts
     async refresh() {
         await this.loadCharts();
+    },
+
+    // Add single data point to charts (for real-time updates)
+    addDataPoint(reading) {
+        const timestamp = new Date(reading.reading_time);
+        const maxDataPoints = 100; // Keep last 100 points in real-time view
+
+        // Update temperature/humidity chart
+        if (this.charts.tempHumidity) {
+            const chart = this.charts.tempHumidity;
+            chart.data.labels.push(timestamp);
+            chart.data.datasets[0].data.push(reading.air_temperature);
+            chart.data.datasets[1].data.push(reading.air_humidity);
+
+            // Remove old data points if exceeding max
+            if (chart.data.labels.length > maxDataPoints) {
+                chart.data.labels.shift();
+                chart.data.datasets[0].data.shift();
+                chart.data.datasets[1].data.shift();
+            }
+
+            chart.update('none'); // Fast update without animations
+        }
+
+        // Update soil moisture chart
+        if (this.charts.soilMoisture) {
+            const chart = this.charts.soilMoisture;
+            chart.data.labels.push(timestamp);
+            chart.data.datasets[0].data.push(reading.soil_moisture);
+
+            if (chart.data.labels.length > maxDataPoints) {
+                chart.data.labels.shift();
+                chart.data.datasets[0].data.shift();
+            }
+
+            chart.update('none');
+        }
+
+        // Update pH/EC chart
+        if (this.charts.phEc) {
+            const chart = this.charts.phEc;
+            chart.data.labels.push(timestamp);
+            chart.data.datasets[0].data.push(reading.ph_value);
+            chart.data.datasets[1].data.push(reading.ec_value);
+
+            if (chart.data.labels.length > maxDataPoints) {
+                chart.data.labels.shift();
+                chart.data.datasets[0].data.shift();
+                chart.data.datasets[1].data.shift();
+            }
+
+            chart.update('none');
+        }
+
+        // Update NPK chart
+        if (this.charts.npk) {
+            const chart = this.charts.npk;
+            chart.data.labels.push(timestamp);
+            chart.data.datasets[0].data.push(reading.nitrogen_ppm);
+            chart.data.datasets[1].data.push(reading.phosphorus_ppm);
+            chart.data.datasets[2].data.push(reading.potassium_ppm);
+
+            if (chart.data.labels.length > maxDataPoints) {
+                chart.data.labels.shift();
+                chart.data.datasets[0].data.shift();
+                chart.data.datasets[1].data.shift();
+                chart.data.datasets[2].data.shift();
+            }
+
+            chart.update('none');
+        }
+
+        // Update disease risk chart
+        if (this.charts.diseaseRisk) {
+            const risks = this.calculateDiseaseRisks(reading);
+            const chart = this.charts.diseaseRisk;
+            chart.data.labels.push(timestamp);
+            chart.data.datasets[0].data.push(risks.lateBlight);
+            chart.data.datasets[1].data.push(risks.earlyBlight);
+            chart.data.datasets[2].data.push(risks.powderyMildew);
+
+            if (chart.data.labels.length > maxDataPoints) {
+                chart.data.labels.shift();
+                chart.data.datasets[0].data.shift();
+                chart.data.datasets[1].data.shift();
+                chart.data.datasets[2].data.shift();
+            }
+
+            chart.update('none');
+        }
     }
 };
