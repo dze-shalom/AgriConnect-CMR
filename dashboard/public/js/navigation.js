@@ -125,21 +125,21 @@ const Navigation = {
 
     // Scroll to section
     scrollToSection(view) {
-        // Map view names to section classes
+        // Map view names to section classes/IDs
         const sectionMap = {
             'overview': '.map-section',
-            'sensors': '.sensors-grid',
+            'sensors': '#live-sensors-section',
             'charts': '.charts-section',
             'weather': '.weather-section',
             'intelligence': '.intelligence-section',
             'controls': '.control-panel-section',
             'alerts': '.alerts-section',
-            'reports': '.data-table'
+            'reports': '#recent-readings-section'
         };
 
-        const sectionClass = sectionMap[view];
-        if (sectionClass) {
-            const section = document.querySelector(sectionClass);
+        const selector = sectionMap[view];
+        if (selector) {
+            const section = document.querySelector(selector);
             if (section) {
                 // Scroll with offset for fixed header
                 const headerOffset = 80;
@@ -150,6 +150,8 @@ const Navigation = {
                     top: offsetPosition,
                     behavior: 'smooth'
                 });
+            } else {
+                console.warn(`[WARN] Section not found for view: ${view} (selector: ${selector})`);
             }
         }
     },

@@ -11,13 +11,25 @@ const Charts = {
     async init() {
         console.log('[INFO] Initializing charts module...');
 
-        // Setup event listeners
-        this.setupEventListeners();
+        try {
+            // Verify Chart.js is loaded
+            if (typeof Chart === 'undefined') {
+                throw new Error('Chart.js library not loaded');
+            }
 
-        // Load and render charts
-        await this.loadCharts();
+            // Setup event listeners
+            this.setupEventListeners();
 
-        console.log('[SUCCESS] Charts initialized');
+            // Load and render charts
+            await this.loadCharts();
+
+            console.log('[SUCCESS] Charts initialized');
+        } catch (error) {
+            console.error('[ERROR] Charts initialization failed:', error);
+            if (typeof Notifications !== 'undefined') {
+                Notifications.error('Charts Error', 'Failed to initialize charts: ' + error.message);
+            }
+        }
     },
 
     // Setup event listeners
@@ -34,6 +46,8 @@ const Charts = {
     // Load all charts
     async loadCharts() {
         try {
+            console.log('[INFO] Loading chart data...');
+
             // Fetch historical data
             const hoursAgo = this.timeRange;
             const since = new Date(Date.now() - hoursAgo * 60 * 60 * 1000).toISOString();
@@ -48,9 +62,25 @@ const Charts = {
             if (error) throw error;
 
             if (!data || data.length === 0) {
-                console.warn('[WARN] No historical data available');
+                console.warn('[WARN] No historical data available for charts');
+                // Show message in chart areas
+                const chartContainers = [
+                    'temp-humidity-chart',
+                    'soil-moisture-chart',
+                    'ph-ec-chart',
+                    'npk-chart',
+                    'disease-risk-chart'
+                ];
+                chartContainers.forEach(id => {
+                    const canvas = document.getElementById(id);
+                    if (canvas && canvas.parentElement) {
+                        canvas.parentElement.innerHTML = '<p style="text-align:center; color: var(--text-secondary); padding: 2rem;">No data available yet. Charts will appear once sensor data is received.</p>';
+                    }
+                });
                 return;
             }
+
+            console.log(`[INFO] Rendering charts with ${data.length} data points`);
 
             // Render all charts
             this.renderTempHumidityChart(data);
@@ -59,8 +89,13 @@ const Charts = {
             this.renderNpkChart(data);
             this.renderDiseaseRiskChart(data);
 
+            console.log('[SUCCESS] All charts rendered');
+
         } catch (error) {
             console.error('[ERROR] Failed to load charts:', error.message);
+            if (typeof Notifications !== 'undefined') {
+                Notifications.error('Charts Error', 'Failed to load chart data');
+            }
         }
     },
 
