@@ -27,10 +27,19 @@ const Navigation = {
 
         // Navigation items
         const navItems = document.querySelectorAll('.nav-item');
+        console.log(`[INFO] Found ${navItems.length} navigation items`);
+
+        if (navItems.length === 0) {
+            console.warn('[WARN] No navigation items found! Retrying in 500ms...');
+            setTimeout(() => this.setupEventListeners(), 500);
+            return;
+        }
+
         navItems.forEach(item => {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
                 const view = item.getAttribute('data-view');
+                console.log(`[INFO] Navigation clicked: ${view}`);
                 this.navigateTo(view);
             });
         });

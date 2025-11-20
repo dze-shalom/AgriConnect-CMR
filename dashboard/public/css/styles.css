@@ -3482,3 +3482,94 @@ body {
         align-items: flex-start;
     }
 }
+
+/* ========================================
+   Smooth Scrolling & Navigation
+   ======================================== */
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px; /* Account for fixed header */
+}
+
+/* Improve scroll performance */
+* {
+    scroll-behavior: smooth;
+}
+
+/* Mock Data Toggle Button */
+.mock-data-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 999;
+    padding: 12px 20px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mock-data-toggle:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.mock-data-toggle.active {
+    background: #4CAF50;
+}
+
+.mock-data-toggle.active::before {
+    content: '●';
+    color: #8FFF8F;
+    font-size: 1.2rem;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Navigation active state improvement */
+.nav-item.active {
+    background: var(--primary-color);
+    color: white;
+    font-weight: 600;
+}
+
+.nav-item.active i {
+    color: white;
+}
+
+/* Better hover feedback */
+.nav-item:hover {
+    background: rgba(76, 175, 80, 0.1);
+    transform: translateX(4px);
+}
+
+.nav-item.active:hover {
+    background: var(--primary-color);
+    transform: none;
+}
+
+/* Section visibility during scroll */
+.section {
+    scroll-margin-top: 80px;
+}
+
+@media (max-width: 768px) {
+    .mock-data-toggle {
+        bottom: 70px;
+        font-size: 0.8rem;
+        padding: 10px 16px;
+    }
+}
