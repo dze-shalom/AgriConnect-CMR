@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriConnect - Farm Monitoring Dashboard</title>
+    <meta name="description" content="Intelligent agricultural IoT monitoring dashboard with real-time sensor data, satellite imagery, and AI-powered insights">
+    <meta name="theme-color" content="#4CAF50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AgriConnect">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png">
+
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Mapbox GL JS -->
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js'></script>
+
+    <!-- Mapbox Draw for polygon drawing -->
+    <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.3/mapbox-gl-draw.css' type='text/css' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.4.3/mapbox-gl-draw.js'></script>
+
+    <!-- Turf.js for geospatial calculations -->
+    <script src='https://unpkg.com/@turf/turf@6/turf.min.js'></script>
+
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- jsPDF for PDF report generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- TensorFlow.js for advanced machine learning -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js"></script>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="login-screen" class="screen active">
+        <div class="login-container">
+            <div class="login-header">
+                <h1>AgriConnect</h1>
+                <p>Intelligent Farm Monitoring System</p>
+            </div>
+            <div class="login-form">
+                <input type="email" id="login-email" placeholder="Email" autocomplete="email">
+                <input type="password" id="login-password" placeholder="Password" autocomplete="current-password">
+                <button id="login-btn" class="btn-primary">Sign In</button>
+                <div id="login-error" class="error-message"></div>
+            </div>
+            <div class="login-footer">
+                <p>Demo: test@agriconnect.com / password123</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard-screen" class="screen">
+        <!-- Top Header -->
+        <header class="top-header">
+            <button id="sidebar-toggle" class="sidebar-toggle">
+                <i data-lucide="menu"></i>
+            </button>
+            <div class="header-brand">
+                <i data-lucide="sprout" class="brand-icon"></i>
+                <h1>AgriConnect</h1>
+            </div>
+            <div class="header-actions">
+                <span id="last-update" class="last-update">
+                    <i data-lucide="clock"></i>
+                    <span id="last-update-text">--:--</span>
+                </span>
+                <button id="theme-toggle-btn" class="header-btn" title="Toggle Theme">
+                    <i data-lucide="moon" id="theme-icon"></i>
+                </button>
+                <button id="lang-toggle-btn" class="header-btn" title="Language">
+                    <span id="lang-icon">EN</span>
+                </button>
+                <button id="refresh-btn" class="header-btn" title="Refresh">
+                    <i data-lucide="refresh-cw"></i>
+                </button>
+                <div class="user-menu">
+                    <button id="user-menu-btn" class="user-btn">
+                        <i data-lucide="user"></i>
+                        <span id="user-name">User</span>
+                        <i data-lucide="chevron-down"></i>
+                    </button>
+                    <div id="user-dropdown" class="dropdown hidden">
+                        <button id="logout-btn" class="dropdown-item">
+                            <i data-lucide="log-out"></i>
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-content">
+                <div class="farm-info">
+                    <i data-lucide="map-pin" class="farm-icon"></i>
+                    <span id="farm-name" class="farm-name">Loading...</span>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <a href="#" class="nav-item active" data-view="overview">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span>Overview</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="map">
+                        <i data-lucide="map"></i>
+                        <span>Farm Map</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="sensors">
+                        <i data-lucide="activity"></i>
+                        <span>Live Sensors</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="charts">
+                        <i data-lucide="trending-up"></i>
+                        <span>Analytics</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="weather">
+                        <i data-lucide="cloud-sun"></i>
+                        <span>Weather</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="intelligence">
+                        <i data-lucide="brain"></i>
+                        <span>AI Insights</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="controls">
+                        <i data-lucide="sliders"></i>
+                        <span>Farm Controls</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="alerts">
+                        <i data-lucide="bell"></i>
+                        <span>Alerts</span>
+                        <span id="alerts-badge" class="nav-badge">0</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="satellite">
+                        <i data-lucide="satellite"></i>
+                        <span>Satellite Data</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="reports">
+                        <i data-lucide="file-text"></i>
+                        <span>Reports</span>
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <div class="content-wrapper">
+            <!-- Map View Section -->
+            <section class="section map-section">
+                <div class="section-header">
+                    <h2>Farm Map - Node Locations</h2>
+                    <div class="map-controls">
+                        <button id="zoom-to-farm-btn" class="btn-icon" title="Zoom to Farm">🏠</button>
+                        <select id="map-filter" class="map-filter-select">
+                            <option value="all">All Nodes</option>
+                            <option value="online">Online Only</option>
+                            <option value="offline">Offline Only</option>
+                            <option value="warning">Warnings Only</option>
+                        </select>
+                        <button id="toggle-map-btn" class="btn-secondary">
+                            <span id="toggle-map-text">Show Map</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Map Container (initially hidden) -->
+                <div id="map-container" class="map-container hidden">
+                    <div id="map" class="map-canvas"></div>
+                    
+                    <!-- Map Legend -->
+                    <div class="map-legend">
+                        <h4>Legend</h4>
+                        <div class="legend-item">
+                            <span class="legend-marker farm">🏠</span>
+                            <span>Farm Location</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-marker gateway online">📡</span>
+                            <span>Gateway (Online)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-marker gateway offline">📡</span>
+                            <span>Gateway (Offline)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-marker node online">📍</span>
+                            <span>Node (Optimal)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-marker node warning">📍</span>
+                            <span>Node (Warning)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-marker node offline">📍</span>
+                            <span>Node (Offline)</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Map Stats -->
+                    <div class="map-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Total Nodes</span>
+                            <span id="total-nodes-count" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Online</span>
+                            <span id="online-nodes-count" class="stat-value online">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Warnings</span>
+                            <span id="warning-nodes-count" class="stat-value warning">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Offline</span>
+                            <span id="offline-nodes-count" class="stat-value offline">0</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Weather Forecast Section -->
+            <section class="section weather-section">
+                <div class="section-header">
+                    <h2>🌤️ Weather Forecast</h2>
+                    <span id="weather-location" class="weather-location">Buea, Cameroon</span>
+                </div>
+                <div id="weather-container" class="weather-container">
+                    <div class="loading">Loading weather data...</div>
+                </div>
+            </section>
+
+            <!-- Historical Data Charts Section -->
+            <section class="section charts-section">
+                <div class="section-header">
+                    <h2> Historical Trends (7 Days)</h2>
+                    <select id="chart-timerange" class="chart-timerange-select">
+                        <option value="24">Last 24 Hours</option>
+                        <option value="168" selected>Last 7 Days</option>
+                        <option value="720">Last 30 Days</option>
+                    </select>
+                </div>
+                <div class="charts-grid">
+                    <!-- Temperature & Humidity Chart -->
+                    <div class="chart-card">
+                        <h3>Temperature & Humidity</h3>
+                        <canvas id="temp-humidity-chart"></canvas>
+                    </div>
+
+                    <!-- Soil Moisture Chart -->
+                    <div class="chart-card">
+                        <h3>Soil Moisture</h3>
+                        <canvas id="soil-moisture-chart"></canvas>
+                    </div>
+
+                    <!-- pH & EC Chart -->
+                    <div class="chart-card">
+                        <h3>pH & EC Levels</h3>
+                        <canvas id="ph-ec-chart"></canvas>
+                    </div>
+
+                    <!-- NPK Chart -->
+                    <div class="chart-card">
+                        <h3>NPK Levels</h3>
+                        <canvas id="npk-chart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Disease Risk Timeline -->
+            <section class="section disease-risk-section">
+                <div class="section-header">
+                    <h2>🦠 Disease Risk Timeline</h2>
+                    <span id="disease-status" class="disease-status">Monitoring 6 diseases</span>
+                </div>
+                <canvas id="disease-risk-chart"></canvas>
+            </section>
+
+            <!-- Intelligence Modules Section -->
+            <section class="section intelligence-section">
+                <div class="section-header">
+                    <h2> Smart Analytics</h2>
+                </div>
+                <div class="intelligence-grid">
+                    <!-- Growth Stage Tracker -->
+                    <div class="intelligence-card">
+                        <div class="intelligence-header">
+                            <h3> Growth Stage</h3>
+                        </div>
+                        <div id="growth-stage-content" class="intelligence-content">
+                            <div class="loading">Calculating...</div>
+                        </div>
+                    </div>
+
+                    <!-- Nutrient Management -->
+                    <div class="intelligence-card">
+                        <div class="intelligence-header">
+                            <h3> Nutrient Management</h3>
+                        </div>
+                        <div id="nutrient-content" class="intelligence-content">
+                            <div class="loading">Analyzing...</div>
+                        </div>
+                    </div>
+
+                    <!-- Cost & ROI Tracker -->
+                    <div class="intelligence-card">
+                        <div class="intelligence-header">
+                            <h3> Cost & ROI</h3>
+                        </div>
+                        <div id="roi-content" class="intelligence-content">
+                            <div class="loading">Computing...</div>
+                        </div>
+                    </div>
+
+                    <!-- Yield Prediction -->
+                    <div class="intelligence-card">
+                        <div class="intelligence-header">
+                            <h3> Yield Forecast</h3>
+                        </div>
+                        <div id="yield-content" class="intelligence-content">
+                            <div class="loading">Predicting...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Alerts Section -->
+            <section class="section alerts-section">
+                <!-- Control Panel Section -->
+            <section class="section control-panel-section">
+                <div class="section-header">
+                    <h2>Farm Controls</h2>
+                    <span id="control-status" class="control-status">Ready</span>
+                </div>
+                
+                <div class="controls-grid">
+                    <!-- Pump Control Card -->
+                    <div class="control-card">
+                        <div class="control-header">
+                            <h3>Water Pump</h3>
+                            <span id="pump-status-indicator" class="status-indicator off">OFF</span>
+                        </div>
+                        <div class="control-body">
+                            <div class="pump-visual">
+                                <div id="pump-icon" class="pump-icon off">
+                                    <span>💧</span>
+                                </div>
+                            </div>
+                            <div class="control-actions">
+                                <button id="pump-on-btn" class="control-btn success">
+                                    <span>▶</span> Turn ON
+                                </button>
+                                <button id="pump-off-btn" class="control-btn danger">
+                                    <span>■</span> Turn OFF
+                                </button>
+                            </div>
+                            <div class="control-info">
+                                <small>Last action: <span id="pump-last-action">Never</span></small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Zone Selector Card -->
+                    <div class="control-card">
+                        <div class="control-header">
+                            <h3>Irrigation Zone</h3>
+                            <span class="control-label">Select Target</span>
+                        </div>
+                        <div class="control-body">
+                            <div class="zone-selector">
+                                <div class="zone-grid">
+                                    <button class="zone-btn" data-field="1" data-zone="0">
+                                        <span class="zone-label">Field 1<br>Zone 0</span>
+                                        <span class="zone-status">●</span>
+                                    </button>
+                                    <button class="zone-btn" data-field="1" data-zone="1">
+                                        <span class="zone-label">Field 1<br>Zone 1</span>
+                                        <span class="zone-status">●</span>
+                                    </button>
+                                    <button class="zone-btn" data-field="1" data-zone="2">
+                                        <span class="zone-label">Field 1<br>Zone 2</span>
+                                        <span class="zone-status">●</span>
+                                    </button>
+                                    <button class="zone-btn" data-field="2" data-zone="0">
+                                        <span class="zone-label">Field 2<br>Zone 0</span>
+                                        <span class="zone-status">●</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="selected-zone">
+                                <small>Selected: <strong id="selected-zone-text">None</strong></small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Manual Irrigation Card -->
+                    <div class="control-card">
+                        <div class="control-header">
+                            <h3>Manual Irrigation</h3>
+                            <span class="control-label">Duration Control</span>
+                        </div>
+                        <div class="control-body">
+                            <div class="duration-control">
+                                <label for="irrigation-duration">Duration (minutes)</label>
+                                <div class="duration-input-group">
+                                    <button class="duration-btn" data-action="decrease">-</button>
+                                    <input type="number" id="irrigation-duration" value="15" min="1" max="60">
+                                    <button class="duration-btn" data-action="increase">+</button>
+                                </div>
+                                <div class="quick-durations">
+                                    <button class="quick-btn" data-duration="5">5 min</button>
+                                    <button class="quick-btn" data-duration="15">15 min</button>
+                                    <button class="quick-btn" data-duration="30">30 min</button>
+                                </div>
+                            </div>
+                            <div class="control-actions">
+                                <button id="start-irrigation-btn" class="control-btn primary-action">
+                                    <span>▶</span> Start Irrigation
+                                </button>
+                            </div>
+                            <div class="irrigation-status">
+                                <div id="irrigation-timer" class="timer hidden">
+                                    <span>⏱</span> Time remaining: <strong id="timer-display">00:00</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions Card -->
+                    <div class="control-card">
+                        <div class="control-header">
+                            <h3>Quick Actions</h3>
+                            <span class="control-label">Common Tasks</span>
+                        </div>
+                        <div class="control-body">
+                            <div class="quick-actions">
+                                <button class="quick-action-btn" id="water-all-zones-btn">
+                                    <span class="action-icon">💧</span>
+                                    <span class="action-text">Water All Zones</span>
+                                </button>
+                                <button class="quick-action-btn" id="emergency-stop-btn">
+                                    <span class="action-icon">⛔</span>
+                                    <span class="action-text">Emergency Stop</span>
+                                </button>
+                                <button class="quick-action-btn" id="test-pump-btn">
+                                    <span class="action-icon">🔧</span>
+                                    <span class="action-text">Test Pump (1 min)</span>
+                                </button>
+                                <button class="quick-action-btn" id="sync-nodes-btn">
+                                    <span class="action-icon">🔄</span>
+                                    <span class="action-text">Sync All Nodes</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+                <div class="section-header">
+                    <h2>Active Alerts</h2>
+                    <span id="alerts-count" class="badge">0</span>
+                </div>
+                <div id="alerts-container" class="alerts-container">
+                    <div class="loading">Loading alerts...</div>
+                </div>
+            </section>
+
+            <!-- Sensor Data Grid -->
+            <section class="section">
+                <div class="section-header">
+                    <h2>Live Sensor Data</h2>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button id="export-pdf-btn" class="btn-primary">
+                            <i data-lucide="file-text"></i> Generate PDF Report
+                        </button>
+                        <button id="export-csv-btn" class="btn-secondary">Export CSV</button>
+                    </div>
+                </div>
+                <div id="sensors-grid" class="sensors-grid">
+                    <div class="loading">Loading sensor data...</div>
+                </div>
+            </section>
+
+            <!-- Recent Readings Table -->
+            <section class="section">
+                <div class="section-header">
+                    <h2>Recent Readings</h2>
+                </div>
+                <div class="table-container">
+                    <table id="readings-table" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Field</th>
+                                <th>Zone</th>
+                                <th>Temp (°C)</th>
+                                <th>Humidity (%)</th>
+                                <th>Soil Moisture</th>
+                                <th>pH</th>
+                                <th>Battery (%)</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="9" class="loading">Loading readings...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Email Alert Settings -->
+            <section class="section" id="email-settings-section">
+                <div class="section-header">
+                    <h2><i data-lucide="mail"></i> Email Alert Settings</h2>
+                </div>
+                <div class="settings-card">
+                    <form id="email-alert-settings-form">
+                        <div class="form-group">
+                            <label for="alert-email-input">
+                                <i data-lucide="at-sign"></i> Alert Recipient Email
+                            </label>
+                            <input
+                                type="email"
+                                id="alert-email-input"
+                                placeholder="admin@farm.com"
+                                class="form-input"
+                                required
+                            />
+                            <small class="form-help">Receive critical alerts and daily summaries</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input
+                                    type="checkbox"
+                                    id="enable-email-alerts"
+                                    class="form-checkbox"
+                                />
+                                <span>Enable email alerts</span>
+                            </label>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">
+                                <i data-lucide="save"></i> Save Settings
+                            </button>
+                            <button type="button" id="test-email-btn" class="btn-secondary">
+                                <i data-lucide="send"></i> Send Test Email
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="alert-info">
+                        <i data-lucide="info"></i>
+                        <div>
+                            <strong>Email alerts will be sent for:</strong>
+                            <ul>
+                                <li>Critical temperature thresholds (< 15°C or > 35°C)</li>
+                                <li>Low battery warnings (< 15%)</li>
+                                <li>Extreme soil dryness (< 300)</li>
+                                <li>Sensor offline for > 2 hours</li>
+                                <li>Daily farm summary reports</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SMS Alert Settings -->
+            <section class="section" id="sms-settings-section">
+                <div class="section-header">
+                    <h2><i data-lucide="smartphone"></i> SMS Alert Settings</h2>
+                </div>
+                <div class="settings-card">
+                    <form id="sms-alert-settings-form">
+                        <div class="form-group">
+                            <label for="alert-phone-input">
+                                <i data-lucide="phone"></i> Alert Recipient Phone (E.164 format)
+                            </label>
+                            <input
+                                type="tel"
+                                id="alert-phone-input"
+                                placeholder="+1234567890"
+                                class="form-input"
+                                pattern="^\+[1-9]\d{1,14}$"
+                                title="Phone number must be in E.164 format (e.g., +1234567890)"
+                            />
+                            <small class="form-help">Enter phone number with country code (e.g., +1 for USA)</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input
+                                    type="checkbox"
+                                    id="enable-sms-alerts"
+                                    class="form-checkbox"
+                                />
+                                <span>Enable SMS alerts</span>
+                            </label>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">
+                                <i data-lucide="save"></i> Save Settings
+                            </button>
+                            <button type="button" id="test-sms-btn" class="btn-secondary" disabled>
+                                <i data-lucide="send"></i> Send Test SMS
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="alert-info">
+                        <i data-lucide="info"></i>
+                        <div>
+                            <strong>SMS alerts will be sent for:</strong>
+                            <ul>
+                                <li>Critical temperature emergencies (< 10°C or > 40°C)</li>
+                                <li>Severe soil drought conditions</li>
+                                <li>Sensor battery failure (< 10%)</li>
+                                <li>System critical errors</li>
+                            </ul>
+                            <p style="margin-top: 0.5rem; font-size: 0.85rem; color: #666;">
+                                <strong>Note:</strong> Requires Twilio account setup with valid credentials.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            </div>
+            <!-- End content-wrapper -->
+        </main>
+        <!-- End main-content -->
+    </div>
+    <!-- End dashboard-screen -->
+
+    <!-- Fullscreen Map Overlay -->
+    <div id="map-fullscreen" class="map-fullscreen hidden">
+        <div class="map-fullscreen-header">
+            <h2>
+                <i data-lucide="map"></i>
+                Farm Map - Fullscreen View
+            </h2>
+            <button id="map-fullscreen-close" class="map-fullscreen-close">
+                <i data-lucide="x"></i>
+                Close
+            </button>
+        </div>
+        <div id="map-fullscreen-container" class="map-fullscreen-container">
+            <!-- Map will be moved here when fullscreen -->
+        </div>
+    </div>
+
+    <!-- Satellite Analysis Panel -->
+    <div id="satellite-analysis-panel" class="satellite-panel hidden">
+        <div class="satellite-panel-header">
+            <h3><i data-lucide="satellite"></i> Satellite Field Analysis</h3>
+            <div class="panel-actions">
+                <button id="view-ndvi-history-btn" class="btn-icon" title="View NDVI History">
+                    <i data-lucide="history"></i>
+                </button>
+                <button id="export-satellite-btn" class="btn-icon" title="Export to CSV">
+                    <i data-lucide="download"></i>
+                </button>
+                <button id="close-satellite-panel" class="btn-icon" title="Close">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+        </div>
+        <div id="satellite-results" class="satellite-results">
+            <!-- Analysis results will be inserted here -->
+        </div>
+    </div>
+
+    <!-- Push Notification Permission Banner -->
+    <div id="notification-permission-banner" class="notification-banner hidden">
+        <div class="banner-content">
+            <i data-lucide="bell"></i>
+            <div class="banner-text">
+                <strong>Enable Notifications</strong>
+                <p>Get instant alerts for critical sensor readings and farm events</p>
+            </div>
+            <div class="banner-actions">
+                <button id="enable-notifications-btn" class="btn-primary-small">
+                    <i data-lucide="check"></i> Enable
+                </button>
+                <button id="dismiss-notifications-btn" class="btn-secondary-small">
+                    <i data-lucide="x"></i> Not Now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NDVI History Modal -->
+    <div id="ndvi-history-modal" class="modal hidden">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h2>
+                    <i data-lucide="trending-up"></i>
+                    NDVI Historical Time-Series Analysis
+                </h2>
+                <button id="close-history-modal" class="close-modal-btn" aria-label="Close">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Field Selector -->
+                <div class="history-field-selector-container">
+                    <label for="history-field-selector">
+                        <i data-lucide="layers"></i>
+                        Select Field:
+                    </label>
+                    <select id="history-field-selector" class="field-selector">
+                        <option value="">Loading fields...</option>
+                    </select>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div id="history-stats-container" class="history-stats-grid">
+                    <!-- Stats will be dynamically inserted -->
+                </div>
+
+                <!-- Time-Series Chart -->
+                <div class="history-chart-container">
+                    <canvas id="ndvi-history-chart"></canvas>
+                </div>
+
+                <!-- Insights Panel -->
+                <div class="history-insights-section">
+                    <h3>
+                        <i data-lucide="lightbulb"></i>
+                        Insights & Recommendations
+                    </h3>
+                    <div id="history-insights-container">
+                        <!-- Insights will be dynamically inserted -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/language.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/push-notifications.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/weather.js"></script>
+    <script src="js/intelligence.js"></script>
+    <script src="js/pdf-reports.js"></script>
+    <script src="js/realtime.js"></script>
+    <script src="js/email-alerts.js"></script>
+    <script src="js/sms-alerts.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/controls.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/satellite.js"></script>
+    <script src="js/ndvi-history.js"></script>
+    <script src="js/tensorflow-ml.js"></script>
+    <script src="js/app.js"></script>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
