@@ -337,6 +337,24 @@
                             <div class="loading">Predicting...</div>
                         </div>
                     </div>
+
+                    <!-- Disease Analysis -->
+                    <div class="intelligence-card disease-analysis-card">
+                        <div class="intelligence-header">
+                            <h3>🔬 Disease Analysis</h3>
+                        </div>
+                        <div class="intelligence-content">
+                            <div class="disease-upload-section">
+                                <p class="disease-instruction">Upload a photo of tomato leaves for AI-powered disease detection</p>
+                                <input type="file" id="disease-image-input" accept="image/*" style="display: none;">
+                                <button id="upload-disease-image" class="btn-primary">
+                                    📸 Upload Leaf Image
+                                </button>
+                            </div>
+                            <div id="disease-image-preview"></div>
+                            <div id="disease-analysis-results"></div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -775,6 +793,7 @@
     <script src="js/charts.js"></script>
     <script src="js/weather.js"></script>
     <script src="js/intelligence.js"></script>
+    <script src="js/disease-analysis.js"></script>
     <script src="js/pdf-reports.js"></script>
     <script src="js/realtime.js"></script>
     <script src="js/email-alerts.js"></script>

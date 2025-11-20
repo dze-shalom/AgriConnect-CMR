@@ -182,6 +182,11 @@ window.initDashboardModules = async function() {
             });
         }
 
+        // Initialize Disease Analysis
+        if (typeof DiseaseAnalysis !== 'undefined') {
+            DiseaseAnalysis.init();
+        }
+
         // Show success notification
         if (typeof Notifications !== 'undefined') {
             Notifications.success('🎉 Dashboard Ready', 'All modules loaded successfully');

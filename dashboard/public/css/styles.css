@@ -3255,3 +3255,230 @@ body {
         height: 300px !important;
     }
 }
+
+/* ========================================
+   Disease Analysis Styles
+   ======================================== */
+
+.disease-analysis-card {
+    grid-column: 1 / -1;
+}
+
+.disease-upload-section {
+    text-align: center;
+    padding: 2rem;
+    background: var(--section-bg);
+    border-radius: 8px;
+    border: 2px dashed var(--border-color);
+    margin-bottom: 1rem;
+}
+
+.disease-instruction {
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.disease-image-container {
+    position: relative;
+    margin-top: 1rem;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--card-bg);
+}
+
+.disease-image {
+    width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    display: block;
+}
+
+.analyzing-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    z-index: 10;
+}
+
+.analyzing-overlay.active {
+    display: flex;
+}
+
+.analyzing-overlay .spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #4CAF50;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.analyzing-overlay p {
+    margin-top: 1rem;
+    font-size: 1.1rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.disease-result-card {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    border-radius: 8px;
+    background: var(--card-bg);
+    border-left: 4px solid var(--primary-color);
+}
+
+.disease-result-card.critical {
+    border-left-color: #D32F2F;
+    background: rgba(211, 47, 47, 0.05);
+}
+
+.disease-result-card.high {
+    border-left-color: #FF9800;
+    background: rgba(255, 152, 0, 0.05);
+}
+
+.disease-result-card.moderate {
+    border-left-color: #FFC107;
+    background: rgba(255, 193, 7, 0.05);
+}
+
+.disease-result-card.low {
+    border-left-color: #2196F3;
+    background: rgba(33, 150, 243, 0.05);
+}
+
+.disease-result-card.none {
+    border-left-color: #4CAF50;
+    background: rgba(76, 175, 80, 0.05);
+}
+
+.disease-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.disease-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.confidence-badge {
+    padding: 0.5rem 1rem;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.severity-indicator {
+    padding: 0.75rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.severity-indicator.critical {
+    background: rgba(211, 47, 47, 0.15);
+    color: #D32F2F;
+    border: 2px solid #D32F2F;
+}
+
+.severity-indicator.high {
+    background: rgba(255, 152, 0, 0.15);
+    color: #F57C00;
+    border: 2px solid #FF9800;
+}
+
+.severity-indicator.moderate {
+    background: rgba(255, 193, 7, 0.15);
+    color: #F57F17;
+    border: 2px solid #FFC107;
+}
+
+.severity-indicator.low {
+    background: rgba(33, 150, 243, 0.15);
+    color: #1976D2;
+    border: 2px solid #2196F3;
+}
+
+.disease-section {
+    margin: 1.5rem 0;
+}
+
+.disease-section h4 {
+    margin: 0 0 0.75rem 0;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+.disease-section ul,
+.disease-section ol {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.disease-section li {
+    margin: 0.5rem 0;
+    line-height: 1.6;
+}
+
+.disease-section.treatment {
+    background: rgba(33, 150, 243, 0.08);
+    padding: 1rem;
+    border-radius: 6px;
+    border-left: 3px solid #2196F3;
+}
+
+.disease-section.prevention {
+    background: rgba(76, 175, 80, 0.08);
+    padding: 1rem;
+    border-radius: 6px;
+    border-left: 3px solid #4CAF50;
+}
+
+.disease-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.disease-actions button {
+    flex: 1;
+}
+
+/* Responsive Disease Analysis */
+@media (max-width: 768px) {
+    .disease-actions {
+        flex-direction: column;
+    }
+    
+    .disease-actions button {
+        width: 100%;
+    }
+    
+    .disease-header {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: flex-start;
+    }
+}
