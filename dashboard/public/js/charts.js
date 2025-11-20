@@ -5,7 +5,7 @@
 
 const Charts = {
     charts: {},
-    timeRange: 168, // Default 7 days in hours
+    timeRange: 0, // 0 = Show all available data (changed from 7 days)
 
     // Initialize charts
     async init() {
@@ -49,15 +49,20 @@ const Charts = {
             console.log('[INFO] Loading chart data...');
 
             // Fetch historical data
-            const hoursAgo = this.timeRange;
-            const since = new Date(Date.now() - hoursAgo * 60 * 60 * 1000).toISOString();
-
-            const { data, error } = await window.supabase
+            let query = window.supabase
                 .from('sensor_readings')
                 .select('*')
-                .gte('reading_time', since)
                 .order('reading_time', { ascending: true })
                 .limit(500);
+
+            // If timeRange is set (not 0), filter by date
+            if (this.timeRange > 0) {
+                const hoursAgo = this.timeRange;
+                const since = new Date(Date.now() - hoursAgo * 60 * 60 * 1000).toISOString();
+                query = query.gte('reading_time', since);
+            }
+
+            const { data, error } = await query;
 
             if (error) throw error;
 

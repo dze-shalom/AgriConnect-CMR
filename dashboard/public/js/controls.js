@@ -81,10 +81,7 @@ const FarmControls = {
             const action = turnOn ? 'ON' : 'OFF';
             console.log(`[INFO] Turning pump ${action}...`);
 
-            // Show notification
-            if (typeof Notifications !== 'undefined') {
-                Notifications.info('Pump Control', `Turning pump ${action}...`);
-            }
+            // Notification removed to reduce UI spam
 
             // In production, this would publish MQTT command
             // For now, we'll update the UI and store in database
@@ -112,13 +109,8 @@ const FarmControls = {
             // Update last action time
             document.getElementById('pump-last-action').textContent = new Date().toLocaleTimeString();
 
-            // Show success notification
-            if (typeof Notifications !== 'undefined') {
-                Notifications.success(
-                    'Pump ' + action,
-                    `Water pump is now ${action.toLowerCase()}`
-                );
-            }
+            // Success notification removed to reduce UI spam
+            console.log(`[SUCCESS] Pump is now ${action.toLowerCase()}`);
 
             console.log(`[SUCCESS] Pump turned ${action}`);
 

@@ -35,13 +35,8 @@ const MockData = {
 
         console.log('[SUCCESS] Mock data generation enabled');
 
-        if (typeof Notifications !== 'undefined') {
-            Notifications.success(
-                'Mock Data Enabled',
-                'Generating simulated sensor data every 30 seconds',
-                5000
-            );
-        }
+        // Notification removed to reduce UI spam
+        // Data is being generated in background silently
     },
 
     // Disable mock data generation
@@ -65,27 +60,12 @@ const MockData = {
 
         console.log('[SUCCESS] Mock data generation disabled');
 
-        if (typeof Notifications !== 'undefined') {
-            Notifications.info(
-                'Mock Data Disabled',
-                'Stopped generating simulated data',
-                3000
-            );
-        }
+        // Notification removed to reduce UI spam
     },
 
     // Generate historical data in batches (non-blocking)
     async generateHistoricalData(count = 20) {
-        console.log(`[MOCK] Generating ${count} historical readings...`);
-
-        // Show notification so users know data is being generated
-        if (typeof Notifications !== 'undefined') {
-            Notifications.info(
-                'Loading Mock Data',
-                `Generating ${count} readings from yesterday to now...`,
-                3000
-            );
-        }
+        console.log(`[MOCK] Generating ${count} historical readings from yesterday to now...`);
 
         const readings = [];
         const now = Date.now();
