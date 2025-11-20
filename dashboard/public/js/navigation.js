@@ -150,8 +150,13 @@ const Navigation = {
         if (selector) {
             const section = document.querySelector(selector);
             if (section) {
+                // Add visual feedback - flash the section border
+                section.style.transition = 'box-shadow 0.3s ease, border 0.3s ease';
+                section.style.boxShadow = '0 0 0 3px var(--primary-color), 0 0 20px rgba(46, 125, 50, 0.3)';
+                section.style.border = '2px solid var(--primary-color)';
+
                 // Scroll with offset for fixed header
-                const headerOffset = 80;
+                const headerOffset = 100; // Increased for better visibility
                 const elementPosition = section.getBoundingClientRect().top;
                 const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
@@ -159,6 +164,14 @@ const Navigation = {
                     top: offsetPosition,
                     behavior: 'smooth'
                 });
+
+                // Remove the flash after animation
+                setTimeout(() => {
+                    section.style.boxShadow = '';
+                    section.style.border = '';
+                }, 2000);
+
+                console.log(`[SUCCESS] Scrolled to ${view} section`);
             } else {
                 console.warn(`[WARN] Section not found for view: ${view} (selector: ${selector})`);
             }

@@ -2032,11 +2032,20 @@ body {
 .nav-item:hover {
     background: var(--background);
     color: var(--text-primary);
+    cursor: pointer;
+    transform: translateX(5px);
+}
+
+.nav-item:active {
+    transform: translateX(5px) scale(0.98);
+    background: var(--primary-lighter);
+    color: var(--primary-dark);
 }
 
 .nav-item.active {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     color: white;
+    font-weight: 600;
 }
 
 .nav-item.active i {
