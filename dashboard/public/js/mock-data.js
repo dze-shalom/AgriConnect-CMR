@@ -25,8 +25,8 @@ const MockData = {
             btn.textContent = '🟢 Mock Data ON';
         }
 
-        // Generate initial batch of historical data
-        this.generateHistoricalData(50);
+        // Generate initial batch of historical data (reduced for faster loading)
+        this.generateHistoricalData(20);
 
         // Start generating new readings every 30 seconds
         this.generationInterval = setInterval(() => {
@@ -74,40 +74,78 @@ const MockData = {
         }
     },
 
-    // Generate historical data
-    async generateHistoricalData(count = 50) {
+    // Generate historical data in batches (non-blocking)
+    async generateHistoricalData(count = 20) {
         console.log(`[MOCK] Generating ${count} historical readings...`);
+
+        // Show notification so users know data is being generated
+        if (typeof Notifications !== 'undefined') {
+            Notifications.info(
+                'Loading Mock Data',
+                `Generating ${count} readings from yesterday to now...`,
+                3000
+            );
+        }
 
         const readings = [];
         const now = Date.now();
-        const intervalMs = 10 * 60 * 1000; // 10 minutes between readings
+        const intervalMs = 30 * 60 * 1000; // 30 minutes between readings (yesterday to today)
 
-        for (let i = count - 1; i >= 0; i--) {
-            const timestamp = new Date(now - (i * intervalMs));
+        // Generate readings from yesterday to now
+        const oneDayAgo = now - (24 * 60 * 60 * 1000);
+        for (let i = 0; i < count; i++) {
+            const timestamp = new Date(oneDayAgo + ((now - oneDayAgo) / count) * i);
             readings.push(this.createReading(timestamp));
         }
 
-        // Insert into database
+        // Insert in batches of 10 to avoid blocking
+        const batchSize = 10;
+        let isFirstBatch = true;
+
         try {
-            const { error } = await window.supabase
-                .from('sensor_readings')
-                .insert(readings);
+            for (let i = 0; i < readings.length; i += batchSize) {
+                const batch = readings.slice(i, i + batchSize);
 
-            if (error) {
-                console.error('[MOCK] Failed to insert historical data:', error);
-            } else {
-                console.log(`[SUCCESS] Generated ${count} historical readings`);
+                const { error } = await window.supabase
+                    .from('sensor_readings')
+                    .insert(batch);
 
-                // Reload dashboard data
+                if (error) {
+                    console.error('[MOCK] Failed to insert batch:', error);
+                }
+
+                // Load charts immediately after first batch so users see something right away
+                if (isFirstBatch) {
+                    isFirstBatch = false;
+                    console.log('[MOCK] First batch inserted, loading charts...');
+
+                    if (typeof Charts !== 'undefined') {
+                        await Charts.loadCharts();
+                    }
+                    if (typeof Dashboard !== 'undefined') {
+                        await Dashboard.loadSensorData();
+                    }
+                }
+
+                // Small delay between batches to keep UI responsive
+                if (i + batchSize < readings.length) {
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                }
+            }
+
+            console.log(`[SUCCESS] Generated ${count} historical readings`);
+
+            // Final refresh after all batches complete
+            setTimeout(async () => {
                 if (typeof Dashboard !== 'undefined') {
-                    await Dashboard.loadSensorData();
                     await Dashboard.loadRecentReadings();
                 }
 
                 if (typeof Charts !== 'undefined') {
                     await Charts.loadCharts();
                 }
-            }
+            }, 200);
+
         } catch (error) {
             console.error('[MOCK] Error generating historical data:', error);
         }
@@ -242,5 +280,5 @@ window.addEventListener('load', async () => {
             // Enable mock data by default on error
             MockData.enable();
         }
-    }, 3000); // Wait 3 seconds after page load
+    }, 1000); // Wait 1 second after page load for faster startup
 });
