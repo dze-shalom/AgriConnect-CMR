@@ -222,14 +222,8 @@ const Navigation = {
         // Open fullscreen map for satellite analysis
         this.openFullscreenMap();
 
-        // Show helpful notification
-        if (typeof Notifications !== 'undefined') {
-            Notifications.info(
-                'Satellite Analysis Ready',
-                'Draw polygons on the map to analyze field areas with NDVI data',
-                8000
-            );
-        }
+        // Notification removed - drawing tools are visible on map if user needs them
+        console.log('[INFO] Satellite view opened - drawing tools available on map');
 
         // Show satellite panel (will populate when fields are drawn)
         const panel = document.getElementById('satellite-analysis-panel');
