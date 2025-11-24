@@ -65,5 +65,5 @@ Proprietary - AgriConnect
 
 ## Contact
 **Author**: Dze-Kum Shalom Chow
-**Company**: AgriConnect Ltd
-**Date**: 2025-10-21
+**Company**: AgriConnect 
+**Date**: 2025-11-18
