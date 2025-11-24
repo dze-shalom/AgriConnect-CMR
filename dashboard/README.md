@@ -440,7 +440,7 @@ Proprietary - All Rights Reserved
 
 ## Contact
 For support or questions:
-- Email: support@agriconnect.cm
+- Email: shalom.dze-kum@aims-cameroon.org
 - Location: Buea, South-West Region, Cameroon
 
 ---
