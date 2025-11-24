@@ -8,8 +8,25 @@ const Language = {
 
     translations: {
         en: {
+            // Navigation items
+            'nav_overview': 'Overview',
+            'nav_farm_map': 'Farm Map',
+            'nav_live_sensors': 'Live Sensors',
+            'nav_analytics': 'Analytics',
+            'nav_weather': 'Weather',
+            'nav_ai_insights': 'AI Insights',
+            'nav_farm_controls': 'Farm Controls',
+            'nav_alerts': 'Alerts',
+            'nav_satellite': 'Satellite Data',
+            'nav_reports': 'Reports',
+
+            // Header
             'dashboard_title': 'AgriConnect Dashboard',
             'last_update': 'Last update',
+            'logout': 'Logout',
+            'refresh': 'Refresh',
+
+            // General UI
             'weather_forecast': ' Weather Forecast',
             'historical_trends': ' Historical Trends (7 Days)',
             'disease_risk': ' Disease Risk Timeline',
@@ -22,15 +39,30 @@ const Language = {
             'farm_controls': 'Farm Controls',
             'live_sensor_data': 'Live Sensor Data',
             'recent_readings': 'Recent Readings',
-            'logout': 'Logout',
-            'refresh': 'Refresh',
             'export_csv': 'Export CSV',
             'show_map': 'Show Map',
             'hide_map': 'Hide Map'
         },
         fr: {
+            // Navigation items
+            'nav_overview': 'Vue d\'ensemble',
+            'nav_farm_map': 'Carte de la Ferme',
+            'nav_live_sensors': 'Capteurs en Direct',
+            'nav_analytics': 'Analytiques',
+            'nav_weather': 'Météo',
+            'nav_ai_insights': 'Insights IA',
+            'nav_farm_controls': 'Contrôles de la Ferme',
+            'nav_alerts': 'Alertes',
+            'nav_satellite': 'Données Satellite',
+            'nav_reports': 'Rapports',
+
+            // Header
             'dashboard_title': 'Tableau de Bord AgriConnect',
             'last_update': 'Dernière mise à jour',
+            'logout': 'Déconnexion',
+            'refresh': 'Actualiser',
+
+            // General UI
             'weather_forecast': ' Prévisions Météo',
             'historical_trends': ' Tendances Historiques (7 Jours)',
             'disease_risk': ' Risque de Maladies',
@@ -43,8 +75,6 @@ const Language = {
             'farm_controls': 'Contrôles de la Ferme',
             'live_sensor_data': 'Données des Capteurs en Direct',
             'recent_readings': 'Lectures Récentes',
-            'logout': 'Déconnexion',
-            'refresh': 'Actualiser',
             'export_csv': 'Exporter CSV',
             'show_map': 'Afficher la Carte',
             'hide_map': 'Masquer la Carte'
@@ -117,5 +147,10 @@ const Language = {
     // Get translation
     get(key) {
         return this.translations[this.currentLang][key] || key;
+    },
+
+    // Refresh translations (useful when DOM elements are dynamically updated)
+    refresh() {
+        this.applyLanguage(this.currentLang);
     }
 };

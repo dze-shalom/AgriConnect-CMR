@@ -83,6 +83,10 @@ const Navigation = {
         if (typeof lucide !== 'undefined') {
             setTimeout(() => {
                 lucide.createIcons();
+                // Refresh translations after icons are created
+                if (typeof Language !== 'undefined') {
+                    Language.refresh();
+                }
             }, 100);
         }
     },
