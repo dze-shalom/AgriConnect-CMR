@@ -361,13 +361,11 @@ Started At,Field,Zone,Duration,Started By,Completed
 
 ## Known Limitations (Phase 1)
 
-1. **No Real Hardware Integration**: Currently using simulated data
-2. **Manual Refresh Required**: No WebSocket real-time updates
-3. **Single User**: No multi-user collaboration
-4. **No Mobile App**: Web-only interface
-5. **Basic Alerts**: No SMS/Email/Push notifications
-6. **No Historical Charts**: Only latest values displayed
-7. **Limited Analytics**: No trend analysis or predictions
+1. **Manual Refresh Required**: No WebSocket real-time updates
+2. **Single User**: No multi-user collaboration
+3. **No Mobile App**: Web-only interface
+4. **No Historical Charts**: Only latest values displayed
+5. **Limited Analytics**: No trend analysis or predictions
 
 ---
 
@@ -462,81 +460,81 @@ For support or questions:
 
 ---
 
-## 🎉 What's New in Version 2.0
+##  What's New in Version 2.0
 
 ### Phase 2 Enhancements - All Implemented!
 
-#### 📊 **Advanced Data Visualization**
-- ✅ **Real-time Historical Charts** - Temperature, humidity, soil moisture, pH, EC, and NPK trends
-- ✅ **Disease Risk Timeline** - Visual tracking of Late Blight, Early Blight, and Powdery Mildew risks
-- ✅ **Interactive Time Ranges** - View data for 24 hours, 7 days, or 30 days
-- ✅ **Dark Mode Compatible** - All charts adapt to theme
+####  **Advanced Data Visualization**
+-  **Real-time Historical Charts** - Temperature, humidity, soil moisture, pH, EC, and NPK trends
+-  **Disease Risk Timeline** - Visual tracking of Late Blight, Early Blight, and Powdery Mildew risks
+-  **Interactive Time Ranges** - View data for 24 hours, 7 days, or 30 days
+-  **Dark Mode Compatible** - All charts adapt to theme
 
 #### 🌓 **Dark Mode & Themes**
-- ✅ **Complete Dark Mode** - Beautiful dark theme for night viewing
-- ✅ **Persistent Settings** - Theme preference saved locally
-- ✅ **One-click Toggle** - Easy theme switching
-- ✅ **Optimized Colors** - Enhanced contrast and readability
+-  **Complete Dark Mode** - Beautiful dark theme for night viewing
+-  **Persistent Settings** - Theme preference saved locally
+-  **One-click Toggle** - Easy theme switching
+-  **Optimized Colors** - Enhanced contrast and readability
 
 #### 🌐 **Multi-Language Support**
-- ✅ **English & French** - Full bilingual support
-- ✅ **Instant Switching** - Toggle languages on the fly
-- ✅ **Persistent Language** - Language preference saved
+-  **English & French** - Full bilingual support
+-  **Instant Switching** - Toggle languages on the fly
+-  **Persistent Language** - Language preference saved
 
-#### 🔔 **Live Toast Notifications**
-- ✅ **Real-time Alerts** - Beautiful toast notifications
-- ✅ **Auto-dismiss** - Notifications fade after 5 seconds
-- ✅ **Color-coded** - Success, error, warning, and info styles
-- ✅ **Non-intrusive** - Positioned perfectly in top-right corner
+####  **Live Toast Notifications**
+-  **Real-time Alerts** - Beautiful toast notifications
+-  **Auto-dismiss** - Notifications fade after 5 seconds
+-  **Color-coded** - Success, error, warning, and info styles
+-  **Non-intrusive** - Positioned perfectly in top-right corner
 
-#### 🌤️ **Weather Integration**
-- ✅ **7-Day Forecast** - Weather predictions for Buea, Cameroon
-- ✅ **Detailed Cards** - Temperature, humidity, and wind speed
-- ✅ **Weather Icons** - Visual weather conditions
-- ✅ **Auto-refresh** - Updates every 30 minutes
+####  **Weather Integration**
+-  **7-Day Forecast** - Weather predictions for Buea, Cameroon
+-  **Detailed Cards** - Temperature, humidity, and wind speed
+-  **Weather Icons** - Visual weather conditions
+-  **Auto-refresh** - Updates every 30 minutes
 
-#### 🧠 **Smart Intelligence Modules**
+####  **Smart Intelligence Modules**
 
 1. **Growth Stage Tracker**
-   - ✅ Growing Degree Days (GDD) calculation
-   - ✅ Automatic growth stage detection (Germination → Ripening)
-   - ✅ Stage-specific recommendations
-   - ✅ Days from planting counter
+   -  Growing Degree Days (GDD) calculation
+   -  Automatic growth stage detection (Germination → Ripening)
+   -  Stage-specific recommendations
+   -  Days from planting counter
 
 2. **Nutrient Management**
-   - ✅ NPK level analysis
-   - ✅ Optimal range comparison
-   - ✅ Automatic fertilizer recommendations
-   - ✅ Real-time nutrient status
+   -  NPK level analysis
+   -  Optimal range comparison
+   -  Automatic fertilizer recommendations
+   -  Real-time nutrient status
 
 3. **Cost & ROI Calculator**
-   - ✅ Total cost tracking (seeds, fertilizers, labor, etc.)
-   - ✅ Revenue projections
-   - ✅ Profit calculations
-   - ✅ ROI percentage display
+   -  Total cost tracking (seeds, fertilizers, labor, etc.)
+   -  Revenue projections
+   -  Profit calculations
+   -  ROI percentage display
 
 4. **Yield Forecast**
-   - ✅ Yield score based on conditions
-   - ✅ Estimated yield (kg/ha)
-   - ✅ Days to harvest countdown
-   - ✅ Harvest date prediction
+   -  Yield score based on conditions
+   -  Estimated yield (kg/ha)
+   -  Days to harvest countdown
+   -  Harvest date prediction
 
-#### 📱 **Enhanced Mobile Responsive Design**
-- ✅ Optimized for tablets and phones
-- ✅ Touch-friendly interface
-- ✅ Adaptive layouts
-- ✅ Improved navigation
+####  **Enhanced Mobile Responsive Design**
+-  Optimized for tablets and phones
+-  Touch-friendly interface
+-  Adaptive layouts
+-  Improved navigation
 
-#### 🎨 **UI/UX Improvements**
-- ✅ Smooth animations and transitions
-- ✅ Gradient backgrounds
-- ✅ Enhanced card hover effects
-- ✅ Better visual hierarchy
-- ✅ Improved spacing and typography
+####  **UI/UX Improvements**
+-  Smooth animations and transitions
+-  Gradient backgrounds
+-  Enhanced card hover effects
+-  Better visual hierarchy
+-  Improved spacing and typography
 
 ---
 
-## 📦 New Dependencies
+##  New Dependencies
 
 ### JavaScript Libraries
 - **Chart.js 4.4.0** - Advanced charting library
@@ -556,7 +554,7 @@ For support or questions:
 
 ---
 
-## 🚀 Usage Guide
+##  Usage Guide
 
 ### Dark Mode
 Click the 🌙 button in the header to toggle between light and dark themes.
@@ -583,7 +581,7 @@ All intelligence cards update automatically with latest sensor data:
 
 ---
 
-## 🎯 Feature Matrix
+##  Feature Matrix
 
 | Feature | Phase 1 | Phase 2 |
 |---------|---------|---------|
@@ -606,7 +604,7 @@ All intelligence cards update automatically with latest sensor data:
 
 ---
 
-## 🔧 Configuration
+##  Configuration
 
 ### Weather API
 To enable real weather data, add your OpenWeather API key in `weather.js`:
@@ -625,7 +623,7 @@ Extend translations in `language.js` by adding new keys to the translations obje
 
 ---
 
-## 📊 Performance
+##  Performance
 
 - Initial load: <3s
 - Chart rendering: <500ms
@@ -635,7 +633,7 @@ Extend translations in `language.js` by adding new keys to the translations obje
 
 ---
 
-## 🌟 Next Steps (Phase 3)
+##  Next Steps (Phase 3)
 
 - [ ] WebSocket real-time updates
 - [ ] Push notifications (browser)
