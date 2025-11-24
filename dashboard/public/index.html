@@ -286,7 +286,7 @@
             <!-- Disease Risk Timeline -->
             <section class="section disease-risk-section">
                 <div class="section-header">
-                    <h2>🦠 Disease Risk Timeline</h2>
+                    <h2> Disease Risk Timeline</h2>
                     <span id="disease-status" class="disease-status">Monitoring 6 diseases</span>
                 </div>
                 <canvas id="disease-risk-chart"></canvas>
@@ -335,6 +335,24 @@
                         </div>
                         <div id="yield-content" class="intelligence-content">
                             <div class="loading">Predicting...</div>
+                        </div>
+                    </div>
+
+                    <!-- Disease Analysis -->
+                    <div class="intelligence-card disease-analysis-card">
+                        <div class="intelligence-header">
+                            <h3> Disease Analysis</h3>
+                        </div>
+                        <div class="intelligence-content">
+                            <div class="disease-upload-section">
+                                <p class="disease-instruction">Upload a photo of tomato leaves for AI-powered disease detection</p>
+                                <input type="file" id="disease-image-input" accept="image/*" style="display: none;">
+                                <button id="upload-disease-image" class="btn-primary">
+                                    📸 Upload Leaf Image
+                                </button>
+                            </div>
+                            <div id="disease-image-preview"></div>
+                            <div id="disease-analysis-results"></div>
                         </div>
                     </div>
                 </div>
@@ -481,7 +499,7 @@
             </section>
 
             <!-- Sensor Data Grid -->
-            <section class="section">
+            <section class="section" id="live-sensors-section">
                 <div class="section-header">
                     <h2>Live Sensor Data</h2>
                     <div style="display: flex; gap: 0.5rem;">
@@ -497,7 +515,7 @@
             </section>
 
             <!-- Recent Readings Table -->
-            <section class="section">
+            <section class="section" id="recent-readings-section">
                 <div class="section-header">
                     <h2>Recent Readings</h2>
                 </div>
@@ -757,12 +775,21 @@
         </div>
     </div>
 
+    <!-- Mock Data Toggle Button -->
+    <button id="mock-data-toggle-btn" class="mock-data-toggle" onclick="MockData.toggle()" style="display: none;">
+        🔧 Mock Data
+    </button>
+
     <!-- Toast Notifications Container -->
     <div id="toast-container" class="toast-container"></div>
 
 
     <!-- Scripts -->
+    <!-- Performance utilities - must load first -->
+    <script src="js/performance-utils.js"></script>
+
     <script src="js/config.js"></script>
+    <script src="js/mock-data.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/theme.js"></script>
     <script src="js/language.js"></script>
@@ -772,6 +799,7 @@
     <script src="js/charts.js"></script>
     <script src="js/weather.js"></script>
     <script src="js/intelligence.js"></script>
+    <script src="js/disease-analysis.js"></script>
     <script src="js/pdf-reports.js"></script>
     <script src="js/realtime.js"></script>
     <script src="js/email-alerts.js"></script>

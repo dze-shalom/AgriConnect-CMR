@@ -8,6 +8,9 @@ const Realtime = {
     isConnected: false,
     reconnectAttempts: 0,
     maxReconnectAttempts: 5,
+    audioContext: null, // Reuse AudioContext
+    updateQueue: [], // Batch updates
+    isProcessingQueue: false,
 
     // Initialize real-time subscriptions
     init() {
@@ -17,6 +20,23 @@ const Realtime = {
             console.error('[ERROR] Supabase client not initialized');
             return;
         }
+
+        // Create shared AudioContext
+        if (!this.audioContext) {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        // Create throttled update functions
+        this.throttledDashboardUpdate = PerformanceUtils.rafThrottle(
+            (reading) => this._updateDashboard(reading)
+        );
+        this.throttledChartUpdate = PerformanceUtils.throttle(
+            (reading) => this._updateCharts(reading),
+            2000 // Update charts max once per 2 seconds
+        );
+        this.throttledMapUpdate = PerformanceUtils.rafThrottle(
+            (reading) => this._updateMap(reading)
+        );
 
         this.subscribeToSensorReadings();
         this.subscribeToAlerts();
@@ -121,30 +141,48 @@ const Realtime = {
     handleNewSensorReading(reading) {
         console.log('[REALTIME] New sensor reading received:', reading);
 
-        // Update dashboard with new data
+        // Use throttled updates to prevent performance issues
+        this.throttledDashboardUpdate(reading);
+        this.throttledChartUpdate(reading);
+        this.throttledMapUpdate(reading);
+
+        // Check for threshold violations (throttled)
+        if (!this._throttledThresholdCheck) {
+            this._throttledThresholdCheck = PerformanceUtils.throttle(
+                (r) => this.checkThresholds(r),
+                5000 // Check thresholds max once per 5 seconds
+            );
+        }
+        this._throttledThresholdCheck(reading);
+
+        // Show live indicator (throttled)
+        if (!this._throttledLiveIndicator) {
+            this._throttledLiveIndicator = PerformanceUtils.throttle(
+                () => this.showLiveIndicator(),
+                1000
+            );
+        }
+        this._throttledLiveIndicator();
+    },
+
+    // Helper: Update dashboard (called by throttled function)
+    _updateDashboard(reading) {
         if (typeof Dashboard !== 'undefined') {
             Dashboard.updateSingleReading(reading);
         }
+    },
 
-        // Update charts
-        if (typeof Charts !== 'undefined') {
-            Charts.addNewDataPoint(reading);
+    // Helper: Update charts (called by throttled function)
+    _updateCharts(reading) {
+        if (typeof Charts !== 'undefined' && typeof Charts.addDataPoint === 'function') {
+            Charts.addDataPoint(reading);
         }
+    },
 
-        // Update map markers
+    // Helper: Update map (called by throttled function)
+    _updateMap(reading) {
         if (typeof FarmMap !== 'undefined') {
             FarmMap.updateNodeStatus(reading);
-        }
-
-        // Check for threshold violations
-        this.checkThresholds(reading);
-
-        // Show live indicator
-        this.showLiveIndicator();
-
-        // Trigger browser notification if enabled
-        if (CONFIG.pushNotifications.enabled) {
-            this.checkForNotification(reading);
         }
     },
 
@@ -279,10 +317,12 @@ const Realtime = {
             }
         }
 
-        // Show notifications for violations
+        // Show notifications for violations (with rate limiting)
         if (violations.length > 0) {
             violations.forEach(violation => {
-                if (typeof Notifications !== 'undefined') {
+                const notificationKey = `threshold_${violation.substring(0, 20)}`;
+                if (typeof Notifications !== 'undefined' &&
+                    PerformanceUtils.NotificationLimiter.canNotify(notificationKey, 60000)) {
                     Notifications.warning('Threshold Alert', violation);
                 }
             });
@@ -350,16 +390,18 @@ const Realtime = {
         };
     },
 
-    // Play alert sound
+    // Play alert sound (using shared AudioContext)
     playAlertSound(severity = 'warning') {
         try {
-            // Create audio context
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
+            if (!this.audioContext) {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
 
             oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
+            gainNode.connect(this.audioContext.destination);
 
             // Set frequency based on severity
             oscillator.frequency.value = severity === 'critical' ? 800 : 600;
@@ -369,21 +411,22 @@ const Realtime = {
             gainNode.gain.value = 0.3;
 
             // Play sound
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.2);
+            const now = this.audioContext.currentTime;
+            oscillator.start(now);
+            oscillator.stop(now + 0.2);
 
             // Play again for critical alerts
             if (severity === 'critical') {
                 setTimeout(() => {
-                    const osc2 = audioContext.createOscillator();
-                    const gain2 = audioContext.createGain();
+                    const osc2 = this.audioContext.createOscillator();
+                    const gain2 = this.audioContext.createGain();
                     osc2.connect(gain2);
-                    gain2.connect(audioContext.destination);
+                    gain2.connect(this.audioContext.destination);
                     osc2.frequency.value = 800;
                     osc2.type = 'sine';
                     gain2.gain.value = 0.3;
-                    osc2.start(audioContext.currentTime);
-                    osc2.stop(audioContext.currentTime + 0.2);
+                    osc2.start(this.audioContext.currentTime);
+                    osc2.stop(this.audioContext.currentTime + 0.2);
                 }, 300);
             }
         } catch (error) {

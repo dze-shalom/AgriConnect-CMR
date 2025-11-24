@@ -294,19 +294,19 @@ const FarmMap = {
                 </div>
                 <hr style="margin: 8px 0; border: none; border-top: 1px solid #eee;">
                 <div class="popup-row">
-                    <span class="popup-label">🌡️ Air Temp:</span>
+                    <span class="popup-label"> Air Temp:</span>
                     <span class="popup-value">${nodeData.air_temperature?.toFixed(1) || 'N/A'} °C</span>
                 </div>
                 <div class="popup-row">
-                    <span class="popup-label">💧 Humidity:</span>
+                    <span class="popup-label"> Humidity:</span>
                     <span class="popup-value">${nodeData.air_humidity?.toFixed(1) || 'N/A'} %</span>
                 </div>
                 <div class="popup-row">
-                    <span class="popup-label">🌱 Soil Moisture:</span>
+                    <span class="popup-label"> Soil Moisture:</span>
                     <span class="popup-value">${nodeData.soil_moisture || 'N/A'}</span>
                 </div>
                 <div class="popup-row">
-                    <span class="popup-label">⚡ pH:</span>
+                    <span class="popup-label"> pH:</span>
                     <span class="popup-value">${nodeData.ph_value?.toFixed(1) || 'N/A'}</span>
                 </div>
                 <div class="popup-row">

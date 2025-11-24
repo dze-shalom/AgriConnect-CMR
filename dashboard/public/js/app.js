@@ -182,11 +182,12 @@ window.initDashboardModules = async function() {
             });
         }
 
-        // Show success notification
-        if (typeof Notifications !== 'undefined') {
-            Notifications.success('🎉 Dashboard Ready', 'All modules loaded successfully');
+        // Initialize Disease Analysis
+        if (typeof DiseaseAnalysis !== 'undefined') {
+            DiseaseAnalysis.init();
         }
 
+        // Notification removed to reduce UI spam
         console.log('[SUCCESS] All dashboard modules initialized');
     } catch (error) {
         console.error('[ERROR] Failed to initialize dashboard modules:', error);
@@ -212,10 +213,7 @@ window.refreshAllModules = async function() {
 
         await Promise.all(promises);
 
-        if (typeof Notifications !== 'undefined') {
-            Notifications.success('✅ Refreshed', 'All data updated successfully');
-        }
-
+        // Notification removed to reduce UI spam
         console.log('[SUCCESS] All modules refreshed');
     } catch (error) {
         console.error('[ERROR] Failed to refresh modules:', error);

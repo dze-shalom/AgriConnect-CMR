@@ -80,10 +80,12 @@ const FarmControls = {
         try {
             const action = turnOn ? 'ON' : 'OFF';
             console.log(`[INFO] Turning pump ${action}...`);
-            
+
+            // Notification removed to reduce UI spam
+
             // In production, this would publish MQTT command
             // For now, we'll update the UI and store in database
-            
+
             const { error } = await window.supabase
                 .from('pump_commands')
                 .insert({
@@ -92,23 +94,33 @@ const FarmControls = {
                     requested_by: Auth.currentUser?.email || 'demo',
                     executed_at: new Date().toISOString()
                 });
-            
+
             if (error) {
                 console.error('[ERROR] Failed to log pump command:', error.message);
+                if (typeof Notifications !== 'undefined') {
+                    Notifications.warning('Database Warning', 'Pump control logged locally only');
+                }
             }
-            
+
             // Update UI
             this.pumpStatus = turnOn;
             this.updatePumpUI(turnOn);
-            
+
             // Update last action time
             document.getElementById('pump-last-action').textContent = new Date().toLocaleTimeString();
-            
+
+            // Success notification removed to reduce UI spam
+            console.log(`[SUCCESS] Pump is now ${action.toLowerCase()}`);
+
             console.log(`[SUCCESS] Pump turned ${action}`);
-            
+
         } catch (error) {
             console.error('[ERROR] Pump control failed:', error.message);
-            alert(`Failed to control pump: ${error.message}`);
+            if (typeof Notifications !== 'undefined') {
+                Notifications.error('Control Failed', `Failed to control pump: ${error.message}`);
+            } else {
+                alert(`Failed to control pump: ${error.message}`);
+            }
         }
     },
     
