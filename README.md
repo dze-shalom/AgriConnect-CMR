@@ -61,7 +61,7 @@ AgriConnect/
 - [ ] Testing completed
 
 ## License
-Proprietary - AgriConnect Ltd
+Proprietary - AgriConnect 
 
 ## Contact
 **Author**: Dze-Kum Shalom Chow
