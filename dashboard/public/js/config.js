@@ -9,7 +9,7 @@ const CONFIG = {
     },
 
     farmId: 'FARM-CM-001',
-    refreshInterval: 30000,
+    refreshInterval: 300000, // 5 minutes (reduced from 30s to prevent constant rotation)
 
     // Copernicus Sentinel Hub Configuration
     copernicus: {

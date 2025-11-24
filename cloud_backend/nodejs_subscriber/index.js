@@ -39,7 +39,7 @@ const config = {
 // INITIALIZE CLIENTS
 // ==========================================
 
-console.log('🚀 Starting AgriConnect Cloud Backend...\n');
+console.log(' Starting AgriConnect Cloud Backend...\n');
 
 // Initialize Supabase
 const supabase = createClient(config.supabase.url, config.supabase.key);
@@ -87,7 +87,7 @@ mqttClient.on('connect', () => {
         }
     });
     
-    console.log('\n🧠 Intelligence layer ACTIVE - monitoring farm...\n');
+    console.log('\n Intelligence layer ACTIVE - monitoring farm...\n');
     console.log('='.repeat(60));
 });
 
@@ -132,7 +132,7 @@ mqttClient.on('message', async (topic, message) => {
 // ==========================================
 
 async function handleSensorData(topic, data) {
-    console.log(`📊 Processing sensor data from ${data.gatewayId}...`);
+    console.log(` Processing sensor data from ${data.gatewayId}...`);
     
     // Extract topic components
     const topicParts = topic.split('/');
@@ -196,10 +196,10 @@ async function handleSensorData(topic, data) {
     }
     
     // ==========================================
-    // STEP 2: INTELLIGENT ANALYSIS 🧠
+    // STEP 2: INTELLIGENT ANALYSIS 
     // ==========================================
     
-    console.log('\n🧠 Running intelligent analysis...');
+    console.log('\n Running intelligent analysis...');
     
     const insights = {
         diseases: [],
@@ -257,7 +257,7 @@ async function handleSensorData(topic, data) {
         insights.nutrients = nutrientStatus;
         
         if (nutrientStatus.length > 0) {
-            console.log(`  🧪 Nutrient issues detected:`);
+            console.log(`   Nutrient issues detected:`);
             nutrientStatus.forEach(issue => {
                 console.log(`    - ${issue.nutrient}: ${issue.status} (${issue.current} ppm)`);
             });
@@ -285,7 +285,7 @@ async function handleSensorData(topic, data) {
 // ==========================================
 
 async function handleStatusMessage(topic, data) {
-    console.log(`📡 Gateway status from ${data.gatewayId}: ${data.status}`);
+    console.log(` Gateway status from ${data.gatewayId}: ${data.status}`);
     
     // Update gateway status in database
     const { error } = await supabase

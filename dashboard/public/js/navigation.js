@@ -27,10 +27,19 @@ const Navigation = {
 
         // Navigation items
         const navItems = document.querySelectorAll('.nav-item');
+        console.log(`[INFO] Found ${navItems.length} navigation items`);
+
+        if (navItems.length === 0) {
+            console.warn('[WARN] No navigation items found! Retrying in 500ms...');
+            setTimeout(() => this.setupEventListeners(), 500);
+            return;
+        }
+
         navItems.forEach(item => {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
                 const view = item.getAttribute('data-view');
+                console.log(`[INFO] Navigation clicked: ${view}`);
                 this.navigateTo(view);
             });
         });
@@ -125,24 +134,29 @@ const Navigation = {
 
     // Scroll to section
     scrollToSection(view) {
-        // Map view names to section classes
+        // Map view names to section classes/IDs
         const sectionMap = {
             'overview': '.map-section',
-            'sensors': '.sensors-grid',
+            'sensors': '#live-sensors-section',
             'charts': '.charts-section',
             'weather': '.weather-section',
             'intelligence': '.intelligence-section',
             'controls': '.control-panel-section',
             'alerts': '.alerts-section',
-            'reports': '.data-table'
+            'reports': '#recent-readings-section'
         };
 
-        const sectionClass = sectionMap[view];
-        if (sectionClass) {
-            const section = document.querySelector(sectionClass);
+        const selector = sectionMap[view];
+        if (selector) {
+            const section = document.querySelector(selector);
             if (section) {
+                // Add visual feedback - flash the section border
+                section.style.transition = 'box-shadow 0.3s ease, border 0.3s ease';
+                section.style.boxShadow = '0 0 0 3px var(--primary-color), 0 0 20px rgba(46, 125, 50, 0.3)';
+                section.style.border = '2px solid var(--primary-color)';
+
                 // Scroll with offset for fixed header
-                const headerOffset = 80;
+                const headerOffset = 100; // Increased for better visibility
                 const elementPosition = section.getBoundingClientRect().top;
                 const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
@@ -150,6 +164,16 @@ const Navigation = {
                     top: offsetPosition,
                     behavior: 'smooth'
                 });
+
+                // Remove the flash after animation
+                setTimeout(() => {
+                    section.style.boxShadow = '';
+                    section.style.border = '';
+                }, 2000);
+
+                console.log(`[SUCCESS] Scrolled to ${view} section`);
+            } else {
+                console.warn(`[WARN] Section not found for view: ${view} (selector: ${selector})`);
             }
         }
     },
@@ -211,14 +235,8 @@ const Navigation = {
         // Open fullscreen map for satellite analysis
         this.openFullscreenMap();
 
-        // Show helpful notification
-        if (typeof Notifications !== 'undefined') {
-            Notifications.info(
-                'Satellite Analysis Ready',
-                'Draw polygons on the map to analyze field areas with NDVI data',
-                8000
-            );
-        }
+        // Notification removed - drawing tools are visible on map if user needs them
+        console.log('[INFO] Satellite view opened - drawing tools available on map');
 
         // Show satellite panel (will populate when fields are drawn)
         const panel = document.getElementById('satellite-analysis-panel');

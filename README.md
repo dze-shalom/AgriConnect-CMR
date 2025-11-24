@@ -2,7 +2,7 @@
 
 **Version:** 1.0.0
 **Status:** Phase 1 - In Development
-**Last Updated:** 2025-10-21
+**Last Updated:** 2025-11-21
 
 ## Overview
 AgriConnect is a cloud-connected precision agriculture monitoring system using LoRa wireless sensor networks and ESP32 gateways for remote farm monitoring and control.
@@ -65,5 +65,5 @@ Proprietary - AgriConnect
 
 ## Contact
 **Author**: Dze-Kum Shalom Chow
-**Company**: AgriConnect 
-**Date**: 2025-11-18
+**Company**: AgriConnect Ltd
+**Date**: 2025-10-21

@@ -3,7 +3,7 @@
 ## Overview
 AgriConnect is a comprehensive IoT platform for smart agriculture, featuring real-time sensor monitoring, intelligent disease prediction, automated irrigation control, and interactive map visualization.
 
-**Built for:** Tomato cultivation in Buea, Cameroon  
+**Built for:** precision Agriculture in Cameroon Cameroon  
 **Technology Stack:** Node.js, Supabase, MQTT, Mapbox GL, JavaScript  
 **Status:** Phase 1 Complete ✓
 
@@ -361,11 +361,10 @@ Started At,Field,Zone,Duration,Started By,Completed
 
 ## Known Limitations (Phase 1)
 
-1. **Manual Refresh Required**: No WebSocket real-time updates
-2. **Single User**: No multi-user collaboration
-3. **No Mobile App**: Web-only interface
-4. **No Historical Charts**: Only latest values displayed
-5. **Limited Analytics**: No trend analysis or predictions
+1. **Single User**: No multi-user collaboration
+2. **No Mobile App**: Web-only interface
+3. **No Historical Charts**: Only latest values displayed
+4. **Limited Analytics**: No trend analysis or predictions
 
 ---
 
@@ -446,7 +445,6 @@ For support or questions:
 ---
 
 ## Acknowledgments
-- Anthropic Claude for AI assistance
 - Supabase for database infrastructure
 - HiveMQ for MQTT broker
 - Mapbox for mapping services
@@ -520,21 +518,21 @@ For support or questions:
    -  Harvest date prediction
 
 ####  **Enhanced Mobile Responsive Design**
--  Optimized for tablets and phones
--  Touch-friendly interface
--  Adaptive layouts
--  Improved navigation
+-     Optimized for tablets and phones
+-     Touch-friendly interface
+-     Adaptive layouts
+-     Improved navigation
 
 ####  **UI/UX Improvements**
--  Smooth animations and transitions
--  Gradient backgrounds
--  Enhanced card hover effects
--  Better visual hierarchy
--  Improved spacing and typography
+-     Smooth animations and transitions
+-     Gradient backgrounds
+-     Enhanced card hover effects
+-     Better visual hierarchy
+-     Improved spacing and typography
 
 ---
 
-##  New Dependencies
+##   New Dependencies
 
 ### JavaScript Libraries
 - **Chart.js 4.4.0** - Advanced charting library

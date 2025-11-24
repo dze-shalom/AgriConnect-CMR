@@ -6,10 +6,14 @@
 const Dashboard = {
     refreshTimer: null,
     latestReadings: {},
-    
+    domCache: {}, // Cache for frequently accessed DOM elements
+
     // Initialize dashboard
     async init() {
         console.log('[INFO] Initializing dashboard...');
+
+        // Cache frequently used DOM elements
+        this.cacheDOMElements();
 
         // Load initial data
         await this.loadFarmInfo();
@@ -27,6 +31,26 @@ const Dashboard = {
 
         console.log('[SUCCESS] Dashboard initialized');
     },
+
+    // Cache DOM elements to avoid repeated queries
+    cacheDOMElements() {
+        this.domCache = {
+            farmName: document.getElementById('farm-name'),
+            alertsContainer: document.getElementById('alerts-container'),
+            alertsCount: document.getElementById('alerts-count'),
+            sensorsGrid: document.getElementById('sensors-grid'),
+            readingsTableBody: document.querySelector('#readings-table tbody'),
+            lastUpdate: document.getElementById('last-update'),
+            statusBadge: document.getElementById('status-badge'),
+            // Cache sensor value elements
+            airTempValue: document.getElementById('air-temp-value'),
+            airHumidityValue: document.getElementById('air-humidity-value'),
+            soilMoistureValue: document.getElementById('soil-moisture-value'),
+            phValue: document.getElementById('ph-value'),
+            ecValue: document.getElementById('ec-value'),
+            batteryLevelValue: document.getElementById('battery-level-value')
+        };
+    },
     
     // Load farm information
     async loadFarmInfo() {
@@ -36,18 +60,20 @@ const Dashboard = {
                 .select('name')
                 .eq('farm_id', CONFIG.farmId)
                 .single();
-            
+
             if (error) throw error;
-            
-            if (data) {
-                document.getElementById('farm-name').textContent = data.name;
-            } else {
-                document.getElementById('farm-name').textContent = CONFIG.farmId;
+
+            const farmNameEl = this.domCache.farmName || document.getElementById('farm-name');
+            if (farmNameEl) {
+                farmNameEl.textContent = data ? data.name : CONFIG.farmId;
             }
-            
+
         } catch (error) {
             console.error('[ERROR] Failed to load farm info:', error.message);
-            document.getElementById('farm-name').textContent = CONFIG.farmId;
+            const farmNameEl = this.domCache.farmName || document.getElementById('farm-name');
+            if (farmNameEl) {
+                farmNameEl.textContent = CONFIG.farmId;
+            }
         }
     },
     
@@ -61,28 +87,32 @@ const Dashboard = {
                 .eq('acknowledged', false)
                 .order('created_at', { ascending: false })
                 .limit(10);
-            
+
             if (error) throw error;
-            
-            const container = document.getElementById('alerts-container');
-            const countBadge = document.getElementById('alerts-count');
-            
+
+            const container = this.domCache.alertsContainer || document.getElementById('alerts-container');
+            const countBadge = this.domCache.alertsCount || document.getElementById('alerts-count');
+
+            if (!container) return;
+
             if (!data || data.length === 0) {
                 container.innerHTML = '<div class="loading">No active alerts - all systems normal</div>';
-                countBadge.textContent = '0';
+                if (countBadge) countBadge.textContent = '0';
                 return;
             }
-            
+
             // Update count
-            countBadge.textContent = data.length;
-            
+            if (countBadge) countBadge.textContent = data.length;
+
             // Render alerts
             container.innerHTML = data.map(alert => this.renderAlert(alert)).join('');
-            
+
         } catch (error) {
             console.error('[ERROR] Failed to load alerts:', error.message);
-            document.getElementById('alerts-container').innerHTML = 
-                '<div class="loading">Failed to load alerts</div>';
+            const container = this.domCache.alertsContainer || document.getElementById('alerts-container');
+            if (container) {
+                container.innerHTML = '<div class="loading">Failed to load alerts</div>';
+            }
         }
     },
     
@@ -581,43 +611,49 @@ const Dashboard = {
     updateSingleReading(reading) {
         console.log('[REALTIME] Updating dashboard with new reading:', reading);
 
-        // Update latest sensor values
-        const sensorValueIds = {
-            air_temperature: 'air-temp-value',
-            air_humidity: 'air-humidity-value',
-            soil_moisture: 'soil-moisture-value',
-            ph_value: 'ph-value',
-            ec_value: 'ec-value',
-            battery_level: 'battery-level-value'
-        };
+        // Batch DOM updates using requestAnimationFrame for better performance
+        PerformanceUtils.batchDOMUpdates([
+            () => {
+                // Update sensor values using cached DOM elements
+                const sensorMappings = [
+                    { key: 'air_temperature', cache: 'airTempValue' },
+                    { key: 'air_humidity', cache: 'airHumidityValue' },
+                    { key: 'soil_moisture', cache: 'soilMoistureValue' },
+                    { key: 'ph_value', cache: 'phValue' },
+                    { key: 'ec_value', cache: 'ecValue' },
+                    { key: 'battery_level', cache: 'batteryLevelValue' }
+                ];
 
-        // Update each sensor value
-        Object.keys(sensorValueIds).forEach(key => {
-            if (reading[key] !== undefined && reading[key] !== null) {
-                const element = document.getElementById(sensorValueIds[key]);
-                if (element) {
-                    const unit = this.getSensorUnit(key);
-                    element.textContent = `${reading[key]}${unit}`;
+                sensorMappings.forEach(({ key, cache }) => {
+                    if (reading[key] !== undefined && reading[key] !== null) {
+                        const element = this.domCache[cache];
+                        if (element) {
+                            const unit = this.getSensorUnit(key);
+                            element.textContent = `${reading[key]}${unit}`;
 
-                    // Add flash animation
-                    element.classList.add('flash-update');
-                    setTimeout(() => element.classList.remove('flash-update'), 1000);
+                            // Add flash animation
+                            element.classList.add('flash-update');
+                            setTimeout(() => element.classList.remove('flash-update'), 1000);
+                        }
+                    }
+                });
+            },
+            () => {
+                // Update last update time
+                const lastUpdateEl = this.domCache.lastUpdate;
+                if (lastUpdateEl) {
+                    lastUpdateEl.textContent = new Date(reading.reading_time).toLocaleString();
+                }
+            },
+            () => {
+                // Update status badge
+                const statusBadge = this.domCache.statusBadge;
+                if (statusBadge) {
+                    statusBadge.textContent = 'LIVE';
+                    statusBadge.className = 'status-badge online';
                 }
             }
-        });
-
-        // Update last update time
-        const lastUpdateEl = document.getElementById('last-update');
-        if (lastUpdateEl) {
-            lastUpdateEl.textContent = new Date(reading.reading_time).toLocaleString();
-        }
-
-        // Update status badge if needed
-        const statusBadge = document.getElementById('status-badge');
-        if (statusBadge) {
-            statusBadge.textContent = 'LIVE';
-            statusBadge.className = 'status-badge online';
-        }
+        ]);
     },
 
     // Get sensor unit for display

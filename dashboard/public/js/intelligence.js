@@ -157,14 +157,14 @@ const Intelligence = {
         const pStatus = this.getNutrientStatus(p, optimalP);
         const kStatus = this.getNutrientStatus(k, optimalK);
 
-        let recommendation = '✅ Nutrient levels are optimal';
+        let recommendation = ' Nutrient levels are optimal';
         if (nStatus !== 'Optimal' || pStatus !== 'Optimal' || kStatus !== 'Optimal') {
             const issues = [];
             if (nStatus === 'Low') issues.push('Increase nitrogen fertilizer');
             if (nStatus === 'High') issues.push('Reduce nitrogen fertilizer');
             if (pStatus === 'Low') issues.push('Add phosphorus supplement');
             if (kStatus === 'Low') issues.push('Increase potassium application');
-            recommendation = '⚠️ ' + issues.join('. ');
+            recommendation = ' ' + issues.join('. ');
         }
 
         container.innerHTML = `
@@ -236,7 +236,7 @@ const Intelligence = {
                 <span class="intelligence-value">${roi}%</span>
             </div>
             <div class="intelligence-recommendation">
-                💰 ${roi > 50 ? 'Excellent' : roi > 25 ? 'Good' : 'Fair'} return on investment projected for this growing season.
+                 ${roi > 50 ? 'Excellent' : roi > 25 ? 'Good' : 'Fair'} return on investment projected for this growing season.
             </div>
         `;
     },
@@ -286,7 +286,7 @@ const Intelligence = {
             mlSection = `
                 <div class="ml-insights-section">
                     <h4 style="margin: 1rem 0 0.5rem 0; color: var(--primary-color); font-size: 0.95rem;">
-                        🤖 Advanced Neural Network Prediction
+                         Advanced Neural Network Prediction
                     </h4>
                     <div class="intelligence-metric">
                         <span class="intelligence-label">ML Yield Prediction</span>
@@ -335,7 +335,7 @@ const Intelligence = {
                 <span class="intelligence-value">${harvestDate.toLocaleDateString()}</span>
             </div>
             <div class="intelligence-recommendation">
-                📈 ${yieldScore > 80 ? 'Excellent' : yieldScore > 60 ? 'Good' : 'Fair'} yield expected based on current conditions.
+                 ${yieldScore > 80 ? 'Excellent' : yieldScore > 60 ? 'Good' : 'Fair'} yield expected based on current conditions.
             </div>
             ${mlSection}
         `;

@@ -56,7 +56,9 @@ const Weather = {
 
     // Get mock weather data for demo
     getMockWeatherData() {
-        const days = ['Today', 'Tomorrow', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        // Generate dynamic day names based on current date
+        const days = this.getRelativeDayNames(7);
+
         const conditions = [
             { icon: '🌤️', desc: 'Partly Cloudy', temp: 27, humidity: 68, wind: 12 },
             { icon: '⛅', desc: 'Cloudy', temp: 25, humidity: 72, wind: 15 },
@@ -73,28 +75,70 @@ const Weather = {
         }));
     },
 
+    // Get relative day names (Today, Tomorrow, Mon, Tue, etc.)
+    getRelativeDayNames(count = 7) {
+        const dayNames = [];
+        const today = new Date();
+
+        for (let i = 0; i < count; i++) {
+            const futureDate = new Date(today);
+            futureDate.setDate(today.getDate() + i);
+
+            let dayName;
+            if (i === 0) {
+                dayName = 'Today';
+            } else if (i === 1) {
+                dayName = 'Tomorrow';
+            } else {
+                // Get short day name (Mon, Tue, Wed, etc.)
+                dayName = futureDate.toLocaleDateString('en-US', { weekday: 'short' });
+            }
+
+            dayNames.push(dayName);
+        }
+
+        return dayNames;
+    },
+
     // Parse OpenWeather API data
     parseOpenWeatherData(data) {
-        const daily = {};
+        const daily = [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
         // Group forecasts by day
+        const dailyMap = {};
         data.list.forEach(item => {
             const date = new Date(item.dt * 1000);
-            const dayKey = date.toLocaleDateString('en-US', { weekday: 'short' });
+            const dateKey = date.toLocaleDateString('en-US');
 
-            if (!daily[dayKey]) {
-                daily[dayKey] = {
-                    day: dayKey,
-                    temp: item.main.temp,
+            if (!dailyMap[dateKey]) {
+                // Calculate day offset from today
+                const itemDate = new Date(date);
+                itemDate.setHours(0, 0, 0, 0);
+                const dayOffset = Math.floor((itemDate - today) / (1000 * 60 * 60 * 24));
+
+                let dayName;
+                if (dayOffset === 0) {
+                    dayName = 'Today';
+                } else if (dayOffset === 1) {
+                    dayName = 'Tomorrow';
+                } else {
+                    dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                }
+
+                dailyMap[dateKey] = {
+                    day: dayName,
+                    temp: Math.round(item.main.temp),
                     humidity: item.main.humidity,
-                    wind: item.wind.speed,
+                    wind: Math.round(item.wind.speed * 3.6), // Convert m/s to km/h
                     desc: item.weather[0].description,
                     icon: this.getWeatherIcon(item.weather[0].main)
                 };
             }
         });
 
-        return Object.values(daily).slice(0, 7);
+        return Object.values(dailyMap).slice(0, 7);
     },
 
     // Get weather icon emoji

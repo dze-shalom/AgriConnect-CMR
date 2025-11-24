@@ -2,7 +2,7 @@
 
 Complete ESP32-based field sensor node firmware for agricultural IoT monitoring.
 
-## 📋 Overview
+##  Overview
 
 The AgriConnect Field Node is a battery-powered, solar-charged IoT sensor platform that:
 - Collects multi-sensor agricultural data
@@ -46,7 +46,7 @@ The AgriConnect Field Node is a battery-powered, solar-charged IoT sensor platfo
 - **Waterproof Enclosure** - IP65 rated
 - **Cable Glands** - Sealed sensor cable entry
 
-## 📊 Wiring Diagram
+##  Wiring Diagram
 
 ### ESP32 Pinout
 
@@ -260,7 +260,7 @@ The field node sends JSON data via LoRa to the gateway:
 | pumpStatus | bool | - | Water pump on/off |
 | waterLevel | int | % | Water tank level |
 
-## 🔋 Power Consumption & Battery Life
+##  Power Consumption & Battery Life
 
 ### Deep Sleep Current Draw
 
@@ -298,7 +298,7 @@ Net positive: 6000 - 401 = 5599mAh surplus
 Battery life: UNLIMITED (with adequate sunlight)
 ```
 
-## 🛠️ Calibration Guide
+##  Calibration Guide
 
 ### Soil Moisture Sensor
 
@@ -333,7 +333,7 @@ Battery life: UNLIMITED (with adequate sunlight)
    int lux = map(rawValue, MIN_ADC, MAX_ADC, 0, 100000);
    ```
 
-## 🧪 Testing Procedure
+##  Testing Procedure
 
 ### 1. Bench Test (Before Deployment)
 
@@ -364,7 +364,7 @@ Battery life: UNLIMITED (with adequate sunlight)
 3. Monitor battery voltage over 24 hours
 4. Calculate actual power consumption
 
-## 🚨 Troubleshooting
+##  Troubleshooting
 
 ### Problem: LoRa initialization failed
 
@@ -422,7 +422,7 @@ Battery life: UNLIMITED (with adequate sunlight)
 3. Move node closer to gateway
 4. Check antenna connection
 
-## 📦 Deployment Guide
+##  Deployment Guide
 
 ### 1. Enclosure Assembly
 
@@ -474,7 +474,7 @@ INSERT INTO field_nodes (
 );
 ```
 
-## 🔧 Maintenance Schedule
+##  Maintenance Schedule
 
 ### Weekly
 - [ ] Check battery voltage
@@ -493,7 +493,7 @@ INSERT INTO field_nodes (
 - [ ] Full system test
 - [ ] Battery health check
 
-## 📊 Performance Metrics
+##  Performance Metrics
 
 **Expected Performance:**
 
@@ -505,7 +505,7 @@ INSERT INTO field_nodes (
 | Sensor accuracy | ±2% | ±5% |
 | Uptime | >99% | >95% |
 
-## 🔐 Security Considerations
+##  Security Considerations
 
 1. **Physical Security:**
    - Lock enclosure
@@ -517,7 +517,7 @@ INSERT INTO field_nodes (
    - Secure bootloader (future)
    - Data validation at gateway
 
-## 📚 Additional Resources
+##  Additional Resources
 
 - **ESP32 Datasheet:** https://www.espressif.com/sites/default/files/documentation/esp32_datasheet_en.pdf
 - **LoRa SX1276 Datasheet:** https://www.semtech.com/products/wireless-rf/lora-transceivers/sx1276
@@ -535,6 +535,6 @@ For issues or questions:
 ---
 
 **Version:** 2.0.0
-**Last Updated:** January 2025
+**Last Updated:** Novvember 2025
 **License:** MIT
 **Hardware:** ESP32 + LoRa SX1276/78
