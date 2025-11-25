@@ -165,70 +165,70 @@
             <!-- Map View Section -->
             <section class="section map-section">
                 <div class="section-header">
-                    <h2>Farm Map - Node Locations</h2>
+                    <h2 data-i18n="farm_map_title">Farm Map - Node Locations</h2>
                     <div class="map-controls">
                         <button id="zoom-to-farm-btn" class="btn-icon" title="Zoom to Farm">🏠</button>
                         <select id="map-filter" class="map-filter-select">
-                            <option value="all">All Nodes</option>
-                            <option value="online">Online Only</option>
-                            <option value="offline">Offline Only</option>
-                            <option value="warning">Warnings Only</option>
+                            <option value="all" data-i18n="all_nodes">All Nodes</option>
+                            <option value="online" data-i18n="online_only">Online Only</option>
+                            <option value="offline" data-i18n="offline_only">Offline Only</option>
+                            <option value="warning" data-i18n="warnings_only">Warnings Only</option>
                         </select>
                         <button id="toggle-map-btn" class="btn-secondary">
-                            <span id="toggle-map-text">Show Map</span>
+                            <span id="toggle-map-text" data-i18n="show_map">Show Map</span>
                         </button>
                     </div>
                 </div>
-                
+
                 <!-- Map Container (initially hidden) -->
                 <div id="map-container" class="map-container hidden">
                     <div id="map" class="map-canvas"></div>
-                    
+
                     <!-- Map Legend -->
                     <div class="map-legend">
-                        <h4>Legend</h4>
+                        <h4 data-i18n="legend">Legend</h4>
                         <div class="legend-item">
                             <span class="legend-marker farm">🏠</span>
-                            <span>Farm Location</span>
+                            <span data-i18n="farm_location">Farm Location</span>
                         </div>
                         <div class="legend-item">
                             <span class="legend-marker gateway online">📡</span>
-                            <span>Gateway (Online)</span>
+                            <span data-i18n="gateway_online">Gateway (Online)</span>
                         </div>
                         <div class="legend-item">
                             <span class="legend-marker gateway offline">📡</span>
-                            <span>Gateway (Offline)</span>
+                            <span data-i18n="gateway_offline">Gateway (Offline)</span>
                         </div>
                         <div class="legend-item">
                             <span class="legend-marker node online">📍</span>
-                            <span>Node (Optimal)</span>
+                            <span data-i18n="node_optimal">Node (Optimal)</span>
                         </div>
                         <div class="legend-item">
                             <span class="legend-marker node warning">📍</span>
-                            <span>Node (Warning)</span>
+                            <span data-i18n="node_warning">Node (Warning)</span>
                         </div>
                         <div class="legend-item">
                             <span class="legend-marker node offline">📍</span>
-                            <span>Node (Offline)</span>
+                            <span data-i18n="node_offline">Node (Offline)</span>
                         </div>
                     </div>
-                    
+
                     <!-- Map Stats -->
                     <div class="map-stats">
                         <div class="stat-item">
-                            <span class="stat-label">Total Nodes</span>
+                            <span class="stat-label" data-i18n="total_nodes">Total Nodes</span>
                             <span id="total-nodes-count" class="stat-value">0</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-label">Online</span>
+                            <span class="stat-label" data-i18n="online">Online</span>
                             <span id="online-nodes-count" class="stat-value online">0</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-label">Warnings</span>
+                            <span class="stat-label" data-i18n="warnings">Warnings</span>
                             <span id="warning-nodes-count" class="stat-value warning">0</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-label">Offline</span>
+                            <span class="stat-label" data-i18n="offline">Offline</span>
                             <span id="offline-nodes-count" class="stat-value offline">0</span>
                         </div>
                     </div>
@@ -238,46 +238,46 @@
             <!-- Weather Forecast Section -->
             <section class="section weather-section">
                 <div class="section-header">
-                    <h2>🌤️ Weather Forecast</h2>
+                    <h2 data-i18n="weather_forecast">🌤️ Weather Forecast</h2>
                     <span id="weather-location" class="weather-location">Buea, Cameroon</span>
                 </div>
                 <div id="weather-container" class="weather-container">
-                    <div class="loading">Loading weather data...</div>
+                    <div class="loading" data-i18n="loading">Loading weather data...</div>
                 </div>
             </section>
 
             <!-- Historical Data Charts Section -->
             <section class="section charts-section">
                 <div class="section-header">
-                    <h2> Historical Trends (7 Days)</h2>
+                    <h2 data-i18n="historical_trends"> Historical Trends (7 Days)</h2>
                     <select id="chart-timerange" class="chart-timerange-select">
-                        <option value="24">Last 24 Hours</option>
-                        <option value="168" selected>Last 7 Days</option>
-                        <option value="720">Last 30 Days</option>
+                        <option value="24" data-i18n="last_24_hours">Last 24 Hours</option>
+                        <option value="168" selected data-i18n="last_7_days">Last 7 Days</option>
+                        <option value="720" data-i18n="last_30_days">Last 30 Days</option>
                     </select>
                 </div>
                 <div class="charts-grid">
                     <!-- Temperature & Humidity Chart -->
                     <div class="chart-card">
-                        <h3>Temperature & Humidity</h3>
+                        <h3 data-i18n="temp_humidity">Temperature & Humidity</h3>
                         <canvas id="temp-humidity-chart"></canvas>
                     </div>
 
                     <!-- Soil Moisture Chart -->
                     <div class="chart-card">
-                        <h3>Soil Moisture</h3>
+                        <h3 data-i18n="soil_moisture">Soil Moisture</h3>
                         <canvas id="soil-moisture-chart"></canvas>
                     </div>
 
                     <!-- pH & EC Chart -->
                     <div class="chart-card">
-                        <h3>pH & EC Levels</h3>
+                        <h3 data-i18n="ph_ec_levels">pH & EC Levels</h3>
                         <canvas id="ph-ec-chart"></canvas>
                     </div>
 
                     <!-- NPK Chart -->
                     <div class="chart-card">
-                        <h3>NPK Levels</h3>
+                        <h3 data-i18n="npk_levels">NPK Levels</h3>
                         <canvas id="npk-chart"></canvas>
                     </div>
                 </div>
@@ -286,7 +286,7 @@
             <!-- Disease Risk Timeline -->
             <section class="section disease-risk-section">
                 <div class="section-header">
-                    <h2> Disease Risk Timeline</h2>
+                    <h2 data-i18n="disease_risk"> Disease Risk Timeline</h2>
                     <span id="disease-status" class="disease-status">Monitoring 6 diseases</span>
                 </div>
                 <canvas id="disease-risk-chart"></canvas>
@@ -295,59 +295,59 @@
             <!-- Intelligence Modules Section -->
             <section class="section intelligence-section">
                 <div class="section-header">
-                    <h2> Smart Analytics</h2>
+                    <h2 data-i18n="smart_analytics"> Smart Analytics</h2>
                 </div>
                 <div class="intelligence-grid">
                     <!-- Growth Stage Tracker -->
                     <div class="intelligence-card">
                         <div class="intelligence-header">
-                            <h3> Growth Stage</h3>
+                            <h3 data-i18n="growth_stage"> Growth Stage</h3>
                         </div>
                         <div id="growth-stage-content" class="intelligence-content">
-                            <div class="loading">Calculating...</div>
+                            <div class="loading" data-i18n="loading">Calculating...</div>
                         </div>
                     </div>
 
                     <!-- Nutrient Management -->
                     <div class="intelligence-card">
                         <div class="intelligence-header">
-                            <h3> Nutrient Management</h3>
+                            <h3 data-i18n="nutrient_mgmt"> Nutrient Management</h3>
                         </div>
                         <div id="nutrient-content" class="intelligence-content">
-                            <div class="loading">Analyzing...</div>
+                            <div class="loading" data-i18n="loading">Analyzing...</div>
                         </div>
                     </div>
 
                     <!-- Cost & ROI Tracker -->
                     <div class="intelligence-card">
                         <div class="intelligence-header">
-                            <h3> Cost & ROI</h3>
+                            <h3 data-i18n="cost_roi"> Cost & ROI</h3>
                         </div>
                         <div id="roi-content" class="intelligence-content">
-                            <div class="loading">Computing...</div>
+                            <div class="loading" data-i18n="loading">Computing...</div>
                         </div>
                     </div>
 
                     <!-- Yield Prediction -->
                     <div class="intelligence-card">
                         <div class="intelligence-header">
-                            <h3> Yield Forecast</h3>
+                            <h3 data-i18n="yield_forecast"> Yield Forecast</h3>
                         </div>
                         <div id="yield-content" class="intelligence-content">
-                            <div class="loading">Predicting...</div>
+                            <div class="loading" data-i18n="loading">Predicting...</div>
                         </div>
                     </div>
 
                     <!-- Disease Analysis -->
                     <div class="intelligence-card disease-analysis-card">
                         <div class="intelligence-header">
-                            <h3> Disease Analysis</h3>
+                            <h3 data-i18n="disease_analysis"> Disease Analysis</h3>
                         </div>
                         <div class="intelligence-content">
                             <div class="disease-upload-section">
-                                <p class="disease-instruction">Upload a photo of tomato leaves for AI-powered disease detection</p>
+                                <p class="disease-instruction" data-i18n="disease_instruction">Upload a photo of tomato leaves for AI-powered disease detection</p>
                                 <input type="file" id="disease-image-input" accept="image/*" style="display: none;">
-                                <button id="upload-disease-image" class="btn-primary">
+                                <button id="upload-disease-image" class="btn-primary" data-i18n="upload_leaf_image">
                                     📸 Upload Leaf Image
                                 </button>
                             </div>
@@ -363,15 +363,15 @@
                 <!-- Control Panel Section -->
             <section class="section control-panel-section">
                 <div class="section-header">
-                    <h2>Farm Controls</h2>
+                    <h2 data-i18n="farm_controls">Farm Controls</h2>
                     <span id="control-status" class="control-status">Ready</span>
                 </div>
-                
+
                 <div class="controls-grid">
                     <!-- Pump Control Card -->
                     <div class="control-card">
                         <div class="control-header">
-                            <h3>Water Pump</h3>
+                            <h3 data-i18n="water_pump">Water Pump</h3>
                             <span id="pump-status-indicator" class="status-indicator off">OFF</span>
                         </div>
                         <div class="control-body">
@@ -382,10 +382,10 @@
                             </div>
                             <div class="control-actions">
                                 <button id="pump-on-btn" class="control-btn success">
-                                    <span>▶</span> Turn ON
+                                    <span>▶</span> <span data-i18n="turn_on">Turn ON</span>
                                 </button>
                                 <button id="pump-off-btn" class="control-btn danger">
-                                    <span>■</span> Turn OFF
+                                    <span>■</span> <span data-i18n="turn_off">Turn OFF</span>
                                 </button>
                             </div>
                             <div class="control-info">
@@ -397,8 +397,8 @@
                     <!-- Zone Selector Card -->
                     <div class="control-card">
                         <div class="control-header">
-                            <h3>Irrigation Zone</h3>
-                            <span class="control-label">Select Target</span>
+                            <h3 data-i18n="irrigation_zone">Irrigation Zone</h3>
+                            <span class="control-label" data-i18n="select_target">Select Target</span>
                         </div>
                         <div class="control-body">
                             <div class="zone-selector">
@@ -430,12 +430,12 @@
                     <!-- Manual Irrigation Card -->
                     <div class="control-card">
                         <div class="control-header">
-                            <h3>Manual Irrigation</h3>
-                            <span class="control-label">Duration Control</span>
+                            <h3 data-i18n="manual_irrigation">Manual Irrigation</h3>
+                            <span class="control-label" data-i18n="duration_control">Duration Control</span>
                         </div>
                         <div class="control-body">
                             <div class="duration-control">
-                                <label for="irrigation-duration">Duration (minutes)</label>
+                                <label for="irrigation-duration" data-i18n="duration_minutes">Duration (minutes)</label>
                                 <div class="duration-input-group">
                                     <button class="duration-btn" data-action="decrease">-</button>
                                     <input type="number" id="irrigation-duration" value="15" min="1" max="60">
@@ -449,12 +449,12 @@
                             </div>
                             <div class="control-actions">
                                 <button id="start-irrigation-btn" class="control-btn primary-action">
-                                    <span>▶</span> Start Irrigation
+                                    <span>▶</span> <span data-i18n="start_irrigation">Start Irrigation</span>
                                 </button>
                             </div>
                             <div class="irrigation-status">
                                 <div id="irrigation-timer" class="timer hidden">
-                                    <span>⏱</span> Time remaining: <strong id="timer-display">00:00</strong>
+                                    <span>⏱</span> <span data-i18n="time_remaining">Time remaining</span>: <strong id="timer-display">00:00</strong>
                                 </div>
                             </div>
                         </div>
@@ -463,26 +463,26 @@
                     <!-- Quick Actions Card -->
                     <div class="control-card">
                         <div class="control-header">
-                            <h3>Quick Actions</h3>
-                            <span class="control-label">Common Tasks</span>
+                            <h3 data-i18n="quick_actions">Quick Actions</h3>
+                            <span class="control-label" data-i18n="common_tasks">Common Tasks</span>
                         </div>
                         <div class="control-body">
                             <div class="quick-actions">
                                 <button class="quick-action-btn" id="water-all-zones-btn">
                                     <span class="action-icon">💧</span>
-                                    <span class="action-text">Water All Zones</span>
+                                    <span class="action-text" data-i18n="water_all_zones">Water All Zones</span>
                                 </button>
                                 <button class="quick-action-btn" id="emergency-stop-btn">
                                     <span class="action-icon">⛔</span>
-                                    <span class="action-text">Emergency Stop</span>
+                                    <span class="action-text" data-i18n="emergency_stop">Emergency Stop</span>
                                 </button>
                                 <button class="quick-action-btn" id="test-pump-btn">
                                     <span class="action-icon">🔧</span>
-                                    <span class="action-text">Test Pump (1 min)</span>
+                                    <span class="action-text" data-i18n="test_pump_1min">Test Pump (1 min)</span>
                                 </button>
                                 <button class="quick-action-btn" id="sync-nodes-btn">
                                     <span class="action-icon">🔄</span>
-                                    <span class="action-text">Sync All Nodes</span>
+                                    <span class="action-text" data-i18n="sync_nodes">Sync All Nodes</span>
                                 </button>
                             </div>
                         </div>
@@ -490,34 +490,34 @@
                 </div>
             </section>
                 <div class="section-header">
-                    <h2>Active Alerts</h2>
+                    <h2 data-i18n="active_alerts">Active Alerts</h2>
                     <span id="alerts-count" class="badge">0</span>
                 </div>
                 <div id="alerts-container" class="alerts-container">
-                    <div class="loading">Loading alerts...</div>
+                    <div class="loading" data-i18n="loading">Loading alerts...</div>
                 </div>
             </section>
 
             <!-- Sensor Data Grid -->
             <section class="section" id="live-sensors-section">
                 <div class="section-header">
-                    <h2>Live Sensor Data</h2>
+                    <h2 data-i18n="live_sensor_data">Live Sensor Data</h2>
                     <div style="display: flex; gap: 0.5rem;">
                         <button id="export-pdf-btn" class="btn-primary">
-                            <i data-lucide="file-text"></i> Generate PDF Report
+                            <i data-lucide="file-text"></i> <span data-i18n="generate_pdf_report">Generate PDF Report</span>
                         </button>
-                        <button id="export-csv-btn" class="btn-secondary">Export CSV</button>
+                        <button id="export-csv-btn" class="btn-secondary" data-i18n="export_csv">Export CSV</button>
                     </div>
                 </div>
                 <div id="sensors-grid" class="sensors-grid">
-                    <div class="loading">Loading sensor data...</div>
+                    <div class="loading" data-i18n="loading">Loading sensor data...</div>
                 </div>
             </section>
 
             <!-- Recent Readings Table -->
             <section class="section" id="recent-readings-section">
                 <div class="section-header">
-                    <h2>Recent Readings</h2>
+                    <h2 data-i18n="recent_readings">Recent Readings</h2>
                 </div>
                 <div class="table-container">
                     <table id="readings-table" class="data-table">
