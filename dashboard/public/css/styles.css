@@ -4719,3 +4719,173 @@ html {
         width: 100%;
     }
 }
+
+/* Navigation Subtitles */
+.nav-subtitle {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-disabled);
+    margin-top: 2px;
+    font-weight: 400;
+    opacity: 0.8;
+}
+
+.nav-item:hover .nav-subtitle {
+    opacity: 1;
+}
+
+.nav-item.active .nav-subtitle {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Smart Scheduler Card - Approve/Decline Workflow */
+.scheduler-card {
+    grid-column: span 2;
+}
+
+.scheduler-recommendation {
+    background: linear-gradient(135deg, rgba(46, 125, 50, 0.1), rgba(102, 187, 106, 0.1));
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--primary-color);
+    margin-bottom: var(--spacing-md);
+}
+
+.recommendation-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.recommendation-icon {
+    font-size: 2.5rem;
+    animation: pulse 2s infinite;
+}
+
+.recommendation-header h4 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--text-primary);
+}
+
+.recommendation-header p {
+    margin: var(--spacing-xs) 0 0 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.recommendation-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--surface);
+    border-radius: var(--radius-md);
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.detail-value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.reasoning-box {
+    background: var(--surface);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.reasoning-box strong {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    color: var(--text-primary);
+}
+
+.reasoning-box ul {
+    margin: 0;
+    padding-left: var(--spacing-lg);
+    list-style-position: outside;
+}
+
+.reasoning-box li {
+    margin: var(--spacing-xs) 0;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.recommendation-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.recommendation-actions .control-btn {
+    flex: 1;
+    min-width: 140px;
+}
+
+.no-recommendation {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--text-secondary);
+}
+
+.no-recommendation p {
+    margin-bottom: var(--spacing-md);
+}
+
+.scheduler-stats-mini {
+    display: flex;
+    gap: var(--spacing-md);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--border-color);
+}
+
+.stat-mini {
+    flex: 1;
+    text-align: center;
+    padding: var(--spacing-sm);
+    background: var(--surface-hover);
+    border-radius: var(--radius-sm);
+}
+
+.stat-mini-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.stat-mini-value {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+@media (max-width: 1024px) {
+    .scheduler-card {
+        grid-column: span 1;
+    }
+
+    .recommendation-actions {
+        flex-direction: column;
+    }
+
+    .recommendation-actions .control-btn {
+        width: 100%;
+    }
+}

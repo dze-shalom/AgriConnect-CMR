@@ -125,62 +125,42 @@
                 <nav class="sidebar-nav">
                     <a href="#" class="nav-item active" data-view="overview">
                         <i data-lucide="layout-dashboard"></i>
-                        <span data-i18n="nav_overview">Overview</span>
+                        <span>Overview</span>
                     </a>
-                    <a href="#" class="nav-item" data-view="map">
-                        <i data-lucide="map"></i>
-                        <span data-i18n="nav_farm_map">Farm Map</span>
-                    </a>
-                    <a href="#" class="nav-item" data-view="sensors">
+                    <a href="#" class="nav-item" data-view="monitoring">
                         <i data-lucide="activity"></i>
-                        <span data-i18n="nav_live_sensors">Live Sensors</span>
+                        <span>Monitoring</span>
+                        <small class="nav-subtitle">Sensors & Weather</small>
                     </a>
-                    <a href="#" class="nav-item" data-view="charts">
-                        <i data-lucide="trending-up"></i>
-                        <span data-i18n="nav_analytics">Analytics</span>
-                    </a>
-                    <a href="#" class="nav-item" data-view="weather">
-                        <i data-lucide="cloud-sun"></i>
-                        <span data-i18n="nav_weather">Weather</span>
+                    <a href="#" class="nav-item" data-view="analytics">
+                        <i data-lucide="bar-chart-2"></i>
+                        <span>Analytics</span>
+                        <small class="nav-subtitle">Charts & Reports</small>
                     </a>
                     <a href="#" class="nav-item" data-view="intelligence">
                         <i data-lucide="brain"></i>
-                        <span data-i18n="nav_ai_insights">AI Insights</span>
+                        <span>AI Insights</span>
+                        <small class="nav-subtitle">Predictions & Analysis</small>
                     </a>
-                    <a href="#" class="nav-item" data-view="controls">
+                    <a href="#" class="nav-item" data-view="automation">
                         <i data-lucide="sliders"></i>
-                        <span data-i18n="nav_farm_controls">Farm Controls</span>
-                    </a>
-                    <a href="#" class="nav-item" data-view="alerts">
-                        <i data-lucide="bell"></i>
-                        <span data-i18n="nav_alerts">Alerts</span>
-                        <span id="alerts-badge" class="nav-badge">0</span>
+                        <span>Automation</span>
+                        <small class="nav-subtitle">Controls & Scheduling</small>
                     </a>
                     <a href="#" class="nav-item" data-view="satellite">
                         <i data-lucide="satellite"></i>
-                        <span data-i18n="nav_satellite">Satellite Data</span>
+                        <span>Satellite</span>
+                        <small class="nav-subtitle">NDVI & Field Mapping</small>
                     </a>
-                    <a href="#" class="nav-item" data-view="reports">
-                        <i data-lucide="file-text"></i>
-                        <span data-i18n="nav_reports">Reports</span>
+                    <a href="#" class="nav-item" data-view="alerts">
+                        <i data-lucide="bell"></i>
+                        <span>Alerts & Maintenance</span>
+                        <span id="alerts-badge" class="nav-badge">0</span>
                     </a>
-                    <div class="nav-divider"></div>
-                    <div class="nav-section-label">🚀 Innovations</div>
-                    <a href="#" class="nav-item" data-view="smart-scheduler">
-                        <i data-lucide="calendar-clock"></i>
-                        <span>Smart Scheduler</span>
-                    </a>
-                    <a href="#" class="nav-item" data-view="equipment-health">
-                        <i data-lucide="wrench"></i>
-                        <span>Equipment Health</span>
-                    </a>
-                    <a href="#" class="nav-item" data-view="yield-forecast">
-                        <i data-lucide="trending-up"></i>
-                        <span>Yield Forecast</span>
-                    </a>
-                    <a href="#" class="nav-item" data-view="whatsapp">
-                        <i data-lucide="message-circle"></i>
-                        <span>WhatsApp Bot</span>
+                    <a href="#" class="nav-item" data-view="settings">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                        <small class="nav-subtitle">Notifications & Config</small>
                     </a>
                 </nav>
             </div>
@@ -583,6 +563,82 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Smart Irrigation Scheduler Card -->
+                    <div class="control-card scheduler-card">
+                        <div class="control-header">
+                            <h3>🤖 Smart Irrigation Scheduler</h3>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="scheduler-toggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="control-body">
+                            <!-- Recommendation Display -->
+                            <div id="scheduler-recommendation" class="scheduler-recommendation hidden">
+                                <div class="recommendation-header">
+                                    <span class="recommendation-icon">💧</span>
+                                    <div>
+                                        <h4 id="recommendation-title">Irrigation Recommended</h4>
+                                        <p id="recommendation-subtitle">Zone: Field 1, Zone 1 • Duration: 20 min</p>
+                                    </div>
+                                </div>
+
+                                <div class="recommendation-details">
+                                    <div class="detail-row">
+                                        <span class="detail-label">Optimal Time:</span>
+                                        <span class="detail-value" id="optimal-time">Tonight at 11:00 PM</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-label">Water Needed:</span>
+                                        <span class="detail-value" id="water-needed">500L</span>
+                                    </div>
+                                </div>
+
+                                <div class="reasoning-box">
+                                    <strong>📊 Reasoning:</strong>
+                                    <ul id="reasoning-list">
+                                        <li>Soil moisture: 35% (below optimal)</li>
+                                        <li>No rain forecast (next 3 days)</li>
+                                        <li>ET rate: 4.2mm/day (moderate)</li>
+                                        <li>Water available: 4200L (sufficient)</li>
+                                    </ul>
+                                </div>
+
+                                <div class="recommendation-actions">
+                                    <button id="approve-schedule-btn" class="control-btn success">
+                                        ✅ Approve & Schedule
+                                    </button>
+                                    <button id="decline-schedule-btn" class="control-btn secondary">
+                                        ❌ Decline
+                                    </button>
+                                    <button id="schedule-later-btn" class="control-btn secondary">
+                                        ⏰ Schedule for Later
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- No Recommendation State -->
+                            <div id="no-recommendation" class="no-recommendation">
+                                <p>🌱 No irrigation recommendation at this time.</p>
+                                <button id="analyze-conditions-btn" class="control-btn primary">
+                                    🔍 Analyze Conditions
+                                </button>
+                            </div>
+
+                            <!-- Stats Display -->
+                            <div class="scheduler-stats-mini">
+                                <div class="stat-mini">
+                                    <span class="stat-mini-label">Water Saved</span>
+                                    <span class="stat-mini-value" id="water-saved">0 L</span>
+                                </div>
+                                <div class="stat-mini">
+                                    <span class="stat-mini-label">Scheduled</span>
+                                    <span class="stat-mini-value" id="upcoming-count">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -745,52 +801,6 @@
                             <p style="margin-top: 0.5rem; font-size: 0.85rem; color: #666;">
                                 <strong>Note:</strong> Requires Twilio account setup with valid credentials.
                             </p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Smart Scheduler Section -->
-            <section class="section smart-scheduler-section">
-                <div class="section-header">
-                    <h2>📅 Smart Irrigation Scheduler</h2>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="scheduler-toggle">
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-
-                <div class="scheduler-content">
-                    <div class="scheduler-stats">
-                        <div class="stat-card">
-                            <div class="stat-label">Water Saved</div>
-                            <div class="stat-value" id="water-saved">0 L</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Upcoming Irrigations</div>
-                            <div class="stat-value" id="upcoming-count">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Next Scheduled</div>
-                            <div class="stat-value" id="next-irrigation">--:--</div>
-                        </div>
-                    </div>
-
-                    <div class="scheduler-controls">
-                        <button id="analyze-conditions-btn" class="btn-primary">
-                            <i data-lucide="zap"></i>
-                            Analyze Conditions
-                        </button>
-                        <button id="generate-schedule-btn" class="btn-secondary">
-                            <i data-lucide="calendar"></i>
-                            Generate 7-Day Schedule
-                        </button>
-                    </div>
-
-                    <div id="schedule-list" class="schedule-list">
-                        <h3>Irrigation Schedule</h3>
-                        <div id="schedule-items">
-                            <p class="empty-state">No schedule generated yet. Click "Generate Schedule" to create one.</p>
                         </div>
                     </div>
                 </div>
