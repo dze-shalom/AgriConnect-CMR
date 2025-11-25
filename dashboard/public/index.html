@@ -164,6 +164,24 @@
                         <i data-lucide="file-text"></i>
                         <span data-i18n="nav_reports">Reports</span>
                     </a>
+                    <div class="nav-divider"></div>
+                    <div class="nav-section-label">🚀 Innovations</div>
+                    <a href="#" class="nav-item" data-view="smart-scheduler">
+                        <i data-lucide="calendar-clock"></i>
+                        <span>Smart Scheduler</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="equipment-health">
+                        <i data-lucide="wrench"></i>
+                        <span>Equipment Health</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="yield-forecast">
+                        <i data-lucide="trending-up"></i>
+                        <span>Yield Forecast</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="whatsapp">
+                        <i data-lucide="message-circle"></i>
+                        <span>WhatsApp Bot</span>
+                    </a>
                 </nav>
             </div>
         </aside>
@@ -686,6 +704,201 @@
                             <p style="margin-top: 0.5rem; font-size: 0.85rem; color: #666;">
                                 <strong>Note:</strong> Requires Twilio account setup with valid credentials.
                             </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Smart Scheduler Section -->
+            <section class="section smart-scheduler-section">
+                <div class="section-header">
+                    <h2>📅 Smart Irrigation Scheduler</h2>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="scheduler-toggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="scheduler-content">
+                    <div class="scheduler-stats">
+                        <div class="stat-card">
+                            <div class="stat-label">Water Saved</div>
+                            <div class="stat-value" id="water-saved">0 L</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Upcoming Irrigations</div>
+                            <div class="stat-value" id="upcoming-count">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Next Scheduled</div>
+                            <div class="stat-value" id="next-irrigation">--:--</div>
+                        </div>
+                    </div>
+
+                    <div class="scheduler-controls">
+                        <button id="analyze-conditions-btn" class="btn-primary">
+                            <i data-lucide="zap"></i>
+                            Analyze Conditions
+                        </button>
+                        <button id="generate-schedule-btn" class="btn-secondary">
+                            <i data-lucide="calendar"></i>
+                            Generate 7-Day Schedule
+                        </button>
+                    </div>
+
+                    <div id="schedule-list" class="schedule-list">
+                        <h3>Irrigation Schedule</h3>
+                        <div id="schedule-items">
+                            <p class="empty-state">No schedule generated yet. Click "Generate Schedule" to create one.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Equipment Health Section -->
+            <section class="section equipment-health-section">
+                <div class="section-header">
+                    <h2>🔧 Equipment Health Monitoring</h2>
+                    <button id="refresh-health-btn" class="btn-icon">
+                        <i data-lucide="refresh-cw"></i>
+                    </button>
+                </div>
+
+                <div class="health-grid">
+                    <div id="pump-health-card" class="health-card">
+                        <div class="health-header">
+                            <span class="health-name">💧 Water Pump</span>
+                            <span class="health-score">--</span>
+                        </div>
+                        <div class="health-bar">
+                            <div class="health-fill" style="width: 100%"></div>
+                        </div>
+                        <div class="health-alerts"></div>
+                    </div>
+
+                    <div id="gateway-health-card" class="health-card">
+                        <div class="health-header">
+                            <span class="health-name">📡 Gateway</span>
+                            <span class="health-score">--</span>
+                        </div>
+                        <div class="health-bar">
+                            <div class="health-fill" style="width: 100%"></div>
+                        </div>
+                        <div class="health-alerts"></div>
+                    </div>
+
+                    <div id="sensors-health-card" class="health-card">
+                        <div class="health-header">
+                            <span class="health-name">📊 Sensors</span>
+                            <span class="health-score">--</span>
+                        </div>
+                        <div class="health-bar">
+                            <div class="health-fill" style="width: 100%"></div>
+                        </div>
+                        <div class="health-alerts"></div>
+                    </div>
+                </div>
+
+                <div class="maintenance-section">
+                    <h3>📋 Maintenance Tasks</h3>
+                    <div id="maintenance-tasks">
+                        <p class="empty-state">No maintenance tasks at this time.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Yield Forecast Section -->
+            <section class="section yield-forecast-section">
+                <div class="section-header">
+                    <h2>🌾 Yield Forecasting AI</h2>
+                </div>
+
+                <div class="forecast-input-panel">
+                    <h3>Forecast Parameters</h3>
+                    <div class="forecast-inputs">
+                        <div class="input-group">
+                            <label for="forecast-crop-select">Crop Type</label>
+                            <select id="forecast-crop-select" class="form-control">
+                                <option value="maize">Maize</option>
+                                <option value="cassava">Cassava</option>
+                                <option value="beans">Beans</option>
+                                <option value="tomatoes">Tomatoes</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="forecast-area">Field Area (hectares)</label>
+                            <input type="number" id="forecast-area" class="form-control" value="1.0" min="0.1" step="0.1">
+                        </div>
+                        <button id="run-forecast-btn" class="btn-primary">
+                            <i data-lucide="play"></i>
+                            Run Forecast
+                        </button>
+                    </div>
+                </div>
+
+                <div id="forecast-results-container" class="forecast-results-container hidden">
+                    <!-- Results will be populated by yield-forecast.js -->
+                </div>
+            </section>
+
+            <!-- WhatsApp Bot Section -->
+            <section class="section whatsapp-section">
+                <div class="section-header">
+                    <h2>💬 WhatsApp Bot</h2>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="whatsapp-bot-toggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="whatsapp-content">
+                    <div class="whatsapp-setup">
+                        <h3>Bot Setup</h3>
+                        <p>Control your farm remotely via WhatsApp messages</p>
+
+                        <div class="input-group">
+                            <label for="whatsapp-phone-number">Your WhatsApp Number</label>
+                            <div class="phone-input-group">
+                                <input type="tel" id="whatsapp-phone-number" class="form-control" placeholder="+237 6XX XXX XXX">
+                                <button id="save-whatsapp-number" class="btn-primary">Save</button>
+                            </div>
+                        </div>
+
+                        <div class="whatsapp-commands">
+                            <h4>Available Commands</h4>
+                            <div class="command-grid">
+                                <div class="command-item">
+                                    <strong>status</strong>
+                                    <span>Get farm overview</span>
+                                </div>
+                                <div class="command-item">
+                                    <strong>sensors</strong>
+                                    <span>Latest sensor readings</span>
+                                </div>
+                                <div class="command-item">
+                                    <strong>weather</strong>
+                                    <span>Weather forecast</span>
+                                </div>
+                                <div class="command-item">
+                                    <strong>water zone 1</strong>
+                                    <span>Start irrigation</span>
+                                </div>
+                                <div class="command-item">
+                                    <strong>pump on/off</strong>
+                                    <span>Control pump</span>
+                                </div>
+                                <div class="command-item">
+                                    <strong>help</strong>
+                                    <span>Show all commands</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="whatsapp-history">
+                        <h3>Message History</h3>
+                        <div id="whatsapp-message-history" class="message-history">
+                            <p class="empty-state">No messages yet. Enable the bot to start receiving notifications.</p>
                         </div>
                     </div>
                 </div>
