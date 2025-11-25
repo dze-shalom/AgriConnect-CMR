@@ -154,29 +154,6 @@ const WhatsAppBot = {
             this.sendNotification(`💦 Irrigation started: Zone ${e.detail.zone}, ${e.detail.duration} min`);
         });
 
-        // Tank refill button
-        const refillBtn = document.getElementById('refill-tank-btn');
-        const refillInput = document.getElementById('refill-amount');
-
-        if (refillBtn && refillInput) {
-            refillBtn.addEventListener('click', () => {
-                const amount = parseInt(refillInput.value) || 0;
-                if (amount > 0) {
-                    this.refillWaterTank(amount);
-                    this.updateTankDisplay();
-
-                    if (typeof Notifications !== 'undefined') {
-                        Notifications.show(
-                            '✅ Tank Refilled',
-                            `Added ${amount}L to water tank`,
-                            'success',
-                            3000
-                        );
-                    }
-                }
-            });
-        }
-
         // Update tank display every 5 seconds
         setInterval(() => this.updateTankDisplay(), 5000);
 

@@ -597,47 +597,6 @@
                         </div>
                     </div>
 
-                    <!-- Water Tank Monitor Card -->
-                    <div class="control-card">
-                        <div class="control-header">
-                            <h3>💧 Water Tank Monitor</h3>
-                            <span id="tank-status" class="status-indicator good">Good</span>
-                        </div>
-                        <div class="control-body">
-                            <div class="tank-display">
-                                <div class="tank-container">
-                                    <div id="tank-fill" class="tank-fill" style="height: 100%"></div>
-                                    <div class="tank-percentage" id="tank-percentage">100%</div>
-                                </div>
-                                <div class="tank-stats">
-                                    <div class="tank-stat-row">
-                                        <span class="tank-label">Current Level:</span>
-                                        <span class="tank-value" id="tank-current">5000L</span>
-                                    </div>
-                                    <div class="tank-stat-row">
-                                        <span class="tank-label">Capacity:</span>
-                                        <span class="tank-value">5000L</span>
-                                    </div>
-                                    <div class="tank-stat-row">
-                                        <span class="tank-label">Consumption:</span>
-                                        <span class="tank-value" id="tank-consumption">0 L/min</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="control-actions">
-                                <div class="refill-group">
-                                    <input type="number" id="refill-amount" value="1000" min="0" step="100" placeholder="Amount (L)">
-                                    <button id="refill-tank-btn" class="control-btn success">
-                                        Refill Tank
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="control-info">
-                                <small>💡 Alerts sent via Email, SMS & WhatsApp when low</small>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Smart Irrigation Scheduler Card -->
                     <div class="control-card scheduler-card">
                         <div class="control-header">
@@ -729,6 +688,43 @@
                 </div>
                 <div id="sensors-grid" class="sensors-grid">
                     <div class="loading" data-i18n="loading">Loading sensor data...</div>
+                </div>
+
+                <!-- Water Tank Sensor Card -->
+                <div class="sensor-card water-tank-sensor">
+                    <div class="sensor-header">
+                        <div class="sensor-icon">💧</div>
+                        <div class="sensor-info">
+                            <h3>Water Tank</h3>
+                            <p class="sensor-location">Main Storage</p>
+                        </div>
+                        <span id="tank-status" class="sensor-status good">Good</span>
+                    </div>
+                    <div class="sensor-body">
+                        <div class="tank-visual">
+                            <div class="tank-container-small">
+                                <div id="tank-fill" class="tank-fill" style="height: 100%"></div>
+                                <div class="tank-percentage" id="tank-percentage">100%</div>
+                            </div>
+                        </div>
+                        <div class="sensor-readings">
+                            <div class="sensor-reading">
+                                <span class="reading-label">Current Level</span>
+                                <span class="reading-value" id="tank-current">5000L</span>
+                            </div>
+                            <div class="sensor-reading">
+                                <span class="reading-label">Capacity</span>
+                                <span class="reading-value">5000L</span>
+                            </div>
+                            <div class="sensor-reading">
+                                <span class="reading-label">Usage Rate</span>
+                                <span class="reading-value" id="tank-consumption">0 L/min</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sensor-footer">
+                        <small class="sensor-alert-info">🔔 Alerts sent when level is low</small>
+                    </div>
                 </div>
             </section>
 

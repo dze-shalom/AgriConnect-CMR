@@ -4982,3 +4982,101 @@ html {
         grid-column: span 1;
     }
 }
+
+/* Water Tank Sensor Card */
+.water-tank-sensor {
+    margin-top: var(--spacing-lg);
+}
+
+.water-tank-sensor .sensor-body {
+    display: flex;
+    gap: var(--spacing-lg);
+    align-items: flex-start;
+}
+
+.tank-visual {
+    flex-shrink: 0;
+}
+
+.tank-container-small {
+    position: relative;
+    width: 80px;
+    height: 140px;
+    background: var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 3px solid var(--text-secondary);
+}
+
+.sensor-readings {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.sensor-reading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm);
+    background: var(--surface-hover);
+    border-radius: var(--radius-sm);
+}
+
+.reading-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.reading-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.sensor-alert-info {
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.sensor-status {
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.sensor-status.good {
+    background: var(--success-light);
+    color: var(--success);
+}
+
+.sensor-status.low {
+    background: var(--warning-light);
+    color: var(--warning);
+}
+
+.sensor-status.critical {
+    background: var(--error-light);
+    color: var(--error);
+}
+
+@media (max-width: 768px) {
+    .water-tank-sensor .sensor-body {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .tank-container-small {
+        width: 100px;
+        height: 160px;
+    }
+
+    .sensor-readings {
+        width: 100%;
+    }
+}
