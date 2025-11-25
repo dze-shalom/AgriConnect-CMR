@@ -368,31 +368,57 @@ const Dashboard = {
     async exportToCSV() {
         try {
             console.log('[INFO] Exporting comprehensive farm data to CSV...');
-            
-            // Fetch all data types
-            const [sensorData, pumpData, irrigationData] = await Promise.all([
-                // Sensor readings
-                window.supabase
-                    .from('sensor_readings')
-                    .select('*')
-                    .order('reading_time', { ascending: false })
-                    .limit(1000),
-                
-                // Pump commands
-                window.supabase
-                    .from('pump_commands')
-                    .select('*')
-                    .order('executed_at', { ascending: false })
-                    .limit(500),
-                
-                // Irrigation logs
-                window.supabase
-                    .from('irrigation_logs')
-                    .select('*')
-                    .order('started_at', { ascending: false })
-                    .limit(500)
-            ]);
-            
+
+            // Use MockData if available (handles both mock and real data)
+            let sensorData, pumpData, irrigationData;
+
+            if (typeof MockData !== 'undefined') {
+                // Get last 30 days of data from MockData (720 hours)
+                const sensorResult = await MockData.getHistoricalData(720);
+                sensorData = { data: sensorResult.data, error: sensorResult.error };
+
+                // For pump and irrigation, try Supabase (fall back to empty if not available)
+                try {
+                    const [pumpResult, irrigationResult] = await Promise.all([
+                        window.supabase
+                            .from('pump_commands')
+                            .select('*')
+                            .order('executed_at', { ascending: false })
+                            .limit(500),
+                        window.supabase
+                            .from('irrigation_logs')
+                            .select('*')
+                            .order('started_at', { ascending: false })
+                            .limit(500)
+                    ]);
+                    pumpData = pumpResult;
+                    irrigationData = irrigationResult;
+                } catch (err) {
+                    console.log('[INFO] Pump/irrigation data not available (using mock data mode)');
+                    pumpData = { data: [], error: null };
+                    irrigationData = { data: [], error: null };
+                }
+            } else {
+                // Fallback to direct Supabase
+                [sensorData, pumpData, irrigationData] = await Promise.all([
+                    window.supabase
+                        .from('sensor_readings')
+                        .select('*')
+                        .order('reading_time', { ascending: false })
+                        .limit(1000),
+                    window.supabase
+                        .from('pump_commands')
+                        .select('*')
+                        .order('executed_at', { ascending: false })
+                        .limit(500),
+                    window.supabase
+                        .from('irrigation_logs')
+                        .select('*')
+                        .order('started_at', { ascending: false })
+                        .limit(500)
+                ]);
+            }
+
             if (sensorData.error || pumpData.error || irrigationData.error) {
                 throw new Error('Failed to fetch data from database');
             }
@@ -426,10 +452,10 @@ const Dashboard = {
             if (sensorData.data && sensorData.data.length > 0) {
                 sensorData.data.forEach(row => {
                     const values = [
-                        row.reading_time,
-                        row.gateway_id,
-                        row.field_id,
-                        row.zone_id,
+                        row.timestamp || row.reading_time,
+                        row.gateway_id || 'N/A',
+                        row.field_number || row.field_id || '',
+                        row.zone_id || `Zone ${row.zone_number}` || '',
                         row.air_temperature || '',
                         row.air_humidity || '',
                         row.soil_moisture || '',
