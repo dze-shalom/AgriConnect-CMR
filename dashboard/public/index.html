@@ -360,7 +360,16 @@
 
             <!-- Alerts Section -->
             <section class="section alerts-section">
-                <!-- Control Panel Section -->
+                <div class="section-header">
+                    <h2 data-i18n="active_alerts">Active Alerts</h2>
+                    <span id="alerts-count" class="badge">0</span>
+                </div>
+                <div id="alerts-container" class="alerts-container">
+                    <div class="loading" data-i18n="loading">Loading alerts...</div>
+                </div>
+            </section>
+
+            <!-- Control Panel Section -->
             <section class="section control-panel-section">
                 <div class="section-header">
                     <h2 data-i18n="farm_controls">Farm Controls</h2>
@@ -487,14 +496,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
-                <div class="section-header">
-                    <h2 data-i18n="active_alerts">Active Alerts</h2>
-                    <span id="alerts-count" class="badge">0</span>
-                </div>
-                <div id="alerts-container" class="alerts-container">
-                    <div class="loading" data-i18n="loading">Loading alerts...</div>
                 </div>
             </section>
 
