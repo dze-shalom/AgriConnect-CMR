@@ -4889,3 +4889,96 @@ html {
         width: 100%;
     }
 }
+
+/* Subsection Headers */
+.subsection-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md) 0;
+    margin: var(--spacing-xl) 0 var(--spacing-md) 0;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.subsection-header h3,
+.subsection-header h4 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.subsection-description {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-md);
+    font-size: 0.95rem;
+}
+
+/* Compact Form Controls */
+.form-control-sm {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    background: var(--surface);
+    color: var(--text-primary);
+}
+
+.btn-primary-sm {
+    padding: var(--spacing-xs) var(--spacing-md);
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    transition: background 0.2s;
+}
+
+.btn-primary-sm:hover {
+    background: var(--primary-dark);
+}
+
+/* Forecast Compact Inputs */
+.forecast-inputs-compact {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: var(--spacing-md);
+}
+
+.forecast-results-compact {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--surface-hover);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--primary-color);
+}
+
+.yield-forecast-card {
+    grid-column: span 2;
+}
+
+@media (max-width: 768px) {
+    .forecast-inputs-compact {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .forecast-inputs-compact select,
+    .forecast-inputs-compact input,
+    .forecast-inputs-compact button {
+        width: 100%;
+    }
+
+    .yield-forecast-card {
+        grid-column: span 1;
+    }
+}

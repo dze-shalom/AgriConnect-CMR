@@ -381,6 +381,30 @@
                             <div id="disease-analysis-results"></div>
                         </div>
                     </div>
+
+                    <!-- Yield Forecasting AI -->
+                    <div class="intelligence-card yield-forecast-card">
+                        <div class="intelligence-header">
+                            <h3>🌾 Yield Forecast</h3>
+                        </div>
+                        <div class="intelligence-content">
+                            <div class="forecast-inputs-compact">
+                                <select id="forecast-crop-select" class="form-control-sm">
+                                    <option value="maize">Maize</option>
+                                    <option value="cassava">Cassava</option>
+                                    <option value="beans">Beans</option>
+                                    <option value="tomatoes">Tomatoes</option>
+                                </select>
+                                <input type="number" id="forecast-area" class="form-control-sm" value="1.0" min="0.1" step="0.1" placeholder="Area (ha)">
+                                <button id="run-forecast-btn" class="btn-primary-sm">
+                                    <i data-lucide="zap"></i> Forecast
+                                </button>
+                            </div>
+                            <div id="forecast-results-container" class="forecast-results-compact hidden">
+                                <!-- Results will be populated by yield-forecast.js -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -392,6 +416,56 @@
                 </div>
                 <div id="alerts-container" class="alerts-container">
                     <div class="loading" data-i18n="loading">Loading alerts...</div>
+                </div>
+
+                <!-- Equipment Health & Maintenance Subsection -->
+                <div class="subsection-header">
+                    <h3>🔧 Equipment Health & Maintenance</h3>
+                    <button id="refresh-health-btn" class="btn-icon">
+                        <i data-lucide="refresh-cw"></i>
+                    </button>
+                </div>
+
+                <div class="health-grid">
+                    <div id="pump-health-card" class="health-card">
+                        <div class="health-header">
+                            <span class="health-name">💧 Water Pump</span>
+                            <span class="health-score">--</span>
+                        </div>
+                        <div class="health-bar">
+                            <div class="health-fill" style="width: 100%"></div>
+                        </div>
+                        <div class="health-alerts"></div>
+                    </div>
+
+                    <div id="gateway-health-card" class="health-card">
+                        <div class="health-header">
+                            <span class="health-name">📡 Gateway</span>
+                            <span class="health-score">--</span>
+                        </div>
+                        <div class="health-bar">
+                            <div class="health-fill" style="width: 100%"></div>
+                        </div>
+                        <div class="health-alerts"></div>
+                    </div>
+
+                    <div id="sensors-health-card" class="health-card">
+                        <div class="health-header">
+                            <span class="health-name">📊 Sensors</span>
+                            <span class="health-score">--</span>
+                        </div>
+                        <div class="health-bar">
+                            <div class="health-fill" style="width: 100%"></div>
+                        </div>
+                        <div class="health-alerts"></div>
+                    </div>
+                </div>
+
+                <div class="maintenance-section">
+                    <h4>📋 Maintenance Tasks</h4>
+                    <div id="maintenance-tasks">
+                        <p class="empty-state">No maintenance tasks at this time.</p>
+                    </div>
                 </div>
             </section>
 
@@ -806,96 +880,15 @@
                 </div>
             </section>
 
-            <!-- Equipment Health Section -->
-            <section class="section equipment-health-section">
+            <!-- Settings Section -->
+            <section class="section settings-section">
                 <div class="section-header">
-                    <h2>🔧 Equipment Health Monitoring</h2>
-                    <button id="refresh-health-btn" class="btn-icon">
-                        <i data-lucide="refresh-cw"></i>
-                    </button>
+                    <h2>⚙️ Settings & Notifications</h2>
                 </div>
 
-                <div class="health-grid">
-                    <div id="pump-health-card" class="health-card">
-                        <div class="health-header">
-                            <span class="health-name">💧 Water Pump</span>
-                            <span class="health-score">--</span>
-                        </div>
-                        <div class="health-bar">
-                            <div class="health-fill" style="width: 100%"></div>
-                        </div>
-                        <div class="health-alerts"></div>
-                    </div>
-
-                    <div id="gateway-health-card" class="health-card">
-                        <div class="health-header">
-                            <span class="health-name">📡 Gateway</span>
-                            <span class="health-score">--</span>
-                        </div>
-                        <div class="health-bar">
-                            <div class="health-fill" style="width: 100%"></div>
-                        </div>
-                        <div class="health-alerts"></div>
-                    </div>
-
-                    <div id="sensors-health-card" class="health-card">
-                        <div class="health-header">
-                            <span class="health-name">📊 Sensors</span>
-                            <span class="health-score">--</span>
-                        </div>
-                        <div class="health-bar">
-                            <div class="health-fill" style="width: 100%"></div>
-                        </div>
-                        <div class="health-alerts"></div>
-                    </div>
-                </div>
-
-                <div class="maintenance-section">
-                    <h3>📋 Maintenance Tasks</h3>
-                    <div id="maintenance-tasks">
-                        <p class="empty-state">No maintenance tasks at this time.</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Yield Forecast Section -->
-            <section class="section yield-forecast-section">
-                <div class="section-header">
-                    <h2>🌾 Yield Forecasting AI</h2>
-                </div>
-
-                <div class="forecast-input-panel">
-                    <h3>Forecast Parameters</h3>
-                    <div class="forecast-inputs">
-                        <div class="input-group">
-                            <label for="forecast-crop-select">Crop Type</label>
-                            <select id="forecast-crop-select" class="form-control">
-                                <option value="maize">Maize</option>
-                                <option value="cassava">Cassava</option>
-                                <option value="beans">Beans</option>
-                                <option value="tomatoes">Tomatoes</option>
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label for="forecast-area">Field Area (hectares)</label>
-                            <input type="number" id="forecast-area" class="form-control" value="1.0" min="0.1" step="0.1">
-                        </div>
-                        <button id="run-forecast-btn" class="btn-primary">
-                            <i data-lucide="play"></i>
-                            Run Forecast
-                        </button>
-                    </div>
-                </div>
-
-                <div id="forecast-results-container" class="forecast-results-container hidden">
-                    <!-- Results will be populated by yield-forecast.js -->
-                </div>
-            </section>
-
-            <!-- WhatsApp Bot Section -->
-            <section class="section whatsapp-section">
-                <div class="section-header">
-                    <h2>💬 WhatsApp Bot</h2>
+                <!-- WhatsApp Bot Subsection -->
+                <div class="subsection-header">
+                    <h3>💬 WhatsApp Bot</h3>
                     <label class="toggle-switch">
                         <input type="checkbox" id="whatsapp-bot-toggle">
                         <span class="toggle-slider"></span>
@@ -904,8 +897,7 @@
 
                 <div class="whatsapp-content">
                     <div class="whatsapp-setup">
-                        <h3>Bot Setup</h3>
-                        <p>Control your farm remotely via WhatsApp messages</p>
+                        <p class="subsection-description">Control your farm remotely via WhatsApp messages</p>
 
                         <div class="input-group">
                             <label for="whatsapp-phone-number">Your WhatsApp Number</label>
