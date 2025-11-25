@@ -118,6 +118,18 @@ const Satellite = {
         FarmMap.map.on('draw.update', (e) => this.onDrawUpdate(e));
 
         console.log('[SUCCESS] Drawing tools ready');
+
+        // Show helpful notification about drawing tools
+        if (typeof Notifications !== 'undefined') {
+            setTimeout(() => {
+                Notifications.show(
+                    '🗺️ Drawing Tools Available',
+                    'Look for the polygon icon (🔷) on the top-right of the map to draw field boundaries',
+                    'info',
+                    6000
+                );
+            }, 1000);
+        }
     },
 
     // Custom draw styles for better visibility

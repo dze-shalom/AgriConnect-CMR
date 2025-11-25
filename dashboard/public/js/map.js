@@ -51,12 +51,18 @@ const FarmMap = {
         const container = document.getElementById('map-container');
         const toggleBtn = document.getElementById('toggle-map-btn');
         const toggleText = document.getElementById('toggle-map-text');
-        
+
         if (container.classList.contains('hidden')) {
             // Show map
             container.classList.remove('hidden');
-            toggleText.textContent = 'Hide Map';
-            
+
+            // Use translation if available
+            if (typeof Language !== 'undefined') {
+                toggleText.textContent = Language.get('hide_map');
+            } else {
+                toggleText.textContent = 'Hide Map';
+            }
+
             // Initialize map if not already done
             if (!this.map) {
                 this.initializeMap();
@@ -64,7 +70,13 @@ const FarmMap = {
         } else {
             // Hide map
             container.classList.add('hidden');
-            toggleText.textContent = 'Show Map';
+
+            // Use translation if available
+            if (typeof Language !== 'undefined') {
+                toggleText.textContent = Language.get('show_map');
+            } else {
+                toggleText.textContent = 'Show Map';
+            }
         }
     },
     
