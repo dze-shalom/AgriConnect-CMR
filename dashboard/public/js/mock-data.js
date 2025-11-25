@@ -1,264 +1,292 @@
 /**
  * Mock Data Generator
- * Generates realistic sensor data for testing without hardware
+ * Generates realistic 30-day historical sensor data for development/demo
+ * Only used when hardware is not connected
  */
 
 const MockData = {
-    isEnabled: false,
-    generationInterval: null,
-    lastGeneratedTime: Date.now(),
-
-    // Enable mock data generation
-    enable() {
-        if (this.isEnabled) {
-            console.log('[MOCK] Already enabled');
-            return;
-        }
-
-        console.log('[MOCK] Enabling mock data generation...');
-        this.isEnabled = true;
-
-        // Update button state
-        const btn = document.getElementById('mock-data-toggle-btn');
-        if (btn) {
-            btn.classList.add('active');
-            btn.textContent = '🟢 Mock Data ON';
-        }
-
-        // Generate initial batch of historical data (reduced for faster loading)
-        this.generateHistoricalData(20);
-
-        // Start generating new readings every 30 seconds
-        this.generationInterval = setInterval(() => {
-            this.generateReading();
-        }, 30000); // Every 30 seconds
-
-        console.log('[SUCCESS] Mock data generation enabled');
-
-        // Notification removed to reduce UI spam
-        // Data is being generated in background silently
+    // Configuration
+    config: {
+        daysOfHistory: 30,
+        readingsPerDay: 48, // Every 30 minutes
+        zones: ['field1-zone1', 'field1-zone2', 'field1-zone3', 'field2-zone1', 'field2-zone2']
     },
 
-    // Disable mock data generation
-    disable() {
-        if (!this.isEnabled) return;
+    // Cached data to avoid regeneration
+    historicalData: null,
+    hardwareConnected: null,
+    lastConnectionCheck: null,
 
-        console.log('[MOCK] Disabling mock data generation...');
-        this.isEnabled = false;
+    // Initialize mock data system
+    async init() {
+        console.log('[INFO] Initializing mock data system...');
 
-        // Update button state
-        const btn = document.getElementById('mock-data-toggle-btn');
-        if (btn) {
-            btn.classList.remove('active');
-            btn.textContent = '🔧 Mock Data OFF';
-        }
+        // Check hardware connection
+        await this.checkHardwareConnection();
 
-        if (this.generationInterval) {
-            clearInterval(this.generationInterval);
-            this.generationInterval = null;
-        }
+        // Generate historical data if hardware not connected
+        if (!this.hardwareConnected) {
+            console.log('[INFO] Hardware not connected - generating mock data');
+            this.generateHistoricalData();
 
-        console.log('[SUCCESS] Mock data generation disabled');
-
-        // Notification removed to reduce UI spam
-    },
-
-    // Generate historical data in batches (non-blocking)
-    async generateHistoricalData(count = 20) {
-        console.log(`[MOCK] Generating ${count} historical readings from yesterday to now...`);
-
-        const readings = [];
-        const now = Date.now();
-        const intervalMs = 30 * 60 * 1000; // 30 minutes between readings (yesterday to today)
-
-        // Generate readings from yesterday to now
-        const oneDayAgo = now - (24 * 60 * 60 * 1000);
-        for (let i = 0; i < count; i++) {
-            const timestamp = new Date(oneDayAgo + ((now - oneDayAgo) / count) * i);
-            readings.push(this.createReading(timestamp));
-        }
-
-        // Insert in batches of 10 to avoid blocking
-        const batchSize = 10;
-        let isFirstBatch = true;
-
-        try {
-            for (let i = 0; i < readings.length; i += batchSize) {
-                const batch = readings.slice(i, i + batchSize);
-
-                const { error } = await window.supabase
-                    .from('sensor_readings')
-                    .insert(batch);
-
-                if (error) {
-                    console.error('[MOCK] Failed to insert batch:', error);
-                }
-
-                // Load charts immediately after first batch so users see something right away
-                if (isFirstBatch) {
-                    isFirstBatch = false;
-                    console.log('[MOCK] First batch inserted, loading charts...');
-
-                    if (typeof Charts !== 'undefined') {
-                        await Charts.loadCharts();
-                    }
-                    if (typeof Dashboard !== 'undefined') {
-                        await Dashboard.loadSensorData();
-                    }
-                }
-
-                // Small delay between batches to keep UI responsive
-                if (i + batchSize < readings.length) {
-                    await new Promise(resolve => setTimeout(resolve, 50));
-                }
-            }
-
-            console.log(`[SUCCESS] Generated ${count} historical readings`);
-
-            // Final refresh after all batches complete
-            setTimeout(async () => {
-                if (typeof Dashboard !== 'undefined') {
-                    await Dashboard.loadRecentReadings();
-                }
-
-                if (typeof Charts !== 'undefined') {
-                    await Charts.loadCharts();
-                }
-            }, 200);
-
-        } catch (error) {
-            console.error('[MOCK] Error generating historical data:', error);
-        }
-    },
-
-    // Generate single reading
-    async generateReading() {
-        if (!this.isEnabled) return;
-
-        console.log('[MOCK] Generating new sensor reading...');
-
-        const reading = this.createReading();
-
-        try {
-            const { error } = await window.supabase
-                .from('sensor_readings')
-                .insert([reading]);
-
-            if (error) {
-                console.error('[MOCK] Failed to insert reading:', error);
-            } else {
-                console.log('[SUCCESS] Generated mock reading');
-
-                // Trigger real-time update simulation
-                if (typeof Realtime !== 'undefined') {
-                    Realtime.handleNewSensorReading(reading);
-                }
-            }
-        } catch (error) {
-            console.error('[MOCK] Error generating reading:', error);
-        }
-    },
-
-    // Create a realistic sensor reading
-    createReading(timestamp = new Date()) {
-        // Simulate daily temperature variation
-        const hour = timestamp.getHours();
-        const baseTemp = 24; // Base temperature in °C
-        const tempVariation = 4 * Math.sin((hour - 6) * Math.PI / 12); // Peak at ~14:00
-
-        // Add some random noise
-        const temp = baseTemp + tempVariation + (Math.random() * 2 - 1);
-        const humidity = 70 + (Math.random() * 20 - 10); // 60-80%
-        const soilMoisture = 500 + (Math.random() * 100 - 50); // 450-550
-
-        // pH should be stable around 6.5
-        const ph = 6.5 + (Math.random() * 0.6 - 0.3); // 6.2-6.8
-
-        // EC varies with nutrients
-        const ec = 1.8 + (Math.random() * 0.4 - 0.2); // 1.6-2.0
-
-        // NPK values
-        const nitrogen = 180 + (Math.random() * 40 - 20); // 160-200 ppm
-        const phosphorus = 60 + (Math.random() * 20 - 10); // 50-70 ppm
-        const potassium = 280 + (Math.random() * 40 - 20); // 260-300 ppm
-
-        // Battery level slowly decreases
-        const batteryBase = 85 - (Date.now() - this.lastGeneratedTime) / (1000 * 60 * 60 * 24 * 7); // Decrease over week
-        const battery = Math.max(20, Math.min(100, batteryBase + (Math.random() * 10 - 5)));
-
-        // Random field and zone
-        const field = Math.floor(Math.random() * 3) + 1; // Fields 1-3
-        const zone = Math.floor(Math.random() * 4) + 1;  // Zones 1-4
-
-        return {
-            farm_id: CONFIG.farmId,
-            field_id: field,
-            zone_id: zone,
-            reading_time: timestamp.toISOString(),
-            air_temperature: parseFloat(temp.toFixed(1)),
-            air_humidity: parseFloat(humidity.toFixed(1)),
-            soil_moisture: parseInt(soilMoisture),
-            ph_value: parseFloat(ph.toFixed(2)),
-            ec_value: parseFloat(ec.toFixed(2)),
-            nitrogen_ppm: parseInt(nitrogen),
-            phosphorus_ppm: parseInt(phosphorus),
-            potassium_ppm: parseInt(potassium),
-            battery_level: parseFloat(battery.toFixed(1))
-        };
-    },
-
-    // Toggle mock data on/off
-    toggle() {
-        if (this.isEnabled) {
-            this.disable();
+            // Continue generating current day data
+            this.startLiveDataGeneration();
         } else {
-            this.enable();
+            console.log('[INFO] Hardware connected - using real data');
         }
-    }
-};
 
-// Show mock data button
-MockData.showButton = function() {
-    const btn = document.getElementById('mock-data-toggle-btn');
-    if (btn) {
-        btn.style.display = 'flex';
-    }
-};
+        // Periodically check hardware connection (every 30 seconds)
+        setInterval(() => this.checkHardwareConnection(), 30000);
 
-// Auto-enable mock data if no real data exists
-window.addEventListener('load', async () => {
-    // Wait a bit for other modules to initialize
-    setTimeout(async () => {
+        console.log('[SUCCESS] Mock data system initialized');
+    },
+
+    // Check if hardware is connected
+    async checkHardwareConnection() {
         try {
-            // Show the toggle button
-            MockData.showButton();
-
-            // Check if we have any recent sensor data
+            // Try to fetch recent sensor data from Supabase
             const { data, error } = await window.supabase
                 .from('sensor_readings')
                 .select('reading_id')
-                .gte('reading_time', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+                .eq('farm_id', CONFIG.farmId)
+                .order('timestamp', { ascending: false })
                 .limit(1);
 
-            if (error) {
-                console.error('[MOCK] Failed to check for existing data:', error);
-                // Enable mock data by default on error
-                console.log('[MOCK] Enabling mock data mode due to database error');
-                MockData.enable();
-                return;
-            }
-
-            // If no data in last 24 hours, enable mock data
-            if (!data || data.length === 0) {
-                console.log('[MOCK] No recent data found, auto-enabling mock data mode');
-                MockData.enable();
+            // If we have real data from last 5 minutes, hardware is connected
+            if (data && data.length > 0) {
+                this.hardwareConnected = true;
+                this.lastConnectionCheck = new Date();
+                return true;
             } else {
-                console.log('[MOCK] Recent data found, mock mode available but not auto-enabled');
+                this.hardwareConnected = false;
+                this.lastConnectionCheck = new Date();
+                return false;
             }
         } catch (error) {
-            console.error('[MOCK] Error checking for data:', error);
-            // Enable mock data by default on error
-            MockData.enable();
+            console.log('[INFO] Database connection check failed - assuming no hardware');
+            this.hardwareConnected = false;
+            this.lastConnectionCheck = new Date();
+            return false;
         }
-    }, 1000); // Wait 1 second after page load for faster startup
-});
+    },
+
+    // Generate 30 days of historical sensor data
+    generateHistoricalData() {
+        console.log('[INFO] Generating 30-day historical data...');
+
+        const data = [];
+        const now = new Date();
+        const { daysOfHistory, readingsPerDay, zones } = this.config;
+
+        // Generate data for past 30 days
+        for (let day = daysOfHistory; day >= 0; day--) {
+            for (let reading = 0; reading < readingsPerDay; reading++) {
+                const timestamp = new Date(now);
+                timestamp.setDate(timestamp.getDate() - day);
+                timestamp.setHours(0, reading * 30, 0, 0); // Every 30 minutes
+
+                // Generate data for each zone
+                zones.forEach((zone, index) => {
+                    const fieldNum = zone.includes('field1') ? 1 : 2;
+                    const zoneNum = parseInt(zone.match(/zone(\d)/)[1]);
+
+                    data.push(this.generateReading(timestamp, fieldNum, zoneNum, zone));
+                });
+            }
+        }
+
+        this.historicalData = data;
+        console.log(\`[SUCCESS] Generated \${data.length} historical readings\`);
+
+        return data;
+    },
+
+    // Generate a single realistic sensor reading
+    generateReading(timestamp, fieldNum, zoneNum, zoneId) {
+        const hour = timestamp.getHours();
+        const dayOfYear = Math.floor((timestamp - new Date(timestamp.getFullYear(), 0, 0)) / 86400000);
+
+        // Realistic variations based on time of day and season
+        const tempBase = 25 + Math.sin((dayOfYear / 365) * 2 * Math.PI) * 5; // Seasonal variation
+        const tempDailyVariation = 8 * Math.sin(((hour - 6) / 24) * 2 * Math.PI); // Daily cycle
+        const airTemp = tempBase + tempDailyVariation + (Math.random() - 0.5) * 2;
+
+        const humidityBase = 70 - Math.sin((dayOfYear / 365) * 2 * Math.PI) * 15;
+        const humidityDailyVariation = -15 * Math.sin(((hour - 6) / 24) * 2 * Math.PI);
+        const airHumidity = Math.max(20, Math.min(95, humidityBase + humidityDailyVariation + (Math.random() - 0.5) * 5));
+
+        // Soil moisture decreases over time unless it's "irrigated" (simulated)
+        const isIrrigationDay = dayOfYear % 3 === 0; // Irrigate every 3 days
+        const soilMoistureBase = isIrrigationDay ? 70 : 50 - (dayOfYear % 3) * 8;
+        const soilMoisture = Math.max(20, Math.min(80, soilMoistureBase + (Math.random() - 0.5) * 5));
+
+        // pH relatively stable with slight zone variation
+        const pH = 6.5 + (zoneNum * 0.2) + (Math.random() - 0.5) * 0.3;
+
+        // EC varies by field
+        const ec = (fieldNum === 1 ? 1.2 : 1.5) + (Math.random() - 0.5) * 0.2;
+
+        // NPK levels with realistic variation
+        const nitrogen = 45 + (Math.random() - 0.5) * 10;
+        const phosphorus = 30 + (Math.random() - 0.5) * 8;
+        const potassium = 50 + (Math.random() - 0.5) * 12;
+
+        // Battery level decreases slowly, "recharges" during day
+        const batteryBase = hour >= 10 && hour <= 16 ? 95 : 85;
+        const batteryLevel = Math.max(70, Math.min(100, batteryBase + (Math.random() - 0.5) * 5));
+
+        return {
+            reading_id: \`mock_\${timestamp.getTime()}_\${zoneId}\`,
+            farm_id: CONFIG.farmId,
+            field_number: fieldNum,
+            zone_number: zoneNum,
+            zone_id: zoneId,
+            timestamp: timestamp.toISOString(),
+            air_temperature: parseFloat(airTemp.toFixed(1)),
+            air_humidity: parseFloat(airHumidity.toFixed(1)),
+            soil_moisture: parseFloat(soilMoisture.toFixed(1)),
+            soil_temperature: parseFloat((airTemp - 2 + (Math.random() - 0.5)).toFixed(1)),
+            ph: parseFloat(pH.toFixed(2)),
+            ec: parseFloat(ec.toFixed(2)),
+            nitrogen: parseFloat(nitrogen.toFixed(1)),
+            phosphorus: parseFloat(phosphorus.toFixed(1)),
+            potassium: parseFloat(potassium.toFixed(1)),
+            battery_level: parseFloat(batteryLevel.toFixed(1)),
+            status: batteryLevel > 20 ? 'online' : 'low_battery',
+            signal_strength: Math.floor(70 + Math.random() * 30)
+        };
+    },
+
+    // Start generating live data for current day
+    startLiveDataGeneration() {
+        // Generate new reading every 30 minutes
+        setInterval(() => {
+            if (!this.hardwareConnected) {
+                const { zones } = this.config;
+                const now = new Date();
+
+                zones.forEach((zone, index) => {
+                    const fieldNum = zone.includes('field1') ? 1 : 2;
+                    const zoneNum = parseInt(zone.match(/zone(\d)/)[1]);
+
+                    const newReading = this.generateReading(now, fieldNum, zoneNum, zone);
+
+                    // Add to historical data
+                    if (this.historicalData) {
+                        this.historicalData.push(newReading);
+                    }
+
+                    console.log(\`[MOCK] Generated reading for \${zone}\`);
+                });
+
+                // Trigger dashboard refresh
+                if (typeof Dashboard !== 'undefined' && Dashboard.loadSensorData) {
+                    Dashboard.loadSensorData();
+                }
+            }
+        }, 30 * 60 * 1000); // Every 30 minutes
+    },
+
+    // Get sensor data (used by dashboard)
+    async getSensorData() {
+        if (this.hardwareConnected) {
+            // Use real data from Supabase
+            return await this.getRealData();
+        } else {
+            // Use mock data
+            return this.getMockSensorData();
+        }
+    },
+
+    // Get mock sensor data (latest from each zone)
+    getMockSensorData() {
+        if (!this.historicalData) {
+            this.generateHistoricalData();
+        }
+
+        // Get latest reading for each zone
+        const latestByZone = {};
+
+        this.historicalData.forEach(reading => {
+            const zone = reading.zone_id;
+            if (!latestByZone[zone] || new Date(reading.timestamp) > new Date(latestByZone[zone].timestamp)) {
+                latestByZone[zone] = reading;
+            }
+        });
+
+        return {
+            data: Object.values(latestByZone),
+            error: null
+        };
+    },
+
+    // Get historical data for charts
+    async getHistoricalData(hours = 168) {
+        if (this.hardwareConnected) {
+            return await this.getRealHistoricalData(hours);
+        } else {
+            return this.getMockHistoricalData(hours);
+        }
+    },
+
+    // Get mock historical data
+    getMockHistoricalData(hours) {
+        if (!this.historicalData) {
+            this.generateHistoricalData();
+        }
+
+        const cutoffTime = new Date();
+        cutoffTime.setHours(cutoffTime.getHours() - hours);
+
+        const filtered = this.historicalData.filter(reading =>
+            new Date(reading.timestamp) >= cutoffTime
+        );
+
+        return {
+            data: filtered,
+            error: null
+        };
+    },
+
+    // Get real data from Supabase
+    async getRealData() {
+        try {
+            const { data, error } = await window.supabase
+                .from('sensor_readings')
+                .select('*')
+                .eq('farm_id', CONFIG.farmId)
+                .order('timestamp', { ascending: false })
+                .limit(10);
+
+            return { data, error };
+        } catch (error) {
+            console.error('[ERROR] Failed to fetch real data:', error);
+            return { data: null, error };
+        }
+    },
+
+    // Get real historical data
+    async getRealHistoricalData(hours) {
+        try {
+            const cutoffTime = new Date();
+            cutoffTime.setHours(cutoffTime.getHours() - hours);
+
+            const { data, error } = await window.supabase
+                .from('sensor_readings')
+                .select('*')
+                .eq('farm_id', CONFIG.farmId)
+                .gte('timestamp', cutoffTime.toISOString())
+                .order('timestamp', { ascending: true });
+
+            return { data, error };
+        } catch (error) {
+            console.error('[ERROR] Failed to fetch real historical data:', error);
+            return { data: null, error };
+        }
+    },
+
+    // Check if using mock data
+    isUsingMockData() {
+        return !this.hardwareConnected;
+    }
+};

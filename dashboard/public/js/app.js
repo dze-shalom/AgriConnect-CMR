@@ -140,6 +140,11 @@ window.initDashboardModules = async function() {
     console.log('[INFO] Initializing dashboard modules...');
 
     try {
+        // Initialize mock data system (handles hardware detection)
+        if (typeof MockData !== 'undefined') {
+            await MockData.init();
+        }
+
         // Initialize weather module
         if (typeof Weather !== 'undefined') {
             await Weather.init();

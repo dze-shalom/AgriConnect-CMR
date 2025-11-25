@@ -143,35 +143,45 @@ const Dashboard = {
     // Load latest sensor data
     async loadSensorData() {
         try {
-            // Get latest reading for each field/zone combination
-            const { data, error } = await window.supabase
-                .from('sensor_readings')
-                .select('*')
-                .order('reading_time', { ascending: false })
-                .limit(20);
-            
+            // Use MockData if available (handles hardware connection detection)
+            let data, error;
+            if (typeof MockData !== 'undefined') {
+                const result = await MockData.getSensorData();
+                data = result.data;
+                error = result.error;
+            } else {
+                // Fallback to direct Supabase call
+                const result = await window.supabase
+                    .from('sensor_readings')
+                    .select('*')
+                    .order('reading_time', { ascending: false })
+                    .limit(20);
+                data = result.data;
+                error = result.error;
+            }
+
             if (error) throw error;
-            
+
             const container = document.getElementById('sensors-grid');
-            
+
             if (!data || data.length === 0) {
                 container.innerHTML = '<div class="loading">No sensor data available</div>';
                 return;
             }
-            
+
             // Get most recent reading
             const latest = data[0];
             this.latestReadings = latest;
-            
+
             // Render sensor cards
             container.innerHTML = this.renderSensorCards(latest);
-            
+
             // Update last update time
-            this.updateLastUpdateTime(latest.reading_time);
-            
+            this.updateLastUpdateTime(latest.timestamp || latest.reading_time);
+
         } catch (error) {
             console.error('[ERROR] Failed to load sensor data:', error.message);
-            document.getElementById('sensors-grid').innerHTML = 
+            document.getElementById('sensors-grid').innerHTML =
                 '<div class="loading">Failed to load sensor data</div>';
         }
     },

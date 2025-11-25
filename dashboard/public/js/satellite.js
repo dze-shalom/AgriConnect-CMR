@@ -131,7 +131,17 @@ const Satellite = {
 
         if (startBtn) {
             startBtn.addEventListener('click', () => {
-                if (this.draw) {
+                console.log('[DEBUG] Draw button clicked, draw object:', this.draw);
+
+                if (!this.draw) {
+                    console.error('[ERROR] MapboxDraw not initialized');
+                    if (typeof Notifications !== 'undefined') {
+                        Notifications.show('⚠️ Error', 'Drawing tools not ready. Please wait for map to load.', 'error', 3000);
+                    }
+                    return;
+                }
+
+                try {
                     // Activate polygon drawing mode
                     this.draw.changeMode('draw_polygon');
 
@@ -145,8 +155,19 @@ const Satellite = {
                     startBtn.style.color = 'white';
 
                     console.log('[INFO] Drawing mode activated');
+
+                    if (typeof Notifications !== 'undefined') {
+                        Notifications.show('✏️ Drawing Mode', 'Click on map to draw field boundary', 'info', 3000);
+                    }
+                } catch (error) {
+                    console.error('[ERROR] Failed to activate drawing mode:', error);
+                    if (typeof Notifications !== 'undefined') {
+                        Notifications.show('⚠️ Error', 'Failed to activate drawing mode', 'error', 3000);
+                    }
                 }
             });
+        } else {
+            console.error('[ERROR] Start drawing button not found');
         }
 
         if (clearBtn) {
