@@ -9,6 +9,14 @@ const WhatsAppBot = {
     sessionActive: false,
     messageHistory: [],
     commands: {},
+    waterTank: {
+        capacity: 5000, // liters
+        currentLevel: 5000, // liters
+        minLevel: 500, // minimum safe level
+        lastCheck: null,
+        lowLevelAlertSent: false
+    },
+    alertsSent: new Set(), // Track which alerts have been sent to avoid spam
 
     // Initialize module
     init() {
@@ -18,6 +26,7 @@ const WhatsAppBot = {
         this.setupCommands();
         this.setupEventListeners();
         this.checkConnection();
+        this.startMonitoring();
 
         console.log('[SUCCESS] WhatsApp Bot initialized');
     },
@@ -144,6 +153,70 @@ const WhatsAppBot = {
         document.addEventListener('irrigation-started', (e) => {
             this.sendNotification(`💦 Irrigation started: Zone ${e.detail.zone}, ${e.detail.duration} min`);
         });
+
+        // Tank refill button
+        const refillBtn = document.getElementById('refill-tank-btn');
+        const refillInput = document.getElementById('refill-amount');
+
+        if (refillBtn && refillInput) {
+            refillBtn.addEventListener('click', () => {
+                const amount = parseInt(refillInput.value) || 0;
+                if (amount > 0) {
+                    this.refillWaterTank(amount);
+                    this.updateTankDisplay();
+
+                    if (typeof Notifications !== 'undefined') {
+                        Notifications.show(
+                            '✅ Tank Refilled',
+                            `Added ${amount}L to water tank`,
+                            'success',
+                            3000
+                        );
+                    }
+                }
+            });
+        }
+
+        // Update tank display every 5 seconds
+        setInterval(() => this.updateTankDisplay(), 5000);
+
+        // Initial display update
+        setTimeout(() => this.updateTankDisplay(), 1000);
+    },
+
+    // Update tank visual display
+    updateTankDisplay() {
+        const status = this.getWaterTankStatus();
+
+        const tankFill = document.getElementById('tank-fill');
+        const tankPercentage = document.getElementById('tank-percentage');
+        const tankCurrent = document.getElementById('tank-current');
+        const tankStatus = document.getElementById('tank-status');
+
+        if (tankFill) {
+            tankFill.style.height = `${status.percentage}%`;
+
+            // Update color based on level
+            tankFill.classList.remove('low', 'critical');
+            if (status.status === 'critical') {
+                tankFill.classList.add('critical');
+            } else if (status.status === 'low') {
+                tankFill.classList.add('low');
+            }
+        }
+
+        if (tankPercentage) {
+            tankPercentage.textContent = `${status.percentage}%`;
+        }
+
+        if (tankCurrent) {
+            tankCurrent.textContent = `${status.currentLevel}L`;
+        }
+
+        if (tankStatus) {
+            tankStatus.textContent = status.status.charAt(0).toUpperCase() + status.status.slice(1);
+            tankStatus.className = `tank-status ${status.status}`;
+        }
     },
 
     // Check connection to backend
@@ -569,6 +642,280 @@ const WhatsAppBot = {
             sessionActive: this.sessionActive,
             phoneNumber: this.phoneNumber,
             messageCount: this.messageHistory.length
+        };
+    },
+
+    // Start monitoring for automated alerts
+    startMonitoring() {
+        if (!this.enabled) return;
+
+        console.log('[INFO] Starting WhatsApp alert monitoring...');
+
+        // Check water tank every 30 seconds
+        setInterval(() => this.checkWaterTank(), 30000);
+
+        // Check critical sensors every minute
+        setInterval(() => this.checkCriticalSensors(), 60000);
+
+        // Check equipment health every 5 minutes
+        setInterval(() => this.checkEquipmentHealth(), 300000);
+
+        // Check upcoming irrigation vs water level every hour
+        setInterval(() => this.checkIrrigationReadiness(), 3600000);
+
+        // Initial checks
+        setTimeout(() => {
+            this.checkWaterTank();
+            this.checkCriticalSensors();
+        }, 5000);
+    },
+
+    // Check water tank level
+    async checkWaterTank() {
+        if (!this.enabled || !this.sessionActive) return;
+
+        // Simulate water consumption (in real system, this would come from sensors)
+        // Decrease water level based on pump usage
+        if (typeof FarmControls !== 'undefined') {
+            const pumpStatus = document.getElementById('pump-status-indicator')?.textContent;
+            if (pumpStatus === 'ON') {
+                // Pump uses ~10L per minute
+                this.waterTank.currentLevel -= 10;
+            }
+        }
+
+        this.waterTank.lastCheck = new Date();
+
+        // Check if water is low
+        const percentageRemaining = (this.waterTank.currentLevel / this.waterTank.capacity) * 100;
+
+        // Critical low level (< 10%)
+        if (percentageRemaining < 10 && !this.waterTank.lowLevelAlertSent) {
+            const alertKey = `water-critical-${new Date().toDateString()}`;
+            if (!this.alertsSent.has(alertKey)) {
+                await this.sendAlert(
+                    '🚨 *CRITICAL: Water Tank Almost Empty*\n\n' +
+                    `Current Level: ${Math.round(this.waterTank.currentLevel)}L (${Math.round(percentageRemaining)}%)\n` +
+                    `Capacity: ${this.waterTank.capacity}L\n\n` +
+                    '⚠️ *IMMEDIATE ACTION REQUIRED*\n' +
+                    'Water tank needs urgent refill! Not enough water for scheduled irrigation.\n\n' +
+                    'Please refill the tank as soon as possible to avoid irrigation disruptions.',
+                    'critical'
+                );
+                this.alertsSent.add(alertKey);
+                this.waterTank.lowLevelAlertSent = true;
+            }
+        }
+        // Low level warning (< 20%)
+        else if (percentageRemaining < 20 && percentageRemaining >= 10) {
+            const alertKey = `water-low-${new Date().toDateString()}`;
+            if (!this.alertsSent.has(alertKey)) {
+                await this.sendAlert(
+                    '⚠️ *Water Tank Low*\n\n' +
+                    `Current Level: ${Math.round(this.waterTank.currentLevel)}L (${Math.round(percentageRemaining)}%)\n` +
+                    `Capacity: ${this.waterTank.capacity}L\n\n` +
+                    '💡 Please plan to refill soon to ensure smooth irrigation operations.',
+                    'warning'
+                );
+                this.alertsSent.add(alertKey);
+            }
+        }
+        // Tank refilled - reset alert flag
+        else if (percentageRemaining > 50) {
+            this.waterTank.lowLevelAlertSent = false;
+        }
+
+        // Check if enough water for next scheduled irrigation
+        await this.checkIrrigationReadiness();
+    },
+
+    // Check if enough water for next irrigation
+    async checkIrrigationReadiness() {
+        if (!this.enabled || !this.sessionActive) return;
+        if (typeof SmartScheduler === 'undefined' || !SmartScheduler.enabled) return;
+
+        const status = SmartScheduler.getStatus();
+        if (!status.nextScheduled) return;
+
+        // Estimate water needed (assume 500L per 15-minute irrigation)
+        const waterNeededPerIrrigation = 500;
+        const upcomingCount = status.upcomingIrrigations || 0;
+        const totalWaterNeeded = waterNeededPerIrrigation * upcomingCount;
+
+        if (this.waterTank.currentLevel < totalWaterNeeded) {
+            const alertKey = `irrigation-insufficient-${new Date().toDateString()}`;
+            if (!this.alertsSent.has(alertKey)) {
+                const deficit = totalWaterNeeded - this.waterTank.currentLevel;
+
+                await this.sendAlert(
+                    '💧 *Insufficient Water for Scheduled Irrigation*\n\n' +
+                    `Upcoming Irrigations: ${upcomingCount}\n` +
+                    `Water Needed: ${totalWaterNeeded}L\n` +
+                    `Current Level: ${Math.round(this.waterTank.currentLevel)}L\n` +
+                    `Shortage: ${Math.round(deficit)}L\n\n` +
+                    '📋 *Action Required:*\n' +
+                    `Please refill the tank with at least ${Math.round(deficit)}L to complete scheduled irrigations.\n\n` +
+                    `Next irrigation: ${new Date(status.nextScheduled).toLocaleString()}`,
+                    'warning'
+                );
+                this.alertsSent.add(alertKey);
+            }
+        }
+    },
+
+    // Check critical sensor conditions
+    async checkCriticalSensors() {
+        if (!this.enabled || !this.sessionActive) return;
+        if (typeof Dashboard === 'undefined') return;
+
+        try {
+            const sensors = await Dashboard.fetchSensorData();
+            if (!sensors || sensors.length === 0) return;
+
+            sensors.forEach(async (sensor, index) => {
+                // Critical battery level (< 15%)
+                if (sensor.battery < 15) {
+                    const alertKey = `battery-low-sensor${index}-${new Date().toDateString()}`;
+                    if (!this.alertsSent.has(alertKey)) {
+                        await this.sendAlert(
+                            `🔋 *Sensor Battery Critical*\n\n` +
+                            `Sensor #${index + 1}\n` +
+                            `Battery: ${Math.round(sensor.battery)}%\n\n` +
+                            '⚠️ Sensor may stop reporting soon. Please replace battery.',
+                            'warning'
+                        );
+                        this.alertsSent.add(alertKey);
+                    }
+                }
+
+                // Critical soil moisture (< 25% - drought stress)
+                if (sensor.soil_moisture < 25) {
+                    const alertKey = `drought-sensor${index}-${new Date().toDateString()}`;
+                    if (!this.alertsSent.has(alertKey)) {
+                        await this.sendAlert(
+                            `🌵 *Severe Drought Detected*\n\n` +
+                            `Sensor #${index + 1}\n` +
+                            `Soil Moisture: ${Math.round(sensor.soil_moisture)}%\n\n` +
+                            '💧 Immediate irrigation recommended to prevent crop damage.',
+                            'critical'
+                        );
+                        this.alertsSent.add(alertKey);
+                    }
+                }
+
+                // Extreme temperature (> 38°C)
+                if (sensor.temperature > 38) {
+                    const alertKey = `heat-sensor${index}-${new Date().toDateString()}`;
+                    if (!this.alertsSent.has(alertKey)) {
+                        await this.sendAlert(
+                            `🌡️ *Extreme Heat Alert*\n\n` +
+                            `Sensor #${index + 1}\n` +
+                            `Temperature: ${Math.round(sensor.temperature)}°C\n\n` +
+                            '⚠️ High heat stress on crops. Consider additional irrigation or shade.',
+                            'warning'
+                        );
+                        this.alertsSent.add(alertKey);
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('[ERROR] Failed to check sensors:', error);
+        }
+    },
+
+    // Check equipment health
+    async checkEquipmentHealth() {
+        if (!this.enabled || !this.sessionActive) return;
+        if (typeof PredictiveMaintenance === 'undefined') return;
+
+        const tasks = PredictiveMaintenance.getMaintenanceTasks();
+
+        tasks.forEach(async (task) => {
+            if (task.priority === 'high') {
+                const alertKey = `maintenance-${task.equipment}-${task.reason}`;
+                if (!this.alertsSent.has(alertKey)) {
+                    await this.sendAlert(
+                        `🔧 *Urgent Maintenance Required*\n\n` +
+                        `Equipment: ${task.equipment}\n` +
+                        `Issue: ${task.reason}\n` +
+                        `Priority: ${task.priority.toUpperCase()}\n\n` +
+                        '⚠️ Please schedule maintenance to prevent equipment failure.',
+                        'warning'
+                    );
+                    this.alertsSent.add(alertKey);
+                }
+            }
+        });
+
+        // Check pump health
+        const pumpHealth = PredictiveMaintenance.equipment.pump;
+        if (pumpHealth.health < 50) {
+            const alertKey = `pump-health-${new Date().toDateString()}`;
+            if (!this.alertsSent.has(alertKey)) {
+                await this.sendAlert(
+                    `💧 *Water Pump Health Declining*\n\n` +
+                    `Health Score: ${pumpHealth.health}%\n` +
+                    `Runtime: ${pumpHealth.runtime} hours\n\n` +
+                    '🔧 Service recommended to prevent breakdown.',
+                    'warning'
+                );
+                this.alertsSent.add(alertKey);
+            }
+        }
+    },
+
+    // Send alert (with priority)
+    async sendAlert(message, priority = 'info') {
+        if (!this.enabled || !this.sessionActive) return;
+
+        // Add priority icon
+        let icon = 'ℹ️';
+        if (priority === 'critical') icon = '🚨';
+        else if (priority === 'warning') icon = '⚠️';
+        else if (priority === 'success') icon = '✅';
+
+        const timestamp = new Date().toLocaleTimeString();
+        const fullMessage = `${icon} *AgriConnect Alert*\n${timestamp}\n\n${message}`;
+
+        await this.sendMessage(fullMessage);
+
+        console.log(`[ALERT] ${priority.toUpperCase()} alert sent via WhatsApp`);
+    },
+
+    // Manual water tank refill (called when user refills)
+    refillWaterTank(amount) {
+        this.waterTank.currentLevel = Math.min(
+            this.waterTank.currentLevel + amount,
+            this.waterTank.capacity
+        );
+
+        const percentage = (this.waterTank.currentLevel / this.waterTank.capacity) * 100;
+
+        if (this.enabled && this.sessionActive) {
+            this.sendAlert(
+                `💧 *Water Tank Refilled*\n\n` +
+                `Added: ${amount}L\n` +
+                `Current Level: ${Math.round(this.waterTank.currentLevel)}L (${Math.round(percentage)}%)\n\n` +
+                '✅ Tank is ready for irrigation.',
+                'success'
+            );
+        }
+
+        // Clear low level alerts
+        this.waterTank.lowLevelAlertSent = false;
+
+        console.log('[INFO] Water tank refilled:', amount, 'L');
+    },
+
+    // Get water tank status
+    getWaterTankStatus() {
+        const percentage = (this.waterTank.currentLevel / this.waterTank.capacity) * 100;
+        return {
+            currentLevel: Math.round(this.waterTank.currentLevel),
+            capacity: this.waterTank.capacity,
+            percentage: Math.round(percentage),
+            lastCheck: this.waterTank.lastCheck,
+            status: percentage < 10 ? 'critical' : percentage < 20 ? 'low' : percentage < 50 ? 'medium' : 'good'
         };
     }
 };

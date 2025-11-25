@@ -4441,3 +4441,212 @@ html {
         grid-template-columns: 1fr;
     }
 }
+
+/* Water Tank Monitor */
+.water-tank-monitor {
+    margin-top: var(--spacing-xl);
+    padding: var(--spacing-lg);
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+}
+
+.water-tank-monitor h4 {
+    margin-bottom: var(--spacing-md);
+    color: var(--text-primary);
+}
+
+.tank-visual {
+    display: flex;
+    gap: var(--spacing-xl);
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+}
+
+.tank-container {
+    position: relative;
+    width: 100px;
+    height: 200px;
+    background: var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 3px solid var(--text-secondary);
+}
+
+.tank-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(180deg, var(--info-light), var(--info));
+    transition: height 0.5s ease, background 0.3s ease;
+}
+
+.tank-fill.low {
+    background: linear-gradient(180deg, var(--warning-light), var(--warning));
+}
+
+.tank-fill.critical {
+    background: linear-gradient(180deg, var(--error-light), var(--error));
+    animation: tankPulse 1.5s infinite;
+}
+
+@keyframes tankPulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.tank-percentage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    z-index: 1;
+}
+
+.tank-stats {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    flex: 1;
+}
+
+.tank-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--surface-hover);
+    border-radius: var(--radius-sm);
+}
+
+.tank-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.tank-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.tank-status {
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: var(--radius-full);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.tank-status.good {
+    background: var(--success);
+    color: white;
+}
+
+.tank-status.medium {
+    background: var(--info);
+    color: white;
+}
+
+.tank-status.low {
+    background: var(--warning);
+    color: white;
+}
+
+.tank-status.critical {
+    background: var(--error);
+    color: white;
+    animation: statusPulse 1s infinite;
+}
+
+@keyframes statusPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.tank-refill {
+    margin-bottom: var(--spacing-md);
+}
+
+.tank-refill label {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.refill-input-group {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.refill-input-group input {
+    flex: 1;
+}
+
+.tank-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    background: rgba(25, 118, 210, 0.1);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--info);
+}
+
+.tank-info i {
+    width: 16px;
+    height: 16px;
+}
+
+.btn-success {
+    background: var(--success);
+    color: white;
+    border: none;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    transition: background 0.2s;
+}
+
+.btn-success:hover {
+    background: var(--success-light);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .tank-visual {
+        flex-direction: column;
+    }
+
+    .tank-container {
+        width: 80px;
+        height: 150px;
+    }
+
+    .refill-input-group {
+        flex-direction: column;
+    }
+
+    .refill-input-group button {
+        width: 100%;
+    }
+}

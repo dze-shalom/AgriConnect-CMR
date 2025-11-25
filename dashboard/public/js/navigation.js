@@ -147,7 +147,11 @@ const Navigation = {
             'intelligence': '.intelligence-section',
             'controls': '.control-panel-section',
             'alerts': '.alerts-section',
-            'reports': '#recent-readings-section'
+            'reports': '#recent-readings-section',
+            'smart-scheduler': '.smart-scheduler-section',
+            'equipment-health': '.equipment-health-section',
+            'yield-forecast': '.yield-forecast-section',
+            'whatsapp': '.whatsapp-section'
         };
 
         const selector = sectionMap[view];
