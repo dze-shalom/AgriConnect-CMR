@@ -14,8 +14,20 @@ const WhatsAppBot = {
         currentLevel: 5000, // liters
         minLevel: 500, // minimum safe level
         lastCheck: null,
-        lowLevelAlertSent: false
+        lowLevelAlertSent: false,
+        activeZone: null, // Currently irrigating zone
+        lastConsumptionUpdate: null
     },
+
+    // Zone configurations (area in hectares, flow rate in L/min/ha)
+    zones: {
+        'field1-zone1': { name: 'Field 1, Zone 1', area: 0.5, flowRate: 30 }, // 15 L/min total
+        'field1-zone2': { name: 'Field 1, Zone 2', area: 0.3, flowRate: 30 }, // 9 L/min total
+        'field1-zone3': { name: 'Field 1, Zone 3', area: 0.4, flowRate: 30 }, // 12 L/min total
+        'field2-zone1': { name: 'Field 2, Zone 1', area: 0.6, flowRate: 30 }, // 18 L/min total
+        'field2-zone2': { name: 'Field 2, Zone 2', area: 0.5, flowRate: 30 }  // 15 L/min total
+    },
+
     alertsSent: new Set(), // Track which alerts have been sent to avoid spam
 
     // Initialize module
@@ -151,7 +163,23 @@ const WhatsAppBot = {
         });
 
         document.addEventListener('irrigation-started', (e) => {
-            this.sendNotification(`💦 Irrigation started: Zone ${e.detail.zone}, ${e.detail.duration} min`);
+            const zoneId = e.detail.zoneId || 'field1-zone1'; // Default zone if not specified
+            const zone = this.zones[zoneId];
+
+            // Set active zone for water consumption tracking
+            this.waterTank.activeZone = zoneId;
+            this.waterTank.lastConsumptionUpdate = new Date();
+
+            // Calculate water needed
+            const waterNeeded = this.calculateWaterNeeded(zoneId, e.detail.duration || 15);
+            const zoneName = zone ? zone.name : e.detail.zone;
+
+            this.sendNotification(
+                `💦 Irrigation started: ${zoneName}, ${e.detail.duration || 15} min\n` +
+                `Water needed: ~${waterNeeded}L`
+            );
+
+            console.log(`[INFO] Active irrigation zone set: ${zoneName} (${waterNeeded}L needed)`);
         });
 
         // Update tank display every 5 seconds
@@ -169,6 +197,7 @@ const WhatsAppBot = {
         const tankPercentage = document.getElementById('tank-percentage');
         const tankCurrent = document.getElementById('tank-current');
         const tankStatus = document.getElementById('tank-status');
+        const tankConsumption = document.getElementById('tank-consumption');
 
         if (tankFill) {
             tankFill.style.height = `${status.percentage}%`;
@@ -192,7 +221,15 @@ const WhatsAppBot = {
 
         if (tankStatus) {
             tankStatus.textContent = status.status.charAt(0).toUpperCase() + status.status.slice(1);
-            tankStatus.className = `tank-status ${status.status}`;
+            tankStatus.className = `sensor-status ${status.status}`;
+        }
+
+        if (tankConsumption) {
+            if (status.activeZone && status.consumptionRate > 0) {
+                tankConsumption.textContent = `${status.consumptionRate.toFixed(1)} L/min (${status.activeZone})`;
+            } else {
+                tankConsumption.textContent = '0 L/min';
+            }
         }
     },
 
@@ -651,13 +688,29 @@ const WhatsAppBot = {
     async checkWaterTank() {
         if (!this.enabled || !this.sessionActive) return;
 
-        // Simulate water consumption (in real system, this would come from sensors)
-        // Decrease water level based on pump usage
+        // Simulate zone-aware water consumption (in real system, this would come from sensors)
+        // Decrease water level based on pump usage and active zone
         if (typeof FarmControls !== 'undefined') {
             const pumpStatus = document.getElementById('pump-status-indicator')?.textContent;
-            if (pumpStatus === 'ON') {
-                // Pump uses ~10L per minute
-                this.waterTank.currentLevel -= 10;
+            if (pumpStatus === 'ON' && this.waterTank.activeZone) {
+                const zone = this.zones[this.waterTank.activeZone];
+                if (zone) {
+                    // Calculate consumption: area (ha) × flow rate (L/min/ha) × time elapsed (min)
+                    const now = new Date();
+                    const lastUpdate = this.waterTank.lastConsumptionUpdate || now;
+                    const minutesElapsed = (now - lastUpdate) / 60000; // Convert ms to minutes
+
+                    const consumptionRate = zone.area * zone.flowRate; // L/min
+                    const waterUsed = consumptionRate * minutesElapsed;
+
+                    this.waterTank.currentLevel = Math.max(0, this.waterTank.currentLevel - waterUsed);
+                    this.waterTank.lastConsumptionUpdate = now;
+
+                    console.log(`[INFO] Zone ${zone.name} consuming ${consumptionRate.toFixed(1)} L/min (${waterUsed.toFixed(1)}L used)`);
+                }
+            } else if (pumpStatus === 'OFF') {
+                this.waterTank.activeZone = null;
+                this.waterTank.lastConsumptionUpdate = null;
             }
         }
 
@@ -920,15 +973,39 @@ const WhatsAppBot = {
         console.log('[INFO] Water tank refilled:', amount, 'L');
     },
 
+    // Calculate water needed for a zone and duration
+    calculateWaterNeeded(zoneId, durationMinutes) {
+        const zone = this.zones[zoneId];
+        if (!zone) return 0;
+
+        // Water needed = area (ha) × flow rate (L/min/ha) × duration (min)
+        const waterNeeded = zone.area * zone.flowRate * durationMinutes;
+        return Math.round(waterNeeded);
+    },
+
+    // Get current consumption rate
+    getCurrentConsumptionRate() {
+        if (!this.waterTank.activeZone) return 0;
+
+        const zone = this.zones[this.waterTank.activeZone];
+        if (!zone) return 0;
+
+        return zone.area * zone.flowRate; // L/min
+    },
+
     // Get water tank status
     getWaterTankStatus() {
         const percentage = (this.waterTank.currentLevel / this.waterTank.capacity) * 100;
+        const consumptionRate = this.getCurrentConsumptionRate();
+
         return {
             currentLevel: Math.round(this.waterTank.currentLevel),
             capacity: this.waterTank.capacity,
             percentage: Math.round(percentage),
             lastCheck: this.waterTank.lastCheck,
-            status: percentage < 10 ? 'critical' : percentage < 20 ? 'low' : percentage < 50 ? 'medium' : 'good'
+            status: percentage < 10 ? 'critical' : percentage < 20 ? 'low' : percentage < 50 ? 'medium' : 'good',
+            activeZone: this.waterTank.activeZone ? this.zones[this.waterTank.activeZone]?.name : null,
+            consumptionRate: consumptionRate
         };
     }
 };
