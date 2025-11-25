@@ -232,6 +232,25 @@
                             <span id="offline-nodes-count" class="stat-value offline">0</span>
                         </div>
                     </div>
+
+                    <!-- Drawing Tools Panel -->
+                    <div class="drawing-tools-panel">
+                        <h4>🗺️ Field Drawing Tools</h4>
+                        <p class="drawing-instructions">Draw field boundaries for satellite analysis</p>
+                        <div class="drawing-buttons">
+                            <button id="start-drawing-btn" class="btn-primary">
+                                <i data-lucide="pentagon"></i>
+                                <span>Draw Field</span>
+                            </button>
+                            <button id="clear-drawings-btn" class="btn-secondary">
+                                <i data-lucide="trash-2"></i>
+                                <span>Clear All</span>
+                            </button>
+                        </div>
+                        <div id="drawing-status" class="drawing-status hidden">
+                            <span class="status-text">✏️ Click on map to add points. Double-click to finish.</span>
+                        </div>
+                    </div>
                 </div>
             </section>
 
