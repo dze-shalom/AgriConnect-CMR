@@ -1,0 +1,574 @@
+/**
+ * WhatsApp Bot Integration
+ * Allows farmers to control their farm via WhatsApp messages
+ */
+
+const WhatsAppBot = {
+    enabled: false,
+    phoneNumber: null,
+    sessionActive: false,
+    messageHistory: [],
+    commands: {},
+
+    // Initialize module
+    init() {
+        console.log('[INFO] Initializing WhatsApp Bot...');
+
+        this.loadSettings();
+        this.setupCommands();
+        this.setupEventListeners();
+        this.checkConnection();
+
+        console.log('[SUCCESS] WhatsApp Bot initialized');
+    },
+
+    // Load saved settings
+    loadSettings() {
+        const saved = localStorage.getItem('whatsapp-bot-settings');
+        if (saved) {
+            const settings = JSON.parse(saved);
+            this.enabled = settings.enabled || false;
+            this.phoneNumber = settings.phoneNumber || null;
+        }
+    },
+
+    // Setup available commands
+    setupCommands() {
+        this.commands = {
+            // Status commands
+            'status': {
+                keywords: ['status', 'état', 'how is', 'comment va'],
+                handler: () => this.handleStatusQuery(),
+                description: 'Get farm status overview'
+            },
+            'sensors': {
+                keywords: ['sensors', 'capteurs', 'readings', 'mesures'],
+                handler: () => this.handleSensorsQuery(),
+                description: 'Get latest sensor readings'
+            },
+            'weather': {
+                keywords: ['weather', 'météo', 'forecast', 'prévisions'],
+                handler: () => this.handleWeatherQuery(),
+                description: 'Get weather forecast'
+            },
+
+            // Control commands
+            'water': {
+                keywords: ['water', 'irrigate', 'irrigation', 'arroser'],
+                handler: (params) => this.handleWaterCommand(params),
+                description: 'Start irrigation (e.g., "water zone 1 for 15 minutes")'
+            },
+            'pump on': {
+                keywords: ['pump on', 'start pump', 'pompe allumée', 'démarrer pompe'],
+                handler: () => this.handlePumpCommand('on'),
+                description: 'Turn water pump on'
+            },
+            'pump off': {
+                keywords: ['pump off', 'stop pump', 'pompe éteinte', 'arrêter pompe'],
+                handler: () => this.handlePumpCommand('off'),
+                description: 'Turn water pump off'
+            },
+
+            // Information commands
+            'help': {
+                keywords: ['help', 'aide', 'commands', 'commandes'],
+                handler: () => this.handleHelpCommand(),
+                description: 'Show available commands'
+            },
+            'alerts': {
+                keywords: ['alerts', 'alertes', 'warnings', 'avertissements'],
+                handler: () => this.handleAlertsQuery(),
+                description: 'Check active alerts'
+            },
+
+            // Smart features
+            'schedule': {
+                keywords: ['schedule', 'planning', 'when will', 'quand va'],
+                handler: () => this.handleScheduleQuery(),
+                description: 'Check irrigation schedule'
+            },
+            'yield': {
+                keywords: ['yield', 'forecast', 'rendement', 'prévision'],
+                handler: () => this.handleYieldQuery(),
+                description: 'Get yield forecast'
+            }
+        };
+    },
+
+    // Setup event listeners
+    setupEventListeners() {
+        // Enable/disable toggle
+        const toggleBtn = document.getElementById('whatsapp-bot-toggle');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('change', (e) => {
+                this.enabled = e.target.checked;
+                this.saveSettings();
+
+                if (this.enabled) {
+                    this.activateBot();
+                } else {
+                    this.deactivateBot();
+                }
+            });
+        }
+
+        // Phone number setup
+        const phoneInput = document.getElementById('whatsapp-phone-number');
+        const saveBtn = document.getElementById('save-whatsapp-number');
+
+        if (saveBtn && phoneInput) {
+            saveBtn.addEventListener('click', () => {
+                this.phoneNumber = phoneInput.value;
+                this.saveSettings();
+
+                if (typeof Notifications !== 'undefined') {
+                    Notifications.show(
+                        '✅ Number Saved',
+                        'WhatsApp notifications will be sent to this number',
+                        'success',
+                        3000
+                    );
+                }
+            });
+        }
+
+        // Listen for farm events to send notifications
+        document.addEventListener('pump-activated', () => {
+            this.sendNotification('💧 Water pump is now ON');
+        });
+
+        document.addEventListener('pump-deactivated', () => {
+            this.sendNotification('💧 Water pump is now OFF');
+        });
+
+        document.addEventListener('irrigation-started', (e) => {
+            this.sendNotification(`💦 Irrigation started: Zone ${e.detail.zone}, ${e.detail.duration} min`);
+        });
+    },
+
+    // Check connection to backend
+    async checkConnection() {
+        if (!this.enabled) return;
+
+        try {
+            const response = await fetch('/api/whatsapp/status');
+            if (response.ok) {
+                const data = await response.json();
+                this.sessionActive = data.active;
+                console.log('[SUCCESS] WhatsApp bot connected');
+            }
+        } catch (error) {
+            console.log('[INFO] WhatsApp backend not configured - using simulation mode');
+            this.sessionActive = false;
+        }
+    },
+
+    // Activate bot
+    async activateBot() {
+        console.log('[INFO] Activating WhatsApp bot...');
+
+        if (!this.phoneNumber) {
+            if (typeof Notifications !== 'undefined') {
+                Notifications.show(
+                    '⚠️ Setup Required',
+                    'Please enter your phone number first',
+                    'warning',
+                    4000
+                );
+            }
+            return;
+        }
+
+        try {
+            // Register with backend
+            const response = await fetch('/api/whatsapp/activate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    phoneNumber: this.phoneNumber
+                })
+            });
+
+            if (response.ok) {
+                this.sessionActive = true;
+                this.sendWelcomeMessage();
+            }
+        } catch (error) {
+            console.log('[INFO] Using simulation mode - backend not available');
+            this.sessionActive = true;
+            this.sendWelcomeMessage();
+        }
+    },
+
+    // Deactivate bot
+    async deactivateBot() {
+        console.log('[INFO] Deactivating WhatsApp bot...');
+
+        try {
+            await fetch('/api/whatsapp/deactivate', { method: 'POST' });
+        } catch (error) {
+            console.log('[INFO] Simulation mode - no backend to deactivate');
+        }
+
+        this.sessionActive = false;
+    },
+
+    // Send welcome message
+    sendWelcomeMessage() {
+        const message = `🌾 *AgriConnect Bot Activated*\n\n` +
+            `Your farm is now connected! You can control your farm by sending commands via WhatsApp.\n\n` +
+            `Try: "status", "sensors", "water zone 1", "pump on"\n\n` +
+            `Send "help" for full command list.`;
+
+        this.sendMessage(message);
+    },
+
+    // Process incoming message
+    async processMessage(messageText) {
+        console.log('[INFO] Processing WhatsApp message:', messageText);
+
+        const text = messageText.toLowerCase().trim();
+
+        // Store in history
+        this.messageHistory.push({
+            text: messageText,
+            timestamp: new Date(),
+            direction: 'incoming'
+        });
+
+        // Find matching command
+        for (const [cmdName, cmd] of Object.entries(this.commands)) {
+            for (const keyword of cmd.keywords) {
+                if (text.includes(keyword)) {
+                    // Extract parameters
+                    const params = this.extractParameters(text);
+
+                    try {
+                        const response = await cmd.handler(params);
+                        this.sendMessage(response);
+                        return;
+                    } catch (error) {
+                        console.error('[ERROR] Command handler failed:', error);
+                        this.sendMessage('❌ Sorry, something went wrong executing that command.');
+                        return;
+                    }
+                }
+            }
+        }
+
+        // No command matched
+        this.sendMessage(
+            `❓ I didn't understand that command.\n\nSend "help" to see available commands.`
+        );
+    },
+
+    // Extract parameters from message
+    extractParameters(text) {
+        const params = {};
+
+        // Extract zone number
+        const zoneMatch = text.match(/zone\s*(\d+)/i);
+        if (zoneMatch) {
+            params.zone = zoneMatch[1];
+        }
+
+        // Extract duration
+        const durationMatch = text.match(/(\d+)\s*(minute|min|hour|hr)/i);
+        if (durationMatch) {
+            const value = parseInt(durationMatch[1]);
+            const unit = durationMatch[2];
+            params.duration = unit.includes('hour') || unit.includes('hr') ? value * 60 : value;
+        }
+
+        return params;
+    },
+
+    // Command handlers
+    async handleStatusQuery() {
+        let status = '🌾 *Farm Status Overview*\n\n';
+
+        // Pump status
+        const pumpStatus = document.getElementById('pump-status-indicator')?.textContent || 'Unknown';
+        status += `💧 Water Pump: ${pumpStatus}\n`;
+
+        // Sensor data
+        if (typeof Dashboard !== 'undefined') {
+            try {
+                const sensors = await Dashboard.fetchSensorData();
+                if (sensors && sensors.length > 0) {
+                    const latest = sensors[0];
+                    status += `🌡️ Temperature: ${Math.round(latest.temperature)}°C\n`;
+                    status += `💦 Soil Moisture: ${Math.round(latest.soil_moisture)}%\n`;
+                    status += `💨 Humidity: ${Math.round(latest.humidity)}%\n`;
+                }
+            } catch (error) {
+                status += '⚠️ Sensor data unavailable\n';
+            }
+        }
+
+        // Alerts
+        const alertsCount = document.getElementById('alerts-count')?.textContent || '0';
+        status += `\n🔔 Active Alerts: ${alertsCount}\n`;
+
+        status += `\n✅ All systems operational`;
+
+        return status;
+    },
+
+    async handleSensorsQuery() {
+        let response = '📊 *Latest Sensor Readings*\n\n';
+
+        if (typeof Dashboard !== 'undefined') {
+            try {
+                const sensors = await Dashboard.fetchSensorData();
+                if (sensors && sensors.length > 0) {
+                    sensors.slice(0, 3).forEach((sensor, i) => {
+                        response += `*Sensor ${i + 1}*\n`;
+                        response += `🌡️ Temp: ${Math.round(sensor.temperature)}°C\n`;
+                        response += `💦 Moisture: ${Math.round(sensor.soil_moisture)}%\n`;
+                        response += `💨 Humidity: ${Math.round(sensor.humidity)}%\n`;
+                        response += `🔋 Battery: ${Math.round(sensor.battery)}%\n\n`;
+                    });
+                } else {
+                    response += '⚠️ No sensor data available';
+                }
+            } catch (error) {
+                response += '❌ Failed to fetch sensor data';
+            }
+        } else {
+            response += '⚠️ Sensor system not initialized';
+        }
+
+        return response;
+    },
+
+    async handleWeatherQuery() {
+        let response = '🌤️ *Weather Forecast*\n\n';
+
+        if (typeof Weather !== 'undefined' && Weather.forecastData) {
+            const forecast = Weather.forecastData.slice(0, 3);
+
+            forecast.forEach((day, i) => {
+                const date = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : `Day ${i + 1}`;
+                response += `*${date}*\n`;
+                response += `🌡️ ${Math.round(day.temp)}°C | ${day.condition}\n`;
+                response += `💧 Rain: ${day.rain_probability}% | ${day.rainfall}mm\n\n`;
+            });
+        } else {
+            response += '⚠️ Weather data unavailable';
+        }
+
+        return response;
+    },
+
+    async handleWaterCommand(params) {
+        const zone = params.zone || 'all';
+        const duration = params.duration || 15;
+
+        if (typeof FarmControls !== 'undefined') {
+            try {
+                await FarmControls.startIrrigation(zone, duration);
+                return `✅ *Irrigation Started*\n\nZone: ${zone}\nDuration: ${duration} minutes\n\nYou'll receive a notification when complete.`;
+            } catch (error) {
+                return `❌ Failed to start irrigation: ${error.message}`;
+            }
+        } else {
+            return '⚠️ Irrigation system not available';
+        }
+    },
+
+    async handlePumpCommand(action) {
+        if (typeof FarmControls !== 'undefined') {
+            try {
+                if (action === 'on') {
+                    await FarmControls.activatePump();
+                    return '✅ *Water Pump Activated*\n\nPump is now running';
+                } else {
+                    await FarmControls.deactivatePump();
+                    return '✅ *Water Pump Deactivated*\n\nPump has been turned off';
+                }
+            } catch (error) {
+                return `❌ Failed to control pump: ${error.message}`;
+            }
+        } else {
+            return '⚠️ Pump control system not available';
+        }
+    },
+
+    handleHelpCommand() {
+        let help = '📖 *Available Commands*\n\n';
+
+        help += '*Status & Information:*\n';
+        help += '• status - Farm overview\n';
+        help += '• sensors - Sensor readings\n';
+        help += '• weather - Weather forecast\n';
+        help += '• alerts - Active alerts\n\n';
+
+        help += '*Controls:*\n';
+        help += '• water zone [1/2/3] - Start irrigation\n';
+        help += '• water zone 1 for 20 min - Custom duration\n';
+        help += '• pump on - Activate pump\n';
+        help += '• pump off - Deactivate pump\n\n';
+
+        help += '*Smart Features:*\n';
+        help += '• schedule - Irrigation schedule\n';
+        help += '• yield - Crop yield forecast\n\n';
+
+        help += 'Example: "water zone 2 for 30 minutes"';
+
+        return help;
+    },
+
+    async handleAlertsQuery() {
+        const alertsCount = parseInt(document.getElementById('alerts-count')?.textContent || '0');
+
+        if (alertsCount === 0) {
+            return '✅ *No Active Alerts*\n\nAll systems normal';
+        }
+
+        let response = `🔔 *Active Alerts* (${alertsCount})\n\n`;
+
+        // Get alert details if available
+        const alertsList = document.querySelectorAll('.alert-item');
+        if (alertsList.length > 0) {
+            alertsList.forEach((alert, i) => {
+                if (i < 5) { // Limit to 5 alerts
+                    const text = alert.textContent.trim();
+                    response += `${i + 1}. ${text}\n`;
+                }
+            });
+        }
+
+        return response;
+    },
+
+    async handleScheduleQuery() {
+        if (typeof SmartScheduler !== 'undefined' && SmartScheduler.enabled) {
+            const status = SmartScheduler.getStatus();
+
+            let response = '📅 *Irrigation Schedule*\n\n';
+
+            if (status.upcomingIrrigations > 0) {
+                response += `Upcoming: ${status.upcomingIrrigations} irrigation(s)\n`;
+
+                if (status.nextScheduled) {
+                    response += `Next: ${status.nextScheduled.toLocaleString()}\n`;
+                }
+
+                response += `\n💧 Water Saved: ${status.waterSaved}L this month`;
+            } else {
+                response += 'No irrigations scheduled\n\nSmart scheduler will analyze conditions and schedule as needed.';
+            }
+
+            return response;
+        } else {
+            return '⚠️ Smart Scheduler is not enabled';
+        }
+    },
+
+    async handleYieldQuery() {
+        if (typeof YieldForecast !== 'undefined') {
+            const summary = YieldForecast.getSummary();
+
+            if (summary.hasData) {
+                let response = '📊 *Yield Forecast*\n\n';
+                response += `Crop: ${summary.crop}\n`;
+                response += `Expected: ${summary.predictedYield.toLocaleString()} kg\n`;
+                response += `Confidence: ${summary.confidence}%\n\n`;
+                response += `💰 Revenue: ${summary.revenue.toLocaleString()} XAF\n`;
+                response += `💵 Profit: ${summary.profit.toLocaleString()} XAF\n`;
+
+                return response;
+            } else {
+                return '⚠️ No yield forecast available\n\nRun forecast analysis from dashboard first';
+            }
+        } else {
+            return '⚠️ Yield Forecasting not initialized';
+        }
+    },
+
+    // Send message via WhatsApp
+    async sendMessage(text) {
+        console.log('[INFO] Sending WhatsApp message:', text);
+
+        // Store in history
+        this.messageHistory.push({
+            text: text,
+            timestamp: new Date(),
+            direction: 'outgoing'
+        });
+
+        try {
+            // Send via backend API
+            const response = await fetch('/api/whatsapp/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    to: this.phoneNumber,
+                    message: text
+                })
+            });
+
+            if (response.ok) {
+                console.log('[SUCCESS] Message sent via WhatsApp');
+                return true;
+            }
+        } catch (error) {
+            // Backend not available - show in UI instead
+            console.log('[INFO] Simulation mode - displaying message locally');
+            this.showSimulatedMessage(text);
+        }
+
+        return false;
+    },
+
+    // Send notification
+    async sendNotification(text) {
+        if (!this.enabled || !this.sessionActive) return;
+
+        await this.sendMessage(text);
+    },
+
+    // Show simulated message (for testing without backend)
+    showSimulatedMessage(text) {
+        if (typeof Notifications !== 'undefined') {
+            Notifications.show(
+                '📱 WhatsApp Bot',
+                text.substring(0, 100),
+                'info',
+                5000
+            );
+        }
+
+        // Update message history UI if available
+        const historyContainer = document.getElementById('whatsapp-message-history');
+        if (historyContainer) {
+            const messageEl = document.createElement('div');
+            messageEl.className = 'whatsapp-message outgoing';
+            messageEl.innerHTML = `
+                <div class="message-text">${text.replace(/\n/g, '<br>')}</div>
+                <div class="message-time">${new Date().toLocaleTimeString()}</div>
+            `;
+            historyContainer.appendChild(messageEl);
+            historyContainer.scrollTop = historyContainer.scrollHeight;
+        }
+    },
+
+    // Save settings
+    saveSettings() {
+        localStorage.setItem('whatsapp-bot-settings', JSON.stringify({
+            enabled: this.enabled,
+            phoneNumber: this.phoneNumber
+        }));
+    },
+
+    // Get status
+    getStatus() {
+        return {
+            enabled: this.enabled,
+            sessionActive: this.sessionActive,
+            phoneNumber: this.phoneNumber,
+            messageCount: this.messageHistory.length
+        };
+    }
+};

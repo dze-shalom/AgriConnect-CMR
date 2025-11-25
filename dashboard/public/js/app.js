@@ -187,6 +187,39 @@ window.initDashboardModules = async function() {
             DiseaseAnalysis.init();
         }
 
+        // Initialize Innovation Modules
+        console.log('[INFO] Initializing innovation modules...');
+
+        // Initialize Offline Manager first (provides offline capabilities)
+        if (typeof OfflineManager !== 'undefined') {
+            await OfflineManager.init();
+        }
+
+        // Initialize Voice Control
+        if (typeof VoiceControl !== 'undefined') {
+            VoiceControl.init();
+        }
+
+        // Initialize Smart Irrigation Scheduler
+        if (typeof SmartScheduler !== 'undefined') {
+            SmartScheduler.init();
+        }
+
+        // Initialize Predictive Maintenance
+        if (typeof PredictiveMaintenance !== 'undefined') {
+            PredictiveMaintenance.init();
+        }
+
+        // Initialize Yield Forecasting AI
+        if (typeof YieldForecast !== 'undefined') {
+            YieldForecast.init();
+        }
+
+        // Initialize WhatsApp Bot
+        if (typeof WhatsAppBot !== 'undefined') {
+            WhatsAppBot.init();
+        }
+
         // Notification removed to reduce UI spam
         console.log('[SUCCESS] All dashboard modules initialized');
     } catch (error) {

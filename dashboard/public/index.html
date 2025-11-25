@@ -80,6 +80,10 @@
                     <i data-lucide="clock"></i>
                     <span id="last-update-text">--:--</span>
                 </span>
+                <span id="online-status-badge" class="status-badge online">🟢 Online</span>
+                <button id="voice-control-btn" class="header-btn" title="Voice Control (Ctrl+Space)">
+                    <i data-lucide="mic-off" id="voice-icon"></i>
+                </button>
                 <button id="theme-toggle-btn" class="header-btn" title="Toggle Theme">
                     <i data-lucide="moon" id="theme-icon"></i>
                 </button>
@@ -104,6 +108,11 @@
                 </div>
             </div>
         </header>
+
+        <!-- Voice Control Transcript -->
+        <div id="voice-transcript" class="voice-transcript hidden">
+            Listening...
+        </div>
 
         <!-- Sidebar Navigation -->
         <aside id="sidebar" class="sidebar">
@@ -830,6 +839,15 @@
     <script src="js/satellite.js"></script>
     <script src="js/ndvi-history.js"></script>
     <script src="js/tensorflow-ml.js"></script>
+
+    <!-- Innovation Modules -->
+    <script src="js/smart-scheduler.js"></script>
+    <script src="js/predictive-maintenance.js"></script>
+    <script src="js/yield-forecast.js"></script>
+    <script src="js/voice-control.js"></script>
+    <script src="js/whatsapp-bot.js"></script>
+    <script src="js/offline-manager.js"></script>
+
     <script src="js/app.js"></script>
 
     <!-- Initialize Lucide Icons -->
