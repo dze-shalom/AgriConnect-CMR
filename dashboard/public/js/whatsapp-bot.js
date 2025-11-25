@@ -693,15 +693,19 @@ const WhatsAppBot = {
         if (percentageRemaining < 10 && !this.waterTank.lowLevelAlertSent) {
             const alertKey = `water-critical-${new Date().toDateString()}`;
             if (!this.alertsSent.has(alertKey)) {
-                await this.sendAlert(
-                    '🚨 *CRITICAL: Water Tank Almost Empty*\n\n' +
-                    `Current Level: ${Math.round(this.waterTank.currentLevel)}L (${Math.round(percentageRemaining)}%)\n` +
-                    `Capacity: ${this.waterTank.capacity}L\n\n` +
-                    '⚠️ *IMMEDIATE ACTION REQUIRED*\n' +
-                    'Water tank needs urgent refill! Not enough water for scheduled irrigation.\n\n' +
-                    'Please refill the tank as soon as possible to avoid irrigation disruptions.',
-                    'critical'
-                );
+                // Send via global alert system (Email, SMS, WhatsApp)
+                if (typeof GlobalAlerts !== 'undefined') {
+                    await GlobalAlerts.sendAlert({
+                        alertType: 'Critical Water Tank Level',
+                        severity: 'critical',
+                        message: `Water tank almost empty! Current level: ${Math.round(this.waterTank.currentLevel)}L (${Math.round(percentageRemaining)}%). IMMEDIATE REFILL REQUIRED to avoid irrigation disruptions.`,
+                        sensorData: {
+                            current_level: `${Math.round(this.waterTank.currentLevel)}L`,
+                            percentage: `${Math.round(percentageRemaining)}%`,
+                            capacity: `${this.waterTank.capacity}L`
+                        }
+                    });
+                }
                 this.alertsSent.add(alertKey);
                 this.waterTank.lowLevelAlertSent = true;
             }
@@ -710,13 +714,18 @@ const WhatsAppBot = {
         else if (percentageRemaining < 20 && percentageRemaining >= 10) {
             const alertKey = `water-low-${new Date().toDateString()}`;
             if (!this.alertsSent.has(alertKey)) {
-                await this.sendAlert(
-                    '⚠️ *Water Tank Low*\n\n' +
-                    `Current Level: ${Math.round(this.waterTank.currentLevel)}L (${Math.round(percentageRemaining)}%)\n` +
-                    `Capacity: ${this.waterTank.capacity}L\n\n` +
-                    '💡 Please plan to refill soon to ensure smooth irrigation operations.',
-                    'warning'
-                );
+                // Send via global alert system
+                if (typeof GlobalAlerts !== 'undefined') {
+                    await GlobalAlerts.sendAlert({
+                        alertType: 'Water Tank Low',
+                        severity: 'warning',
+                        message: `Water tank running low. Current level: ${Math.round(this.waterTank.currentLevel)}L (${Math.round(percentageRemaining)}%). Please plan to refill soon.`,
+                        sensorData: {
+                            current_level: `${Math.round(this.waterTank.currentLevel)}L`,
+                            percentage: `${Math.round(percentageRemaining)}%`
+                        }
+                    });
+                }
                 this.alertsSent.add(alertKey);
             }
         }
@@ -864,22 +873,49 @@ const WhatsAppBot = {
         }
     },
 
-    // Send alert (with priority)
-    async sendAlert(message, priority = 'info') {
-        if (!this.enabled || !this.sessionActive) return;
+    // Send alert (unified interface compatible with Email/SMS)
+    async sendAlert({ alertType, severity, message, sensorData = null }) {
+        if (!this.enabled || !this.sessionActive) {
+            console.log('[INFO] WhatsApp alerts disabled, skipping send');
+            return;
+        }
 
-        // Add priority icon
+        if (!this.phoneNumber) {
+            console.log('[WARNING] No WhatsApp phone number configured');
+            return;
+        }
+
+        // Map severity to icon
         let icon = 'ℹ️';
-        if (priority === 'critical') icon = '🚨';
-        else if (priority === 'warning') icon = '⚠️';
-        else if (priority === 'success') icon = '✅';
+        if (severity === 'critical') icon = '🚨';
+        else if (severity === 'warning') icon = '⚠️';
+        else if (severity === 'success' || severity === 'info') icon = '✅';
 
+        // Format message
         const timestamp = new Date().toLocaleTimeString();
-        const fullMessage = `${icon} *AgriConnect Alert*\n${timestamp}\n\n${message}`;
+        let formattedMessage = `${icon} *AgriConnect Alert*\n${timestamp}\n\n*${alertType}*\n\n${message}`;
 
-        await this.sendMessage(fullMessage);
+        // Add sensor data if present
+        if (sensorData) {
+            formattedMessage += '\n\n📊 *Sensor Data:*\n';
+            Object.entries(sensorData).forEach(([key, value]) => {
+                const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                formattedMessage += `• ${label}: ${value}\n`;
+            });
+        }
 
-        console.log(`[ALERT] ${priority.toUpperCase()} alert sent via WhatsApp`);
+        await this.sendMessage(formattedMessage);
+
+        console.log(`[ALERT] ${severity.toUpperCase()} WhatsApp alert sent: ${alertType}`);
+    },
+
+    // Legacy alert method (for backward compatibility)
+    async sendLegacyAlert(message, priority = 'info') {
+        await this.sendAlert({
+            alertType: 'System Alert',
+            severity: priority,
+            message: message
+        });
     },
 
     // Manual water tank refill (called when user refills)

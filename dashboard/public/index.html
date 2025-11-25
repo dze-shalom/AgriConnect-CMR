@@ -542,6 +542,47 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Water Tank Monitor Card -->
+                    <div class="control-card">
+                        <div class="control-header">
+                            <h3>💧 Water Tank Monitor</h3>
+                            <span id="tank-status" class="status-indicator good">Good</span>
+                        </div>
+                        <div class="control-body">
+                            <div class="tank-display">
+                                <div class="tank-container">
+                                    <div id="tank-fill" class="tank-fill" style="height: 100%"></div>
+                                    <div class="tank-percentage" id="tank-percentage">100%</div>
+                                </div>
+                                <div class="tank-stats">
+                                    <div class="tank-stat-row">
+                                        <span class="tank-label">Current Level:</span>
+                                        <span class="tank-value" id="tank-current">5000L</span>
+                                    </div>
+                                    <div class="tank-stat-row">
+                                        <span class="tank-label">Capacity:</span>
+                                        <span class="tank-value">5000L</span>
+                                    </div>
+                                    <div class="tank-stat-row">
+                                        <span class="tank-label">Consumption:</span>
+                                        <span class="tank-value" id="tank-consumption">0 L/min</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="control-actions">
+                                <div class="refill-group">
+                                    <input type="number" id="refill-amount" value="1000" min="0" step="100" placeholder="Amount (L)">
+                                    <button id="refill-tank-btn" class="control-btn success">
+                                        Refill Tank
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="control-info">
+                                <small>💡 Alerts sent via Email, SMS & WhatsApp when low</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -862,43 +903,9 @@
                                 <input type="tel" id="whatsapp-phone-number" class="form-control" placeholder="+237 6XX XXX XXX">
                                 <button id="save-whatsapp-number" class="btn-primary">Save</button>
                             </div>
-                        </div>
-
-                        <div class="water-tank-monitor">
-                            <h4>💧 Water Tank Monitor</h4>
-                            <div class="tank-visual">
-                                <div class="tank-container">
-                                    <div id="tank-fill" class="tank-fill" style="height: 100%"></div>
-                                    <div class="tank-percentage" id="tank-percentage">100%</div>
-                                </div>
-                                <div class="tank-stats">
-                                    <div class="tank-stat">
-                                        <span class="tank-label">Current</span>
-                                        <span class="tank-value" id="tank-current">5000L</span>
-                                    </div>
-                                    <div class="tank-stat">
-                                        <span class="tank-label">Capacity</span>
-                                        <span class="tank-value">5000L</span>
-                                    </div>
-                                    <div class="tank-stat">
-                                        <span class="tank-label">Status</span>
-                                        <span class="tank-status good" id="tank-status">Good</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="tank-refill">
-                                <label for="refill-amount">Refill Amount (liters)</label>
-                                <div class="refill-input-group">
-                                    <input type="number" id="refill-amount" class="form-control" value="1000" min="0" step="100">
-                                    <button id="refill-tank-btn" class="btn-success">
-                                        <i data-lucide="droplet"></i>
-                                        Refill Tank
-                                    </button>
-                                </div>
-                            </div>
-                            <p class="tank-info">
+                            <p class="setup-info">
                                 <i data-lucide="info"></i>
-                                You'll receive WhatsApp alerts when water is low or insufficient for scheduled irrigation.
+                                When enabled, you'll receive ALL system alerts (sensors, equipment, weather, water tank) via WhatsApp in addition to Email and SMS.
                             </p>
                         </div>
 
@@ -1084,6 +1091,7 @@
     <script src="js/realtime.js"></script>
     <script src="js/email-alerts.js"></script>
     <script src="js/sms-alerts.js"></script>
+    <script src="js/global-alerts.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/controls.js"></script>
     <script src="js/map.js"></script>

@@ -31,6 +31,7 @@ const PRECACHE_ASSETS = [
     '/js/offline-manager.js',
     '/js/yield-forecast.js',
     '/js/whatsapp-bot.js',
+    '/js/global-alerts.js',
     '/manifest.json',
     '/icons/icon-192x192.png',
     '/icons/icon-512x512.png'

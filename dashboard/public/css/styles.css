@@ -4650,3 +4650,72 @@ html {
         width: 100%;
     }
 }
+
+/* Tank Display in Control Card */
+.tank-display {
+    display: flex;
+    gap: var(--spacing-lg);
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.tank-stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--spacing-xs) 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.tank-stat-row:last-child {
+    border-bottom: none;
+}
+
+.refill-group {
+    display: flex;
+    gap: var(--spacing-sm);
+    width: 100%;
+}
+
+.refill-group input {
+    flex: 1;
+    padding: var(--spacing-sm);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+}
+
+.setup-info {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: rgba(25, 118, 210, 0.1);
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--info);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.setup-info i {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+@media (max-width: 768px) {
+    .tank-display {
+        flex-direction: column;
+    }
+
+    .refill-group {
+        flex-direction: column;
+    }
+
+    .refill-group input,
+    .refill-group button {
+        width: 100%;
+    }
+}
