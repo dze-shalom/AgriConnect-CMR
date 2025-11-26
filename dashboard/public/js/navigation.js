@@ -83,6 +83,10 @@ const Navigation = {
         if (typeof lucide !== 'undefined') {
             setTimeout(() => {
                 lucide.createIcons();
+                // Refresh translations after icons are created
+                if (typeof Language !== 'undefined') {
+                    Language.refresh();
+                }
             }, 100);
         }
     },
@@ -134,15 +138,23 @@ const Navigation = {
 
     // Scroll to section
     scrollToSection(view) {
-        // Map view names to section classes/IDs
+        // Map view names to section classes/IDs (Consolidated Structure)
         const sectionMap = {
+            // Main consolidated views
             'overview': '.map-section',
+            'monitoring': '#live-sensors-section',  // Sensors & Weather
+            'analytics': '.charts-section',          // Charts & Reports
+            'intelligence': '.intelligence-section', // AI Insights (includes Yield Forecast)
+            'automation': '.control-panel-section',  // Farm Controls (includes Smart Scheduler)
+            'satellite': '.map-section',             // Satellite & NDVI (opens fullscreen map)
+            'alerts': '.alerts-section',             // Alerts & Maintenance (includes Equipment Health)
+            'settings': '.settings-section',         // Settings & Notifications (WhatsApp, Email, SMS)
+
+            // Legacy mappings for backward compatibility
             'sensors': '#live-sensors-section',
             'charts': '.charts-section',
             'weather': '.weather-section',
-            'intelligence': '.intelligence-section',
             'controls': '.control-panel-section',
-            'alerts': '.alerts-section',
             'reports': '#recent-readings-section'
         };
 

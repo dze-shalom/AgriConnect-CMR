@@ -118,6 +118,92 @@ const Satellite = {
         FarmMap.map.on('draw.update', (e) => this.onDrawUpdate(e));
 
         console.log('[SUCCESS] Drawing tools ready');
+
+        // Setup UI button event listeners
+        this.setupDrawingButtons();
+    },
+
+    // Setup drawing button event listeners
+    setupDrawingButtons() {
+        const startBtn = document.getElementById('start-drawing-btn');
+        const clearBtn = document.getElementById('clear-drawings-btn');
+        const statusDiv = document.getElementById('drawing-status');
+
+        if (startBtn) {
+            startBtn.addEventListener('click', () => {
+                console.log('[DEBUG] Draw button clicked, draw object:', this.draw);
+
+                if (!this.draw) {
+                    console.error('[ERROR] MapboxDraw not initialized');
+                    if (typeof Notifications !== 'undefined') {
+                        Notifications.show('⚠️ Error', 'Drawing tools not ready. Please wait for map to load.', 'error', 3000);
+                    }
+                    return;
+                }
+
+                try {
+                    // Activate polygon drawing mode
+                    this.draw.changeMode('draw_polygon');
+
+                    // Show status message
+                    if (statusDiv) {
+                        statusDiv.classList.remove('hidden');
+                    }
+
+                    // Visual feedback
+                    startBtn.style.background = 'var(--success)';
+                    startBtn.style.color = 'white';
+
+                    console.log('[INFO] Drawing mode activated');
+
+                    if (typeof Notifications !== 'undefined') {
+                        Notifications.show('✏️ Drawing Mode', 'Click on map to draw field boundary', 'info', 3000);
+                    }
+                } catch (error) {
+                    console.error('[ERROR] Failed to activate drawing mode:', error);
+                    if (typeof Notifications !== 'undefined') {
+                        Notifications.show('⚠️ Error', 'Failed to activate drawing mode', 'error', 3000);
+                    }
+                }
+            });
+        } else {
+            console.error('[ERROR] Start drawing button not found');
+        }
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                if (this.draw) {
+                    // Delete all drawn features
+                    this.draw.deleteAll();
+                    this.drawnFeatures = [];
+                    this.analysisResults.clear();
+
+                    // Hide status
+                    if (statusDiv) {
+                        statusDiv.classList.add('hidden');
+                    }
+
+                    // Reset button style
+                    const startBtn = document.getElementById('start-drawing-btn');
+                    if (startBtn) {
+                        startBtn.style.background = '';
+                        startBtn.style.color = '';
+                    }
+
+                    // Hide satellite panel
+                    const panel = document.getElementById('satellite-analysis-panel');
+                    if (panel) {
+                        panel.classList.add('hidden');
+                    }
+
+                    console.log('[INFO] All drawings cleared');
+
+                    if (typeof Notifications !== 'undefined') {
+                        Notifications.show('🗑️ Cleared', 'All field boundaries removed', 'info', 2000);
+                    }
+                }
+            });
+        }
     },
 
     // Custom draw styles for better visibility

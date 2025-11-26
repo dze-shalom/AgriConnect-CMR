@@ -143,35 +143,45 @@ const Dashboard = {
     // Load latest sensor data
     async loadSensorData() {
         try {
-            // Get latest reading for each field/zone combination
-            const { data, error } = await window.supabase
-                .from('sensor_readings')
-                .select('*')
-                .order('reading_time', { ascending: false })
-                .limit(20);
-            
+            // Use MockData if available (handles hardware connection detection)
+            let data, error;
+            if (typeof MockData !== 'undefined') {
+                const result = await MockData.getSensorData();
+                data = result.data;
+                error = result.error;
+            } else {
+                // Fallback to direct Supabase call
+                const result = await window.supabase
+                    .from('sensor_readings')
+                    .select('*')
+                    .order('reading_time', { ascending: false })
+                    .limit(20);
+                data = result.data;
+                error = result.error;
+            }
+
             if (error) throw error;
-            
+
             const container = document.getElementById('sensors-grid');
-            
+
             if (!data || data.length === 0) {
                 container.innerHTML = '<div class="loading">No sensor data available</div>';
                 return;
             }
-            
+
             // Get most recent reading
             const latest = data[0];
             this.latestReadings = latest;
-            
+
             // Render sensor cards
             container.innerHTML = this.renderSensorCards(latest);
-            
+
             // Update last update time
-            this.updateLastUpdateTime(latest.reading_time);
-            
+            this.updateLastUpdateTime(latest.timestamp || latest.reading_time);
+
         } catch (error) {
             console.error('[ERROR] Failed to load sensor data:', error.message);
-            document.getElementById('sensors-grid').innerHTML = 
+            document.getElementById('sensors-grid').innerHTML =
                 '<div class="loading">Failed to load sensor data</div>';
         }
     },
@@ -220,35 +230,92 @@ const Dashboard = {
             ));
         }
         
-        // pH Value
-        if (data.ph_value !== null) {
+        // pH Value (support both field names)
+        const phValue = data.ph_value !== undefined ? data.ph_value : data.ph;
+        if (phValue !== null && phValue !== undefined) {
             cards.push(this.createSensorCard(
                 'pH Level',
-                data.ph_value,
+                phValue,
                 '',
-                this.getSensorStatus(data.ph_value, CONFIG.sensorThresholds.phValue)
+                this.getSensorStatus(phValue, CONFIG.sensorThresholds.phValue)
             ));
         }
-        
-        // EC Value
-        if (data.ec_value !== null) {
+
+        // EC Value (support both field names)
+        const ecValue = data.ec_value !== undefined ? data.ec_value : data.ec;
+        if (ecValue !== null && ecValue !== undefined) {
             cards.push(this.createSensorCard(
                 'EC Level',
-                data.ec_value,
+                ecValue,
                 'mS/cm',
-                this.getSensorStatus(data.ec_value, CONFIG.sensorThresholds.ecValue)
+                this.getSensorStatus(ecValue, CONFIG.sensorThresholds.ecValue)
             ));
         }
-        
-        // NPK
-        if (data.nitrogen_ppm !== null) {
-            cards.push(this.createSensorCard('Nitrogen', data.nitrogen_ppm, 'ppm', 'optimal'));
+
+        // NPK (support both field naming conventions)
+        const nitrogen = data.nitrogen_ppm !== undefined ? data.nitrogen_ppm : data.nitrogen;
+        const phosphorus = data.phosphorus_ppm !== undefined ? data.phosphorus_ppm : data.phosphorus;
+        const potassium = data.potassium_ppm !== undefined ? data.potassium_ppm : data.potassium;
+
+        if (nitrogen !== null && nitrogen !== undefined) {
+            cards.push(this.createSensorCard('Nitrogen', nitrogen, 'ppm', 'optimal'));
         }
-        if (data.phosphorus_ppm !== null) {
-            cards.push(this.createSensorCard('Phosphorus', data.phosphorus_ppm, 'ppm', 'optimal'));
+        if (phosphorus !== null && phosphorus !== undefined) {
+            cards.push(this.createSensorCard('Phosphorus', phosphorus, 'ppm', 'optimal'));
         }
-        if (data.potassium_ppm !== null) {
-            cards.push(this.createSensorCard('Potassium', data.potassium_ppm, 'ppm', 'optimal'));
+        if (potassium !== null && potassium !== undefined) {
+            cards.push(this.createSensorCard('Potassium', potassium, 'ppm', 'optimal'));
+        }
+
+        // Water Tank Level
+        if (data.water_tank_level !== null && data.water_tank_level !== undefined) {
+            cards.push(this.createSensorCard(
+                'Water Tank',
+                data.water_tank_level,
+                'L',
+                data.water_tank_percentage > 30 ? 'optimal' : 'warning',
+                data.water_tank_percentage ? `${data.water_tank_percentage.toFixed(1)}%` : null
+            ));
+        }
+
+        // Irrigation Status
+        if (data.irrigation_active !== undefined) {
+            const irrigationStatus = data.irrigation_active ? 'Active' : 'Inactive';
+            const activeZone = data.active_zone || 'None';
+            cards.push(this.createSensorCard(
+                'Irrigation',
+                irrigationStatus,
+                '',
+                data.irrigation_active ? 'optimal' : 'normal',
+                data.irrigation_active ? `Zone: ${activeZone}` : null
+            ));
+        }
+
+        // Pump Status
+        if (data.pump_status !== undefined) {
+            cards.push(this.createSensorCard(
+                'Pump',
+                data.pump_status.toUpperCase(),
+                '',
+                data.pump_status === 'on' ? 'optimal' : 'normal'
+            ));
+        }
+
+        // Disease Risk
+        if (data.disease_risk_level !== undefined) {
+            const riskColors = {
+                'low': 'optimal',
+                'moderate': 'normal',
+                'high': 'warning',
+                'critical': 'critical'
+            };
+            cards.push(this.createSensorCard(
+                'Disease Risk',
+                data.disease_risk_level.charAt(0).toUpperCase() + data.disease_risk_level.slice(1),
+                '',
+                riskColors[data.disease_risk_level] || 'normal',
+                data.disease_risk_score ? `Score: ${data.disease_risk_score}` : null
+            ));
         }
         
         // Light & PAR
@@ -273,14 +340,19 @@ const Dashboard = {
     },
     
     // Create sensor card HTML
-    createSensorCard(label, value, unit, status) {
+    createSensorCard(label, value, unit, status, subtitle = null) {
+        // Handle non-numeric values (like "Active", "ON", "OFF", etc.)
+        const displayValue = typeof value === 'number' ? value.toFixed(1) : value;
+        const subtitleHTML = subtitle ? `<div class="sensor-subtitle">${subtitle}</div>` : '';
+
         return `
             <div class="sensor-card">
                 <div class="sensor-label">${label}</div>
                 <div class="sensor-value">
-                    ${value.toFixed(1)}
+                    ${displayValue}
                     <span class="sensor-unit">${unit}</span>
                 </div>
+                ${subtitleHTML}
                 <span class="sensor-status ${status}">${status}</span>
             </div>
         `;
@@ -354,136 +426,243 @@ const Dashboard = {
         document.getElementById('last-update').textContent = `Last update: ${time}`;
     },
     
-    // Export data to CSV - Enhanced with pump commands and irrigation logs
+    // Export data to Excel - Enhanced with multiple sheets
     async exportToCSV() {
         try {
-            console.log('[INFO] Exporting comprehensive farm data to CSV...');
-            
-            // Fetch all data types
-            const [sensorData, pumpData, irrigationData] = await Promise.all([
-                // Sensor readings
-                window.supabase
-                    .from('sensor_readings')
-                    .select('*')
-                    .order('reading_time', { ascending: false })
-                    .limit(1000),
-                
-                // Pump commands
-                window.supabase
-                    .from('pump_commands')
-                    .select('*')
-                    .order('executed_at', { ascending: false })
-                    .limit(500),
-                
-                // Irrigation logs
-                window.supabase
-                    .from('irrigation_logs')
-                    .select('*')
-                    .order('started_at', { ascending: false })
-                    .limit(500)
-            ]);
-            
+            console.log('[INFO] Exporting comprehensive farm data to Excel...');
+
+            // Use MockData if available (handles both mock and real data)
+            let sensorData, pumpData, irrigationData;
+
+            if (typeof MockData !== 'undefined') {
+                // Get last 30 days of data from MockData (720 hours)
+                const sensorResult = await MockData.getHistoricalData(720);
+                sensorData = { data: sensorResult.data, error: sensorResult.error };
+
+                // For pump and irrigation, try Supabase (fall back to empty if not available)
+                try {
+                    const [pumpResult, irrigationResult] = await Promise.all([
+                        window.supabase
+                            .from('pump_commands')
+                            .select('*')
+                            .order('executed_at', { ascending: false })
+                            .limit(500),
+                        window.supabase
+                            .from('irrigation_logs')
+                            .select('*')
+                            .order('started_at', { ascending: false })
+                            .limit(500)
+                    ]);
+                    pumpData = pumpResult;
+                    irrigationData = irrigationResult;
+                } catch (err) {
+                    console.log('[INFO] Pump/irrigation data not available (using mock data mode)');
+                    pumpData = { data: [], error: null };
+                    irrigationData = { data: [], error: null };
+                }
+            } else {
+                // Fallback to direct Supabase
+                [sensorData, pumpData, irrigationData] = await Promise.all([
+                    window.supabase
+                        .from('sensor_readings')
+                        .select('*')
+                        .order('reading_time', { ascending: false })
+                        .limit(1000),
+                    window.supabase
+                        .from('pump_commands')
+                        .select('*')
+                        .order('executed_at', { ascending: false })
+                        .limit(500),
+                    window.supabase
+                        .from('irrigation_logs')
+                        .select('*')
+                        .order('started_at', { ascending: false })
+                        .limit(500)
+                ]);
+            }
+
             if (sensorData.error || pumpData.error || irrigationData.error) {
                 throw new Error('Failed to fetch data from database');
             }
-            
-            // Create comprehensive CSV with multiple sheets approach
-            // Since CSV doesn't support multiple sheets, we'll create sections
-            
-            let csv = '';
-            
+
+            console.log(`[INFO] Excel Export - Sensor readings: ${sensorData.data ? sensorData.data.length : 0}`);
+            console.log(`[INFO] Excel Export - Pump commands: ${pumpData.data ? pumpData.data.length : 0}`);
+            console.log(`[INFO] Excel Export - Irrigation logs: ${irrigationData.data ? irrigationData.data.length : 0}`);
+
+            // Check if SheetJS is available
+            if (typeof XLSX === 'undefined') {
+                throw new Error('SheetJS library not loaded. Please refresh the page.');
+            }
+
+            // Create workbook
+            const workbook = XLSX.utils.book_new();
+
             // ============================================
-            // SECTION 1: SENSOR READINGS
+            // SHEET 1: Environmental Sensors
             // ============================================
-            csv += '==================================================\n';
-            csv += 'AGRICONNECT FARM DATA EXPORT\n';
-            csv += `Export Date: ${new Date().toISOString()}\n`;
-            csv += `Farm ID: ${CONFIG.farmId}\n`;
-            csv += '==================================================\n\n';
-            
-            csv += 'SENSOR READINGS\n';
-            csv += '==================================================\n';
-            
-            const sensorHeaders = [
-                'Reading Time', 'Gateway ID', 'Field ID', 'Zone ID',
-                'Air Temp (C)', 'Air Humidity (%)', 'Soil Moisture', 'Soil Temp (C)',
-                'pH', 'EC (mS/cm)', 'N (ppm)', 'P (ppm)', 'K (ppm)',
-                'Light (Lux)', 'PAR', 'CO2 (ppm)', 'Battery (%)', 'RSSI', 'Valid Data'
-            ];
-            
-            csv += sensorHeaders.join(',') + '\n';
-            
+            const envData = [];
+            envData.push(['ENVIRONMENTAL SENSORS - Last 30 Days']);
+            envData.push(['Location: Tole, Buea, Cameroon', '', 'Crop: Tomatoes']);
+            envData.push([`Total Records: ${sensorData.data ? sensorData.data.length : 0}`]);
+            envData.push([]); // Empty row
+
+            envData.push(['Timestamp', 'Field', 'Zone', 'Air Temp (C)', 'Air Humidity (%)', 'Rainfall (mm)',
+                         'Soil Moisture (%)', 'Soil Temp (C)', 'pH', 'EC (mS/cm)', 'N (ppm)', 'P (ppm)', 'K (ppm)']);
+
             if (sensorData.data && sensorData.data.length > 0) {
                 sensorData.data.forEach(row => {
-                    const values = [
-                        row.reading_time,
-                        row.gateway_id,
-                        row.field_id,
-                        row.zone_id,
+                    envData.push([
+                        row.timestamp || row.reading_time,
+                        row.field_number || row.field_id || '',
+                        row.zone_id || `Zone ${row.zone_number}` || '',
                         row.air_temperature || '',
                         row.air_humidity || '',
+                        row.rainfall_today || '0',
                         row.soil_moisture || '',
                         row.soil_temperature || '',
-                        row.ph_value || '',
-                        row.ec_value || '',
-                        row.nitrogen_ppm || '',
-                        row.phosphorus_ppm || '',
-                        row.potassium_ppm || '',
-                        row.light_intensity || '',
-                        row.par_value || '',
-                        row.co2_ppm || '',
-                        row.battery_level || '',
-                        row.rssi || '',
-                        row.data_valid ? 'Yes' : 'No'
-                    ];
-                    csv += values.join(',') + '\n';
+                        row.ph || row.ph_value || '',
+                        row.ec || row.ec_value || '',
+                        row.nitrogen || row.nitrogen_ppm || '',
+                        row.phosphorus || row.phosphorus_ppm || '',
+                        row.potassium || row.potassium_ppm || ''
+                    ]);
                 });
-            } else {
-                csv += 'No sensor data available\n';
             }
-            
+
+            const envSheet = XLSX.utils.aoa_to_sheet(envData);
+            XLSX.utils.book_append_sheet(workbook, envSheet, 'Environmental Sensors');
+
             // ============================================
-            // SECTION 2: PUMP COMMANDS
+            // SHEET 2: Water System Status
             // ============================================
-            csv += '\n\nPUMP CONTROL COMMANDS\n';
-            csv += '==================================================\n';
-            
-            const pumpHeaders = [
-                'Timestamp', 'Farm ID', 'Command', 'Requested By'
-            ];
-            
-            csv += pumpHeaders.join(',') + '\n';
-            
+            const waterData = [];
+            waterData.push(['WATER SYSTEM & IRRIGATION STATUS']);
+            waterData.push(['Last 30 Days']);
+            waterData.push([`Total Records: ${sensorData.data ? sensorData.data.length : 0}`]);
+            waterData.push([]); // Empty row
+
+            waterData.push(['Timestamp', 'Field', 'Zone', 'Water Tank Level (L)', 'Tank Percentage (%)',
+                           'Flow Rate (L/min)', 'Pump Status', 'Irrigation Active', 'Active Zone']);
+
+            if (sensorData.data && sensorData.data.length > 0) {
+                sensorData.data.forEach(row => {
+                    waterData.push([
+                        row.timestamp || row.reading_time,
+                        row.field_number || row.field_id || '',
+                        row.zone_id || `Zone ${row.zone_number}` || '',
+                        row.water_tank_level || '',
+                        row.water_tank_percentage || '',
+                        row.water_flow_rate || '0',
+                        row.pump_status || 'unknown',
+                        row.irrigation_active ? 'Yes' : 'No',
+                        row.active_zone || 'None'
+                    ]);
+                });
+            }
+
+            const waterSheet = XLSX.utils.aoa_to_sheet(waterData);
+            XLSX.utils.book_append_sheet(workbook, waterSheet, 'Water System');
+
+            // ============================================
+            // SHEET 3: Disease Risk & Crop Management
+            // ============================================
+            const diseaseData = [];
+            diseaseData.push(['DISEASE RISK & CROP MANAGEMENT']);
+            diseaseData.push(['Critical for Buea high humidity environment']);
+            diseaseData.push([`Total Records: ${sensorData.data ? sensorData.data.length : 0}`]);
+            diseaseData.push([]); // Empty row
+
+            diseaseData.push(['Timestamp', 'Field', 'Zone', 'Disease Risk Score', 'Disease Risk Level',
+                             'Crop Type', 'Crop Age (days)', 'Growth Stage', 'Season Type']);
+
+            if (sensorData.data && sensorData.data.length > 0) {
+                sensorData.data.forEach(row => {
+                    diseaseData.push([
+                        row.timestamp || row.reading_time,
+                        row.field_number || row.field_id || '',
+                        row.zone_id || `Zone ${row.zone_number}` || '',
+                        row.disease_risk_score || '0',
+                        row.disease_risk_level || 'unknown',
+                        row.crop_type || 'tomato',
+                        row.crop_age_days || '',
+                        row.growth_stage || '',
+                        row.season_type || ''
+                    ]);
+                });
+            }
+
+            const diseaseSheet = XLSX.utils.aoa_to_sheet(diseaseData);
+            XLSX.utils.book_append_sheet(workbook, diseaseSheet, 'Disease & Crop');
+
+            // ============================================
+            // SHEET 4: System Health
+            // ============================================
+            const healthData = [];
+            healthData.push(['SYSTEM HEALTH & CONNECTIVITY']);
+            healthData.push(['Battery and Signal Status']);
+            healthData.push([`Total Records: ${sensorData.data ? sensorData.data.length : 0}`]);
+            healthData.push([]); // Empty row
+
+            healthData.push(['Timestamp', 'Field', 'Zone', 'Battery Level (%)', 'Status', 'Signal Strength']);
+
+            if (sensorData.data && sensorData.data.length > 0) {
+                sensorData.data.forEach(row => {
+                    healthData.push([
+                        row.timestamp || row.reading_time,
+                        row.field_number || row.field_id || '',
+                        row.zone_id || `Zone ${row.zone_number}` || '',
+                        row.battery_level || '',
+                        row.status || '',
+                        row.signal_strength || ''
+                    ]);
+                });
+            }
+
+            const healthSheet = XLSX.utils.aoa_to_sheet(healthData);
+            XLSX.utils.book_append_sheet(workbook, healthSheet, 'System Health');
+
+            // ============================================
+            // SHEET 5: Pump Commands
+            // ============================================
+            const pumpCommandData = [];
+            pumpCommandData.push(['PUMP CONTROL COMMANDS']);
+            pumpCommandData.push(['Command History']);
+            pumpCommandData.push([`Total Commands: ${pumpData.data ? pumpData.data.length : 0}`]);
+            pumpCommandData.push([]); // Empty row
+
+            pumpCommandData.push(['Timestamp', 'Farm ID', 'Command', 'Requested By']);
+
             if (pumpData.data && pumpData.data.length > 0) {
                 pumpData.data.forEach(row => {
-                    const values = [
+                    pumpCommandData.push([
                         row.executed_at,
                         row.farm_id,
                         row.command.toUpperCase(),
                         row.requested_by || 'System'
-                    ];
-                    csv += values.join(',') + '\n';
+                    ]);
                 });
             } else {
-                csv += 'No pump command history available\n';
+                pumpCommandData.push(['No pump command history available']);
             }
+
+            const pumpSheet = XLSX.utils.aoa_to_sheet(pumpCommandData);
+            XLSX.utils.book_append_sheet(workbook, pumpSheet, 'Pump Commands');
             
             // ============================================
-            // SECTION 3: IRRIGATION LOGS
+            // SHEET 6: Irrigation Logs
             // ============================================
-            csv += '\n\nIRRIGATION LOGS\n';
-            csv += '==================================================\n';
-            
-            const irrigationHeaders = [
-                'Started At', 'Farm ID', 'Field ID', 'Zone ID', 
-                'Duration (min)', 'Started By', 'Completed'
-            ];
-            
-            csv += irrigationHeaders.join(',') + '\n';
-            
+            const irrigationLogData = [];
+            irrigationLogData.push(['IRRIGATION LOGS']);
+            irrigationLogData.push(['Irrigation Session History']);
+            irrigationLogData.push([`Total Sessions: ${irrigationData.data ? irrigationData.data.length : 0}`]);
+            irrigationLogData.push([]); // Empty row
+
+            irrigationLogData.push(['Started At', 'Farm ID', 'Field ID', 'Zone ID',
+                                   'Duration (min)', 'Started By', 'Completed']);
+
             if (irrigationData.data && irrigationData.data.length > 0) {
                 irrigationData.data.forEach(row => {
-                    const values = [
+                    irrigationLogData.push([
                         row.started_at,
                         row.farm_id,
                         row.field_id,
@@ -491,72 +670,70 @@ const Dashboard = {
                         row.duration_minutes,
                         row.started_by || 'System',
                         row.completed ? 'Yes' : 'No'
-                    ];
-                    csv += values.join(',') + '\n';
+                    ]);
                 });
             } else {
-                csv += 'No irrigation logs available\n';
+                irrigationLogData.push(['No irrigation logs available']);
             }
+
+            const irrigationSheet = XLSX.utils.aoa_to_sheet(irrigationLogData);
+            XLSX.utils.book_append_sheet(workbook, irrigationSheet, 'Irrigation Logs');
             
             // ============================================
-            // SECTION 4: SUMMARY STATISTICS
+            // SHEET 7: Summary Statistics
             // ============================================
-            csv += '\n\nSUMMARY STATISTICS\n';
-            csv += '==================================================\n';
-            
+            const summaryData = [];
+            summaryData.push(['SUMMARY STATISTICS']);
+            summaryData.push(['Farm Data Overview']);
+            summaryData.push([]); // Empty row
+
             // Calculate statistics
             const totalSensorReadings = sensorData.data?.length || 0;
             const totalPumpCommands = pumpData.data?.length || 0;
             const totalIrrigations = irrigationData.data?.length || 0;
-            
+
             // Pump ON vs OFF count
             const pumpOnCount = pumpData.data?.filter(p => p.command === 'on').length || 0;
             const pumpOffCount = pumpData.data?.filter(p => p.command === 'off').length || 0;
-            
+
             // Total irrigation time
             const totalIrrigationMinutes = irrigationData.data?.reduce((sum, log) => sum + (log.duration_minutes || 0), 0) || 0;
-            
-            csv += `Total Sensor Readings: ${totalSensorReadings}\n`;
-            csv += `Total Pump Commands: ${totalPumpCommands}\n`;
-            csv += `  - Pump ON: ${pumpOnCount}\n`;
-            csv += `  - Pump OFF: ${pumpOffCount}\n`;
-            csv += `Total Irrigation Sessions: ${totalIrrigations}\n`;
-            csv += `Total Irrigation Time: ${totalIrrigationMinutes} minutes (${(totalIrrigationMinutes / 60).toFixed(1)} hours)\n`;
-            
+
+            summaryData.push(['Metric', 'Value']);
+            summaryData.push(['Total Sensor Readings', totalSensorReadings]);
+            summaryData.push(['Total Pump Commands', totalPumpCommands]);
+            summaryData.push(['  - Pump ON', pumpOnCount]);
+            summaryData.push(['  - Pump OFF', pumpOffCount]);
+            summaryData.push(['Total Irrigation Sessions', totalIrrigations]);
+            summaryData.push(['Total Irrigation Time (minutes)', totalIrrigationMinutes]);
+            summaryData.push(['Total Irrigation Time (hours)', (totalIrrigationMinutes / 60).toFixed(1)]);
+            summaryData.push([]); // Empty row
+
             if (sensorData.data && sensorData.data.length > 0) {
-                // Average values from latest readings
+                // Latest sensor readings
                 const latest = sensorData.data[0];
-                csv += '\nLatest Sensor Averages:\n';
-                csv += `  Air Temperature: ${latest.air_temperature || 'N/A'} C\n`;
-                csv += `  Air Humidity: ${latest.air_humidity || 'N/A'} %\n`;
-                csv += `  Soil Moisture: ${latest.soil_moisture || 'N/A'}\n`;
-                csv += `  pH: ${latest.ph_value || 'N/A'}\n`;
-                csv += `  EC: ${latest.ec_value || 'N/A'} mS/cm\n`;
+                summaryData.push(['Latest Sensor Readings', '']);
+                summaryData.push(['Air Temperature (C)', latest.air_temperature || 'N/A']);
+                summaryData.push(['Air Humidity (%)', latest.air_humidity || 'N/A']);
+                summaryData.push(['Soil Moisture', latest.soil_moisture || 'N/A']);
+                summaryData.push(['pH', latest.ph || latest.ph_value || 'N/A']);
+                summaryData.push(['EC (mS/cm)', latest.ec || latest.ec_value || 'N/A']);
             }
-            
-            csv += '\n==================================================\n';
-            csv += 'End of Report\n';
-            csv += '==================================================\n';
-            
-            // Create and download file
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            
+
+            summaryData.push([]); // Empty row
+            summaryData.push(['End of Report']);
+
+            const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+            XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
+
+            // Download Excel file
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
-            a.download = `AgriConnect_Complete_Report_${timestamp}.csv`;
-            
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-            
-            console.log('[SUCCESS] Comprehensive CSV exported successfully');
+            XLSX.writeFile(workbook, `AgriConnect_Farm_Data_${timestamp}.xlsx`);
+            console.log('[SUCCESS] Excel file exported successfully');
             alert(`Export complete!\n\nIncluded:\n- ${totalSensorReadings} sensor readings\n- ${totalPumpCommands} pump commands\n- ${totalIrrigations} irrigation logs`);
             
         } catch (error) {
-            console.error('[ERROR] CSV export failed:', error.message);
+            console.error('[ERROR] Excel export failed:', error.message);
             alert(`Failed to export data: ${error.message}`);
         }
     },
