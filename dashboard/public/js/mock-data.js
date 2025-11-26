@@ -70,40 +70,97 @@ const MockData = {
         }
     },
 
-    // Generate 30 days of historical sensor data
+    // Generate 30 days of historical sensor data with realistic irrigation
     generateHistoricalData() {
-        console.log('[INFO] Generating 30-day historical data...');
+        console.log('[INFO] Generating 30-day historical data with realistic irrigation...');
 
         const data = [];
         const now = new Date();
         const { daysOfHistory, readingsPerDay, zones } = this.config;
 
+        // Track water tank state across all readings
+        let waterTankLevel = 4500; // Start with mostly full tank
+        const waterTankCapacity = 5000;
+
+        // Track irrigation schedule - will vary by day
+        const irrigationSchedule = [];
+
+        // Generate varied irrigation schedule for 30 days
+        // Tomato farms typically irrigate 2-3 times per day in dry season
+        for (let day = 0; day <= daysOfHistory; day++) {
+            const daySchedule = [];
+            const numSessions = Math.random() > 0.3 ? 2 : 3; // Mostly 2 sessions, sometimes 3
+
+            if (numSessions >= 1) daySchedule.push(6 + Math.floor(Math.random() * 2)); // Morning 6-7am
+            if (numSessions >= 2) daySchedule.push(14 + Math.floor(Math.random() * 2)); // Afternoon 2-3pm
+            if (numSessions >= 3) daySchedule.push(18 + Math.floor(Math.random() * 2)); // Evening 6-7pm
+
+            irrigationSchedule.push(daySchedule);
+        }
+
         // Generate data for past 30 days
         for (let day = daysOfHistory; day >= 0; day--) {
+            const dayIrrigationHours = irrigationSchedule[day];
+
             for (let reading = 0; reading < readingsPerDay; reading++) {
                 const timestamp = new Date(now);
                 timestamp.setDate(timestamp.getDate() - day);
-                timestamp.setHours(0, reading * 30, 0, 0); // Every 30 minutes
+                const hour = Math.floor((reading * 30) / 60); // Convert reading to hour
+                const minute = (reading * 30) % 60;
+                timestamp.setHours(hour, minute, 0, 0);
+
+                // Check if this hour has irrigation
+                const isIrrigating = dayIrrigationHours.includes(hour);
+
+                // Water consumption and refilling logic
+                if (isIrrigating) {
+                    // Each zone consumes 150-200L per hour during irrigation
+                    const consumptionPerZone = 150 + Math.random() * 50;
+                    waterTankLevel -= (consumptionPerZone * zones.length) / readingsPerDay; // Spread over 30-min intervals
+                } else {
+                    // Natural evaporation: ~10L per hour in hot climate
+                    waterTankLevel -= 10 / readingsPerDay;
+                }
+
+                // Refill tank when it gets below 30%
+                if (waterTankLevel < waterTankCapacity * 0.3) {
+                    // Simulate refilling (rain collection or manual refill)
+                    waterTankLevel = waterTankCapacity * (0.85 + Math.random() * 0.1); // Refill to 85-95%
+                    console.log(`[INFO] Tank refilled at day ${day}, hour ${hour} to ${waterTankLevel.toFixed(0)}L`);
+                }
+
+                // Ensure tank doesn't go negative or exceed capacity
+                waterTankLevel = Math.max(1000, Math.min(waterTankCapacity, waterTankLevel));
 
                 // Generate data for each zone
                 zones.forEach((zone, index) => {
                     const fieldNum = zone.includes('field1') ? 1 : 2;
                     const zoneNum = parseInt(zone.match(/zone(\d)/)[1]);
 
-                    data.push(this.generateReading(timestamp, fieldNum, zoneNum, zone));
+                    // Pass irrigation state and tank level to generateReading
+                    data.push(this.generateReading(
+                        timestamp,
+                        fieldNum,
+                        zoneNum,
+                        zone,
+                        isIrrigating,
+                        waterTankLevel,
+                        waterTankCapacity
+                    ));
                 });
             }
         }
 
         this.historicalData = data;
         console.log(`[SUCCESS] Generated ${data.length} historical readings`);
+        console.log(`[INFO] Tank level at end: ${waterTankLevel.toFixed(0)}L (${(waterTankLevel/waterTankCapacity*100).toFixed(1)}%)`);
 
         return data;
     },
 
     // Generate a single realistic sensor reading
     // Optimized for tomato farming in Tole, Buea, Cameroon
-    generateReading(timestamp, fieldNum, zoneNum, zoneId) {
+    generateReading(timestamp, fieldNum, zoneNum, zoneId, isIrrigating = false, tankLevel = null, tankCapacity = 5000) {
         const hour = timestamp.getHours();
         const dayOfYear = Math.floor((timestamp - new Date(timestamp.getFullYear(), 0, 0)) / 86400000);
         const month = timestamp.getMonth() + 1; // 1-12
@@ -133,12 +190,13 @@ const MockData = {
 
         // Soil moisture for tomatoes: Target 60-80%
         // Affected by rainfall and irrigation
-        const isIrrigationTime = hour === 6 || hour === 7; // Early morning irrigation (avoid disease)
         let soilMoistureBase = 65;
         if (hasRainToday) soilMoistureBase += 15; // Rain increases moisture
-        if (isIrrigationTime) soilMoistureBase += 10; // Irrigation increases moisture
-        const hoursSinceLastWater = (hour > 7 ? hour - 7 : 24 - 7 + hour);
-        const evaporation = hoursSinceLastWater * 1.2; // Moisture decreases over day
+        if (isIrrigating) soilMoistureBase += 10; // Irrigation increases moisture
+
+        // Calculate evaporation (moisture decreases over day without water)
+        // Simplified: assume gradual decrease throughout day
+        const evaporation = (hour - 6) * 0.8; // Starts decreasing after typical morning irrigation
         const soilMoisture = Math.max(45, Math.min(85, soilMoistureBase - evaporation + (Math.random() - 0.5) * 5));
 
         // pH for tomatoes: Target 6.0-6.8 (volcanic soil in Buea tends slightly acidic)
@@ -162,15 +220,12 @@ const MockData = {
         const batteryLevel = Math.max(65, Math.min(100, batteryBase + (Math.random() - 0.5) * 8));
 
         // WATER TANK STATUS (critical sensor!)
-        // 5000L tank, consumption varies by irrigation
-        const waterTankCapacity = 5000;
-        const isIrrigating = isIrrigationTime && hour === 6; // Simulate irrigation at 6am
-        const waterTankLevel = isIrrigating ?
-            3200 + Math.random() * 1000 : // During irrigation
-            3800 + Math.random() * 800;   // Normal level
-        const waterTankPercentage = (waterTankLevel / waterTankCapacity) * 100;
+        // Use actual tracked tank level from historical data generation
+        const waterTankLevel = tankLevel !== null ? tankLevel : 4000 + Math.random() * 800;
+        const waterTankPercentage = (waterTankLevel / tankCapacity) * 100;
 
         // PUMP & IRRIGATION STATUS
+        // Irrigation passed from scheduling system
         const pumpStatus = isIrrigating ? 'on' : 'off';
         const irrigationActive = isIrrigating;
         const activeZone = isIrrigating ? zoneId : null;

@@ -289,10 +289,18 @@ const Charts = {
             }
 
             console.log(`[INFO] Rendering charts with ${data.length} data points`);
+            if (data.length > 0) {
+                console.log(`[DEBUG] First data point:`, data[0]);
+                console.log(`[DEBUG] Last data point:`, data[data.length-1]);
+            }
 
             // Process data for time range (aggregate and create smart labels)
             const processed = this.processDataForTimeRange(data);
-            console.log(`[INFO] Aggregated to ${processed.data.length} data points with labels:`, processed.labels);
+            console.log(`[INFO] Aggregated to ${processed.data.length} data points`);
+            console.log(`[DEBUG] Labels:`, processed.labels);
+            if (processed.data.length > 0) {
+                console.log(`[DEBUG] First processed point:`, processed.data[0]);
+            }
 
             // Render all charts with processed data
             this.renderTempHumidityChart(processed);
