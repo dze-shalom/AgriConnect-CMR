@@ -422,10 +422,14 @@ const Dashboard = {
             if (sensorData.error || pumpData.error || irrigationData.error) {
                 throw new Error('Failed to fetch data from database');
             }
-            
+
+            console.log(`[INFO] CSV Export - Sensor readings: ${sensorData.data ? sensorData.data.length : 0}`);
+            console.log(`[INFO] CSV Export - Pump commands: ${pumpData.data ? pumpData.data.length : 0}`);
+            console.log(`[INFO] CSV Export - Irrigation logs: ${irrigationData.data ? irrigationData.data.length : 0}`);
+
             // Create comprehensive CSV with multiple sheets approach
             // Since CSV doesn't support multiple sheets, we'll create sections
-            
+
             let csv = '';
             
             // ============================================
@@ -438,8 +442,10 @@ const Dashboard = {
             csv += '==================================================\n\n';
             
             csv += 'SENSOR READINGS\n';
+            csv += `Total Records: ${sensorData.data ? sensorData.data.length : 0}\n`;
+            csv += `Time Period: Last 30 Days\n`;
             csv += '==================================================\n';
-            
+
             const sensorHeaders = [
                 'Reading Time', 'Gateway ID', 'Field ID', 'Zone ID',
                 'Air Temp (C)', 'Air Humidity (%)', 'Soil Moisture', 'Soil Temp (C)',

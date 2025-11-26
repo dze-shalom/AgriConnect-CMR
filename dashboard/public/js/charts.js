@@ -5,7 +5,7 @@
 
 const Charts = {
     charts: {},
-    timeRange: 0, // 0 = Show all available data (changed from 7 days)
+    timeRange: 168, // Default to 7 days to match HTML select
 
     // Initialize charts
     async init() {
@@ -15,6 +15,13 @@ const Charts = {
             // Verify Chart.js is loaded
             if (typeof Chart === 'undefined') {
                 throw new Error('Chart.js library not loaded');
+            }
+
+            // Read initial timeRange from select element
+            const timeRangeSelect = document.getElementById('chart-timerange');
+            if (timeRangeSelect) {
+                this.timeRange = parseInt(timeRangeSelect.value);
+                console.log(`[INFO] Chart timeRange set to ${this.timeRange} hours`);
             }
 
             // Setup event listeners
@@ -233,9 +240,14 @@ const Charts = {
             if (typeof MockData !== 'undefined') {
                 // Use MockData (handles both mock and real data)
                 const hours = this.timeRange > 0 ? this.timeRange : 720; // Default to 30 days
+                console.log(`[INFO] Fetching ${hours} hours of data from MockData...`);
                 const result = await MockData.getHistoricalData(hours);
                 data = result.data;
                 error = result.error;
+                console.log(`[INFO] Received ${data ? data.length : 0} data points from MockData`);
+                if (data && data.length > 0) {
+                    console.log('[INFO] Sample data point:', data[0]);
+                }
             } else {
                 // Fallback to direct Supabase
                 let query = window.supabase
