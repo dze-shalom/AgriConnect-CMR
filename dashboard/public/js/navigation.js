@@ -196,13 +196,29 @@ const Navigation = {
         const mapContainer = document.getElementById('map-container');
         const fullscreenMapContainer = document.getElementById('map-fullscreen-container');
         const mapCanvas = document.getElementById('map');
+        const drawingTools = document.querySelector('.drawing-tools-panel');
+        const mapLegend = document.querySelector('.map-legend');
+        const mapStats = document.querySelector('.map-stats');
 
         if (fullscreenOverlay && mapCanvas && fullscreenMapContainer) {
-            // Move map to fullscreen container
+            // Show map container first to ensure elements are accessible
+            if (mapContainer && mapContainer.classList.contains('hidden')) {
+                mapContainer.classList.remove('hidden');
+            }
+
+            // Move map and tools to fullscreen container
             fullscreenMapContainer.appendChild(mapCanvas);
+            if (drawingTools) fullscreenMapContainer.appendChild(drawingTools);
+            if (mapLegend) fullscreenMapContainer.appendChild(mapLegend);
+            if (mapStats) fullscreenMapContainer.appendChild(mapStats);
 
             // Show fullscreen overlay
             fullscreenOverlay.classList.remove('hidden');
+
+            // Initialize map if not already done
+            if (typeof FarmMap !== 'undefined' && !FarmMap.map) {
+                FarmMap.initializeMap();
+            }
 
             // Resize map if Mapbox is available
             if (typeof FarmMap !== 'undefined' && FarmMap.map) {
@@ -222,10 +238,16 @@ const Navigation = {
         const mapContainer = document.getElementById('map-container');
         const fullscreenMapContainer = document.getElementById('map-fullscreen-container');
         const mapCanvas = document.getElementById('map');
+        const drawingTools = document.querySelector('.drawing-tools-panel');
+        const mapLegend = document.querySelector('.map-legend');
+        const mapStats = document.querySelector('.map-stats');
 
         if (fullscreenOverlay && mapCanvas && mapContainer) {
-            // Move map back to original container
+            // Move elements back to original container
             mapContainer.appendChild(mapCanvas);
+            if (drawingTools) mapContainer.appendChild(drawingTools);
+            if (mapLegend) mapContainer.appendChild(mapLegend);
+            if (mapStats) mapContainer.appendChild(mapStats);
 
             // Hide fullscreen overlay
             fullscreenOverlay.classList.add('hidden');

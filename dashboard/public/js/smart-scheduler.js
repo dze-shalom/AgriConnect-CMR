@@ -242,16 +242,16 @@ const SmartScheduler = {
     // Get optimal irrigation time
     getOptimalTime() {
         const now = new Date();
-        const nextNight = new Date(now);
+        const nextMorning = new Date(now);
 
-        // Schedule for 11 PM (cheaper electricity, less evaporation)
-        nextNight.setHours(23, 0, 0, 0);
+        // Schedule for 6 AM (optimal for plant absorption, minimal evaporation, plants dry during day)
+        nextMorning.setHours(6, 0, 0, 0);
 
-        if (nextNight < now) {
-            nextNight.setDate(nextNight.getDate() + 1);
+        if (nextMorning < now) {
+            nextMorning.setDate(nextMorning.getDate() + 1);
         }
 
-        return nextNight;
+        return nextMorning;
     },
 
     // Generate 7-day schedule
