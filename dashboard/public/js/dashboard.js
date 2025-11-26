@@ -441,54 +441,145 @@ const Dashboard = {
             csv += `Farm ID: ${CONFIG.farmId}\n`;
             csv += '==================================================\n\n';
             
-            csv += 'SENSOR READINGS\n';
+            csv += '==================================================\n';
+            csv += 'SECTION 1: ENVIRONMENTAL SENSORS\n';
+            csv += '==================================================\n';
             csv += `Total Records: ${sensorData.data ? sensorData.data.length : 0}\n`;
             csv += `Time Period: Last 30 Days\n`;
-            csv += '==================================================\n';
+            csv += `Location: Tole, Buea, Cameroon\n`;
+            csv += `Crop: Tomatoes\n\n`;
 
-            const sensorHeaders = [
-                'Reading Time', 'Gateway ID', 'Field ID', 'Zone ID',
-                'Air Temp (C)', 'Air Humidity (%)', 'Soil Moisture', 'Soil Temp (C)',
-                'pH', 'EC (mS/cm)', 'N (ppm)', 'P (ppm)', 'K (ppm)',
-                'Light (Lux)', 'PAR', 'CO2 (ppm)', 'Battery (%)', 'RSSI', 'Valid Data'
+            const envHeaders = [
+                'Timestamp', 'Field', 'Zone',
+                'Air Temp (C)', 'Air Humidity (%)', 'Rainfall (mm)',
+                'Soil Moisture (%)', 'Soil Temp (C)',
+                'pH', 'EC (mS/cm)', 'N (ppm)', 'P (ppm)', 'K (ppm)'
             ];
-            
-            csv += sensorHeaders.join(',') + '\n';
-            
+
+            csv += envHeaders.join(',') + '\n';
+
             if (sensorData.data && sensorData.data.length > 0) {
                 sensorData.data.forEach(row => {
                     const values = [
                         row.timestamp || row.reading_time,
-                        row.gateway_id || 'N/A',
                         row.field_number || row.field_id || '',
                         row.zone_id || `Zone ${row.zone_number}` || '',
                         row.air_temperature || '',
                         row.air_humidity || '',
+                        row.rainfall_today || '0',
                         row.soil_moisture || '',
                         row.soil_temperature || '',
-                        row.ph_value || '',
-                        row.ec_value || '',
-                        row.nitrogen_ppm || '',
-                        row.phosphorus_ppm || '',
-                        row.potassium_ppm || '',
-                        row.light_intensity || '',
-                        row.par_value || '',
-                        row.co2_ppm || '',
-                        row.battery_level || '',
-                        row.rssi || '',
-                        row.data_valid ? 'Yes' : 'No'
+                        row.ph || row.ph_value || '',
+                        row.ec || row.ec_value || '',
+                        row.nitrogen || row.nitrogen_ppm || '',
+                        row.phosphorus || row.phosphorus_ppm || '',
+                        row.potassium || row.potassium_ppm || ''
                     ];
                     csv += values.join(',') + '\n';
                 });
             } else {
                 csv += 'No sensor data available\n';
             }
-            
+
             // ============================================
-            // SECTION 2: PUMP COMMANDS
+            // SECTION 2: WATER SYSTEM STATUS
             // ============================================
-            csv += '\n\nPUMP CONTROL COMMANDS\n';
+            csv += '\n\n==================================================\n';
+            csv += 'SECTION 2: WATER SYSTEM & IRRIGATION STATUS\n';
+            csv += '==================================================\n\n';
+
+            const waterHeaders = [
+                'Timestamp', 'Field', 'Zone',
+                'Water Tank Level (L)', 'Tank Percentage (%)', 'Flow Rate (L/min)',
+                'Pump Status', 'Irrigation Active', 'Active Zone'
+            ];
+
+            csv += waterHeaders.join(',') + '\n';
+
+            if (sensorData.data && sensorData.data.length > 0) {
+                sensorData.data.forEach(row => {
+                    const values = [
+                        row.timestamp || row.reading_time,
+                        row.field_number || row.field_id || '',
+                        row.zone_id || `Zone ${row.zone_number}` || '',
+                        row.water_tank_level || '',
+                        row.water_tank_percentage || '',
+                        row.water_flow_rate || '0',
+                        row.pump_status || 'unknown',
+                        row.irrigation_active ? 'Yes' : 'No',
+                        row.active_zone || 'None'
+                    ];
+                    csv += values.join(',') + '\n';
+                });
+            }
+
+            // ============================================
+            // SECTION 3: DISEASE RISK & CROP MANAGEMENT
+            // ============================================
+            csv += '\n\n==================================================\n';
+            csv += 'SECTION 3: DISEASE RISK & CROP MANAGEMENT\n';
             csv += '==================================================\n';
+            csv += 'Critical for Buea high humidity environment\n\n';
+
+            const diseaseHeaders = [
+                'Timestamp', 'Field', 'Zone',
+                'Disease Risk Score', 'Disease Risk Level',
+                'Crop Type', 'Crop Age (days)', 'Growth Stage', 'Season Type'
+            ];
+
+            csv += diseaseHeaders.join(',') + '\n';
+
+            if (sensorData.data && sensorData.data.length > 0) {
+                sensorData.data.forEach(row => {
+                    const values = [
+                        row.timestamp || row.reading_time,
+                        row.field_number || row.field_id || '',
+                        row.zone_id || `Zone ${row.zone_number}` || '',
+                        row.disease_risk_score || '0',
+                        row.disease_risk_level || 'unknown',
+                        row.crop_type || 'tomato',
+                        row.crop_age_days || '',
+                        row.growth_stage || '',
+                        row.season_type || ''
+                    ];
+                    csv += values.join(',') + '\n';
+                });
+            }
+
+            // ============================================
+            // SECTION 4: SYSTEM HEALTH
+            // ============================================
+            csv += '\n\n==================================================\n';
+            csv += 'SECTION 4: SYSTEM HEALTH & CONNECTIVITY\n';
+            csv += '==================================================\n\n';
+
+            const healthHeaders = [
+                'Timestamp', 'Field', 'Zone',
+                'Battery Level (%)', 'Status', 'Signal Strength'
+            ];
+
+            csv += healthHeaders.join(',') + '\n';
+
+            if (sensorData.data && sensorData.data.length > 0) {
+                sensorData.data.forEach(row => {
+                    const values = [
+                        row.timestamp || row.reading_time,
+                        row.field_number || row.field_id || '',
+                        row.zone_id || `Zone ${row.zone_number}` || '',
+                        row.battery_level || '',
+                        row.status || '',
+                        row.signal_strength || ''
+                    ];
+                    csv += values.join(',') + '\n';
+                });
+            }
+
+            // ============================================
+            // SECTION 5: PUMP COMMANDS
+            // ============================================
+            csv += '\n\n==================================================\n';
+            csv += 'SECTION 5: PUMP CONTROL COMMANDS\n';
+            csv += '==================================================\n\n';
             
             const pumpHeaders = [
                 'Timestamp', 'Farm ID', 'Command', 'Requested By'
@@ -511,10 +602,11 @@ const Dashboard = {
             }
             
             // ============================================
-            // SECTION 3: IRRIGATION LOGS
+            // SECTION 6: IRRIGATION LOGS
             // ============================================
-            csv += '\n\nIRRIGATION LOGS\n';
-            csv += '==================================================\n';
+            csv += '\n\n==================================================\n';
+            csv += 'SECTION 6: IRRIGATION LOGS\n';
+            csv += '==================================================\n\n';
             
             const irrigationHeaders = [
                 'Started At', 'Farm ID', 'Field ID', 'Zone ID', 
@@ -541,10 +633,11 @@ const Dashboard = {
             }
             
             // ============================================
-            // SECTION 4: SUMMARY STATISTICS
+            // SECTION 7: SUMMARY STATISTICS
             // ============================================
-            csv += '\n\nSUMMARY STATISTICS\n';
-            csv += '==================================================\n';
+            csv += '\n\n==================================================\n';
+            csv += 'SECTION 7: SUMMARY STATISTICS\n';
+            csv += '==================================================\n\n';
             
             // Calculate statistics
             const totalSensorReadings = sensorData.data?.length || 0;

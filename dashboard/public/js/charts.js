@@ -415,9 +415,6 @@ const Charts = {
         // Extract labels and data
         const { labels, data } = processed;
 
-        // Extract labels and data
-        const { labels, data } = processed;
-
         // Update existing chart if it exists
         if (this.charts.soilMoisture) {
             this.charts.soilMoisture.data.labels = labels;
@@ -494,9 +491,6 @@ const Charts = {
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         const textColor = isDark ? '#E0E0E0' : '#212121';
         const gridColor = isDark ? '#333333' : '#E0E0E0';
-
-        // Extract labels and data
-        const { labels, data } = processed;
 
         // Extract labels and data
         const { labels, data } = processed;
@@ -593,9 +587,6 @@ const Charts = {
         // Extract labels and data
         const { labels, data } = processed;
 
-        // Extract labels and data
-        const { labels, data } = processed;
-
         // Update existing chart if it exists
         if (this.charts.npk) {
             this.charts.npk.data.labels = labels;
@@ -677,9 +668,6 @@ const Charts = {
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         const textColor = isDark ? '#E0E0E0' : '#212121';
         const gridColor = isDark ? '#333333' : '#E0E0E0';
-
-        // Extract labels and data
-        const { labels, data } = processed;
 
         // Extract labels and data
         const { labels, data } = processed;
