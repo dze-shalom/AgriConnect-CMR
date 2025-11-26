@@ -258,7 +258,15 @@
                             </button>
                         </div>
                         <div id="drawing-status" class="drawing-status hidden">
-                            <span class="status-text">✏️ Click on map to add points. Double-click to finish.</span>
+                            <div class="status-text">
+                                <strong>✏️ Drawing Active</strong><br>
+                                <small>
+                                    1. Click on map to add points<br>
+                                    2. Continue clicking to create polygon<br>
+                                    3. <strong>Double-click</strong> the last point to finish<br>
+                                    4. Or press <strong>Enter</strong> key to complete
+                                </small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -390,16 +398,20 @@
                     <div class="intelligence-card yield-forecast-card">
                         <div class="intelligence-header">
                             <h3>🌾 Yield Forecast</h3>
+                            <span class="help-tooltip" title="AI predicts crop yield based on soil, weather, and NDVI data">ℹ️</span>
                         </div>
                         <div class="intelligence-content">
+                            <p class="forecast-description">
+                                <small>Select crop and area to predict harvest yield using AI analysis of current field conditions.</small>
+                            </p>
                             <div class="forecast-inputs-compact">
                                 <select id="forecast-crop-select" class="form-control-sm">
-                                    <option value="maize">Maize</option>
-                                    <option value="cassava">Cassava</option>
-                                    <option value="beans">Beans</option>
-                                    <option value="tomatoes">Tomatoes</option>
+                                    <option value="maize">🌽 Maize</option>
+                                    <option value="cassava">🥔 Cassava</option>
+                                    <option value="beans">🫘 Beans</option>
+                                    <option value="tomatoes">🍅 Tomatoes</option>
                                 </select>
-                                <input type="number" id="forecast-area" class="form-control-sm" value="1.0" min="0.1" step="0.1" placeholder="Area (ha)">
+                                <input type="number" id="forecast-area" class="form-control-sm" value="1.0" min="0.1" step="0.1" placeholder="Area (ha)" title="Field area in hectares">
                                 <button id="run-forecast-btn" class="btn-primary-sm">
                                     <i data-lucide="zap"></i> Forecast
                                 </button>

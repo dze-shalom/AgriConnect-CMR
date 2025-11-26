@@ -114,10 +114,58 @@ const Satellite = {
         FarmMap.map.on('draw.delete', (e) => this.onDrawDelete(e));
         FarmMap.map.on('draw.update', (e) => this.onDrawUpdate(e));
 
+        // Add keyboard shortcuts for drawing
+        this.setupKeyboardShortcuts();
+
         console.log('[SUCCESS] Drawing tools ready');
 
         // Setup UI button event listeners
         this.setupDrawingButtons();
+    },
+
+    // Setup keyboard shortcuts for drawing
+    setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            if (!this.draw) return;
+
+            // Enter key to finish polygon
+            if (e.key === 'Enter') {
+                const mode = this.draw.getMode();
+                if (mode === 'draw_polygon') {
+                    // Try to finish the current drawing
+                    const data = this.draw.getAll();
+                    if (data && data.features && data.features.length > 0) {
+                        // Switch to simple_select mode to finish
+                        this.draw.changeMode('simple_select');
+                        console.log('[INFO] Polygon completed via Enter key');
+                    }
+                }
+            }
+
+            // Escape key to cancel drawing
+            if (e.key === 'Escape') {
+                const mode = this.draw.getMode();
+                if (mode === 'draw_polygon') {
+                    this.draw.changeMode('simple_select');
+                    console.log('[INFO] Drawing cancelled');
+
+                    if (typeof Notifications !== 'undefined') {
+                        Notifications.show('✖️ Cancelled', 'Drawing cancelled', 'info', 2000);
+                    }
+
+                    // Reset button style and hide status
+                    const startBtn = document.getElementById('start-drawing-btn');
+                    const statusDiv = document.getElementById('drawing-status');
+                    if (startBtn) {
+                        startBtn.style.background = '';
+                        startBtn.style.color = '';
+                    }
+                    if (statusDiv) {
+                        statusDiv.classList.add('hidden');
+                    }
+                }
+            }
+        });
     },
 
     // Setup drawing button event listeners
