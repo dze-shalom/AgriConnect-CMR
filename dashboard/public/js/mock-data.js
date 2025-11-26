@@ -290,7 +290,7 @@ const MockData = {
 
             // Water system sensors
             water_tank_level: Math.round(waterTankLevel),
-            water_tank_capacity: waterTankCapacity,
+            water_tank_capacity: tankCapacity,
             water_tank_percentage: parseFloat(waterTankPercentage.toFixed(1)),
             water_flow_rate: parseFloat(waterFlowRate.toFixed(1)),
 
