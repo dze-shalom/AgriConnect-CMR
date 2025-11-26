@@ -244,17 +244,52 @@ const Navigation = {
 
     // Show satellite view with drawing tools
     showSatelliteView() {
-        // Open fullscreen map for satellite analysis
-        this.openFullscreenMap();
+        console.log('[INFO] Showing satellite view');
 
-        // Notification removed - drawing tools are visible on map if user needs them
-        console.log('[INFO] Satellite view opened - drawing tools available on map');
+        // Scroll to map section first
+        this.scrollToSection('satellite');
 
-        // Show satellite panel (will populate when fields are drawn)
+        // Automatically show the map (don't open fullscreen)
+        const mapContainer = document.getElementById('map-container');
+        const toggleBtn = document.getElementById('toggle-map-btn');
+        const toggleText = document.getElementById('toggle-map-text');
+
+        if (mapContainer && mapContainer.classList.contains('hidden')) {
+            // Show map
+            mapContainer.classList.remove('hidden');
+
+            // Update button text
+            if (toggleText) {
+                if (typeof Language !== 'undefined') {
+                    toggleText.textContent = Language.get('hide_map');
+                } else {
+                    toggleText.textContent = 'Hide Map';
+                }
+            }
+
+            // Initialize map if not already done
+            if (FarmMap && !FarmMap.map) {
+                FarmMap.initializeMap();
+            }
+
+            // Show notification with instructions
+            if (typeof Notifications !== 'undefined') {
+                Notifications.show(
+                    '🛰️ Satellite Mode',
+                    'Use "Draw Field" button to outline your field for NDVI analysis',
+                    'info',
+                    5000
+                );
+            }
+        }
+
+        // Show satellite panel if there are existing analyses
         const panel = document.getElementById('satellite-analysis-panel');
         if (panel && typeof Satellite !== 'undefined' && Satellite.analysisResults.size > 0) {
             panel.classList.remove('hidden');
         }
+
+        console.log('[SUCCESS] Satellite view activated');
     },
 
     // Update alerts badge

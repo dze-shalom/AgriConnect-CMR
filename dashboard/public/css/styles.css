@@ -306,6 +306,32 @@ body {
     gap: var(--spacing-sm);
 }
 
+.section-description {
+    background: var(--primary-lighter);
+    border-left: 4px solid var(--primary-color);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    border-radius: var(--radius-md);
+}
+
+.section-description p {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.section-description strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.section-description small {
+    display: block;
+    margin-top: var(--spacing-sm);
+    color: var(--primary-dark);
+    font-style: italic;
+}
+
 /* ================================================
    Buttons - Enhanced
    ================================================ */
