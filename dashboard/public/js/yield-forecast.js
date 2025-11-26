@@ -58,7 +58,7 @@ const YieldForecast = {
                     });
                 });
             }
-        });
+        }
 
         return data;
     },

@@ -96,7 +96,7 @@ const MockData = {
         }
 
         this.historicalData = data;
-        console.log(\`[SUCCESS] Generated \${data.length} historical readings\`);
+        console.log(`[SUCCESS] Generated ${data.length} historical readings`);
 
         return data;
     },
@@ -136,7 +136,7 @@ const MockData = {
         const batteryLevel = Math.max(70, Math.min(100, batteryBase + (Math.random() - 0.5) * 5));
 
         return {
-            reading_id: \`mock_\${timestamp.getTime()}_\${zoneId}\`,
+            reading_id: `mock_${timestamp.getTime()}_${zoneId}`,
             farm_id: CONFIG.farmId,
             field_number: fieldNum,
             zone_number: zoneNum,
@@ -176,7 +176,7 @@ const MockData = {
                         this.historicalData.push(newReading);
                     }
 
-                    console.log(\`[MOCK] Generated reading for \${zone}\`);
+                    console.log(`[MOCK] Generated reading for ${zone}`);
                 });
 
                 // Trigger dashboard refresh

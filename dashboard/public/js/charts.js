@@ -323,9 +323,6 @@ const Charts = {
         // Extract labels and data
         const { labels, data } = processed;
 
-        // Extract labels and data
-        const { labels, data } = processed;
-
         // Update existing chart if it exists, otherwise create new
         if (this.charts.tempHumidity) {
             this.charts.tempHumidity.data.labels = labels;
