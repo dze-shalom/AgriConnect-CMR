@@ -84,7 +84,19 @@ const YieldForecast = {
     setupEventListeners() {
         const predictBtn = document.getElementById('run-forecast-btn');
         if (predictBtn) {
-            predictBtn.addEventListener('click', () => this.runForecast());
+            predictBtn.addEventListener('click', () => {
+                console.log('[DEBUG] Forecast button clicked');
+                try {
+                    this.runForecast();
+                } catch (error) {
+                    console.error('[ERROR] Forecast failed:', error);
+                    if (typeof Notifications !== 'undefined') {
+                        Notifications.error('Forecast Error', 'Failed to run forecast: ' + error.message);
+                    }
+                }
+            });
+        } else {
+            console.error('[ERROR] Forecast button not found');
         }
 
         const cropSelect = document.getElementById('forecast-crop-select');

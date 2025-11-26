@@ -176,7 +176,10 @@ const Satellite = {
 
         if (startBtn) {
             startBtn.addEventListener('click', () => {
-                console.log('[DEBUG] Draw button clicked, draw object:', this.draw);
+                console.log('[DEBUG] Draw button clicked');
+                console.log('[DEBUG] Map object:', FarmMap.map);
+                console.log('[DEBUG] Draw object:', this.draw);
+                console.log('[DEBUG] Map loaded:', FarmMap.map ? FarmMap.map.loaded() : 'N/A');
 
                 if (!this.draw) {
                     console.error('[ERROR] MapboxDraw not initialized');
@@ -186,9 +189,18 @@ const Satellite = {
                     return;
                 }
 
+                if (!FarmMap.map || !FarmMap.map.loaded()) {
+                    console.error('[ERROR] Map not fully loaded');
+                    if (typeof Notifications !== 'undefined') {
+                        Notifications.show('⚠️ Wait', 'Map is still loading. Please wait a moment.', 'warning', 3000);
+                    }
+                    return;
+                }
+
                 try {
                     // Activate polygon drawing mode
                     this.draw.changeMode('draw_polygon');
+                    console.log('[SUCCESS] Drawing mode activated');
 
                     // Show status message
                     if (statusDiv) {
@@ -198,16 +210,15 @@ const Satellite = {
                     // Visual feedback
                     startBtn.style.background = 'var(--success)';
                     startBtn.style.color = 'white';
-
-                    console.log('[INFO] Drawing mode activated');
+                    startBtn.textContent = 'Drawing...';
 
                     if (typeof Notifications !== 'undefined') {
-                        Notifications.show('✏️ Drawing Mode', 'Click on map to draw field boundary', 'info', 3000);
+                        Notifications.show('✏️ Drawing Active', 'Click on map to draw. Double-click to finish.', 'info', 4000);
                     }
                 } catch (error) {
                     console.error('[ERROR] Failed to activate drawing mode:', error);
                     if (typeof Notifications !== 'undefined') {
-                        Notifications.show('⚠️ Error', 'Failed to activate drawing mode', 'error', 3000);
+                        Notifications.show('⚠️ Error', 'Failed to activate drawing: ' + error.message, 'error', 3000);
                     }
                 }
             });
@@ -302,6 +313,22 @@ const Satellite = {
 
         const feature = e.features[0];
         this.drawnFeatures.push(feature);
+
+        // Reset button state
+        const startBtn = document.getElementById('start-drawing-btn');
+        const statusDiv = document.getElementById('drawing-status');
+        if (startBtn) {
+            startBtn.style.background = '';
+            startBtn.style.color = '';
+            startBtn.innerHTML = '<i data-lucide="pentagon"></i><span>Draw Field</span>';
+            // Reinitialize lucide icons
+            if (typeof lucide !== 'undefined') {
+                setTimeout(() => lucide.createIcons(), 50);
+            }
+        }
+        if (statusDiv) {
+            statusDiv.classList.add('hidden');
+        }
 
         // Calculate area
         const area = this.calculateArea(feature);
