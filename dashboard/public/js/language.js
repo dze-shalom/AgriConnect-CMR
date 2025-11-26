@@ -119,14 +119,24 @@ const Language = {
         fr: {
             // Navigation items
             'nav_overview': 'Vue d\'ensemble',
+            'nav_monitoring': 'Surveillance',
+            'nav_monitoring_sub': 'Capteurs & Météo',
+            'nav_analytics': 'Analytique',
+            'nav_analytics_sub': 'Graphiques & Rapports',
+            'nav_intelligence': 'IA Insights',
+            'nav_intelligence_sub': 'Prédictions & Analyse',
+            'nav_automation': 'Automatisation',
+            'nav_automation_sub': 'Contrôles & Planification',
+            'nav_satellite': 'Satellite',
+            'nav_satellite_sub': 'NDVI & Cartographie',
+            'nav_alerts': 'Alertes & Maintenance',
+            'nav_settings': 'Paramètres',
+            'nav_settings_sub': 'Notifications & Configuration',
             'nav_farm_map': 'Carte de la Ferme',
             'nav_live_sensors': 'Capteurs en Direct',
-            'nav_analytics': 'Analytiques',
             'nav_weather': 'Météo',
             'nav_ai_insights': 'Insights IA',
             'nav_farm_controls': 'Contrôles de la Ferme',
-            'nav_alerts': 'Alertes',
-            'nav_satellite': 'Données Satellite',
             'nav_reports': 'Rapports',
 
             // Header

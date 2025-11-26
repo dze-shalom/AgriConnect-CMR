@@ -246,41 +246,17 @@ const Navigation = {
     showSatelliteView() {
         console.log('[INFO] Showing satellite view');
 
-        // Scroll to map section first
-        this.scrollToSection('satellite');
+        // Open fullscreen map for better drawing experience
+        this.openFullscreenMap();
 
-        // Automatically show the map (don't open fullscreen)
-        const mapContainer = document.getElementById('map-container');
-        const toggleBtn = document.getElementById('toggle-map-btn');
-        const toggleText = document.getElementById('toggle-map-text');
-
-        if (mapContainer && mapContainer.classList.contains('hidden')) {
-            // Show map
-            mapContainer.classList.remove('hidden');
-
-            // Update button text
-            if (toggleText) {
-                if (typeof Language !== 'undefined') {
-                    toggleText.textContent = Language.get('hide_map');
-                } else {
-                    toggleText.textContent = 'Hide Map';
-                }
-            }
-
-            // Initialize map if not already done
-            if (FarmMap && !FarmMap.map) {
-                FarmMap.initializeMap();
-            }
-
-            // Show notification with instructions
-            if (typeof Notifications !== 'undefined') {
-                Notifications.show(
-                    '🛰️ Satellite Mode',
-                    'Use "Draw Field" button to outline your field for NDVI analysis',
-                    'info',
-                    5000
-                );
-            }
+        // Show notification with instructions
+        if (typeof Notifications !== 'undefined') {
+            Notifications.show(
+                '🛰️ Satellite Analysis',
+                'Use "Draw Field" button to outline your field for NDVI analysis',
+                'info',
+                5000
+            );
         }
 
         // Show satellite panel if there are existing analyses
@@ -289,7 +265,7 @@ const Navigation = {
             panel.classList.remove('hidden');
         }
 
-        console.log('[SUCCESS] Satellite view activated');
+        console.log('[SUCCESS] Satellite view opened in fullscreen');
     },
 
     // Update alerts badge
