@@ -102,15 +102,12 @@ const Satellite = {
         // Initialize Mapbox Draw
         this.draw = new MapboxDraw({
             displayControlsDefault: false,
-            controls: {
-                polygon: true,
-                trash: true
-            },
+            controls: {},  // Disable all built-in controls, use custom buttons instead
             styles: this.getDrawStyles()
         });
 
-        // Add draw control to map
-        FarmMap.map.addControl(this.draw, 'top-right');
+        // Add draw control to map (invisible controls, just for drawing functionality)
+        FarmMap.map.addControl(this.draw);
 
         // Listen for draw events
         FarmMap.map.on('draw.create', (e) => this.onDrawCreate(e));
