@@ -684,19 +684,11 @@ const Charts = {
         const { labels, data } = processed;
 
         // Calculate disease risk scores based on conditions
-        const diseaseRisks = data.map(d => {
-            const risks = this.calculateDiseaseRisks(d);
-            return {
-                time: new Date(d.reading_time),
-                lateBlight: risks.lateBlight,
-                earlyBlight: risks.earlyBlight,
-                powderyMildew: risks.powderyMildew
-            };
-        });
+        const diseaseRisks = data.map(d => this.calculateDiseaseRisks(d));
 
         // Update existing chart if it exists
         if (this.charts.diseaseRisk) {
-            this.charts.diseaseRisk.data.labels = diseaseRisks.map(d => d.time);
+            this.charts.diseaseRisk.data.labels = labels;
             this.charts.diseaseRisk.data.datasets[0].data = diseaseRisks.map(d => d.lateBlight);
             this.charts.diseaseRisk.data.datasets[1].data = diseaseRisks.map(d => d.earlyBlight);
             this.charts.diseaseRisk.data.datasets[2].data = diseaseRisks.map(d => d.powderyMildew);
@@ -707,7 +699,7 @@ const Charts = {
         this.charts.diseaseRisk = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: diseaseRisks.map(d => d.time),
+                labels: labels,
                 datasets: [
                     {
                         label: 'Late Blight Risk',
