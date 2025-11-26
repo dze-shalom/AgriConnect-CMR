@@ -22,17 +22,20 @@ const MockData = {
         console.log('[INFO] Initializing mock data system...');
 
         // Check hardware connection
-        await this.checkHardwareConnection();
+        const hardwareDetected = await this.checkHardwareConnection();
+        console.log('[DEBUG] Hardware check result:', hardwareDetected ? 'CONNECTED' : 'NOT CONNECTED');
 
         // Generate historical data if hardware not connected
         if (!this.hardwareConnected) {
             console.log('[INFO] Hardware not connected - generating mock data');
+            console.log('[INFO] This will create 30 days of realistic sensor data...');
             this.generateHistoricalData();
 
             // Continue generating current day data
             this.startLiveDataGeneration();
+            console.log('[SUCCESS] Mock data generation complete and running');
         } else {
-            console.log('[INFO] Hardware connected - using real data');
+            console.log('[INFO] Hardware connected - using real data from sensors');
         }
 
         // Periodically check hardware connection (every 30 seconds)
@@ -44,26 +47,32 @@ const MockData = {
     // Check if hardware is connected
     async checkHardwareConnection() {
         try {
-            // Try to fetch recent sensor data from Supabase
+            // Try to fetch recent sensor data from Supabase (last 5 minutes)
+            const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+
             const { data, error } = await window.supabase
                 .from('sensor_readings')
-                .select('reading_id')
+                .select('reading_id, timestamp')
                 .eq('farm_id', CONFIG.farmId)
+                .gte('timestamp', fiveMinutesAgo)
                 .order('timestamp', { ascending: false })
                 .limit(1);
 
-            // If we have real data from last 5 minutes, hardware is connected
+            // If we have RECENT real data (last 5 minutes), hardware is connected
             if (data && data.length > 0) {
+                console.log('[INFO] Hardware detected - found recent data:', data[0]);
                 this.hardwareConnected = true;
                 this.lastConnectionCheck = new Date();
                 return true;
             } else {
+                console.log('[INFO] No recent hardware data - will use mock data');
                 this.hardwareConnected = false;
                 this.lastConnectionCheck = new Date();
                 return false;
             }
         } catch (error) {
             console.log('[INFO] Database connection check failed - assuming no hardware');
+            console.log('[DEBUG] Error:', error.message);
             this.hardwareConnected = false;
             this.lastConnectionCheck = new Date();
             return false;
