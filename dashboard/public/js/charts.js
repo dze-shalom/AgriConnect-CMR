@@ -498,8 +498,8 @@ const Charts = {
         // Update existing chart if it exists
         if (this.charts.phEc) {
             this.charts.phEc.data.labels = labels;
-            this.charts.phEc.data.datasets[0].data = data.map(d => d.ph_value);
-            this.charts.phEc.data.datasets[1].data = data.map(d => d.ec_value);
+            this.charts.phEc.data.datasets[0].data = data.map(d => d.ph_value !== undefined ? d.ph_value : d.ph);
+            this.charts.phEc.data.datasets[1].data = data.map(d => d.ec_value !== undefined ? d.ec_value : d.ec);
             this.charts.phEc.update('none');
             return;
         }
@@ -511,7 +511,7 @@ const Charts = {
                 datasets: [
                     {
                         label: 'pH Level',
-                        data: data.map(d => d.ph_value),
+                        data: data.map(d => d.ph_value !== undefined ? d.ph_value : d.ph),
                         borderColor: '#FF9800',
                         backgroundColor: 'rgba(255, 152, 0, 0.1)',
                         yAxisID: 'y',
@@ -519,7 +519,7 @@ const Charts = {
                     },
                     {
                         label: 'EC (mS/cm)',
-                        data: data.map(d => d.ec_value),
+                        data: data.map(d => d.ec_value !== undefined ? d.ec_value : d.ec),
                         borderColor: '#9C27B0',
                         backgroundColor: 'rgba(156, 39, 176, 0.1)',
                         yAxisID: 'y1',
@@ -590,9 +590,9 @@ const Charts = {
         // Update existing chart if it exists
         if (this.charts.npk) {
             this.charts.npk.data.labels = labels;
-            this.charts.npk.data.datasets[0].data = data.map(d => d.nitrogen_ppm);
-            this.charts.npk.data.datasets[1].data = data.map(d => d.phosphorus_ppm);
-            this.charts.npk.data.datasets[2].data = data.map(d => d.potassium_ppm);
+            this.charts.npk.data.datasets[0].data = data.map(d => d.nitrogen_ppm !== undefined ? d.nitrogen_ppm : d.nitrogen);
+            this.charts.npk.data.datasets[1].data = data.map(d => d.phosphorus_ppm !== undefined ? d.phosphorus_ppm : d.phosphorus);
+            this.charts.npk.data.datasets[2].data = data.map(d => d.potassium_ppm !== undefined ? d.potassium_ppm : d.potassium);
             this.charts.npk.update('none');
             return;
         }
@@ -604,21 +604,21 @@ const Charts = {
                 datasets: [
                     {
                         label: 'Nitrogen (ppm)',
-                        data: data.map(d => d.nitrogen_ppm),
+                        data: data.map(d => d.nitrogen_ppm !== undefined ? d.nitrogen_ppm : d.nitrogen),
                         borderColor: '#4CAF50',
                         backgroundColor: 'rgba(76, 175, 80, 0.1)',
                         tension: 0.4
                     },
                     {
                         label: 'Phosphorus (ppm)',
-                        data: data.map(d => d.phosphorus_ppm),
+                        data: data.map(d => d.phosphorus_ppm !== undefined ? d.phosphorus_ppm : d.phosphorus),
                         borderColor: '#FFC107',
                         backgroundColor: 'rgba(255, 193, 7, 0.1)',
                         tension: 0.4
                     },
                     {
                         label: 'Potassium (ppm)',
-                        data: data.map(d => d.potassium_ppm),
+                        data: data.map(d => d.potassium_ppm !== undefined ? d.potassium_ppm : d.potassium),
                         borderColor: '#FF5722',
                         backgroundColor: 'rgba(255, 87, 34, 0.1)',
                         tension: 0.4
