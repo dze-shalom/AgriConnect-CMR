@@ -74,33 +74,32 @@ const MockData = {
     generateHistoricalData() {
         console.log('[INFO] Generating 30-day historical data with realistic irrigation...');
 
-        const data = [];
-        const now = new Date();
-        const { daysOfHistory, readingsPerDay, zones } = this.config;
+        try {
+            const data = [];
+            const now = new Date();
+            const { daysOfHistory, readingsPerDay, zones } = this.config;
 
-        // Track water tank state across all readings
-        let waterTankLevel = 4500; // Start with mostly full tank
-        const waterTankCapacity = 5000;
+            // Track water tank state across all readings
+            let waterTankLevel = 4500; // Start with mostly full tank
+            const waterTankCapacity = 5000;
 
-        // Track irrigation schedule - will vary by day
-        const irrigationSchedule = [];
+            // Generate varied irrigation schedule for 30 days
+            // Tomato farms typically irrigate 2-3 times per day in dry season
+            const irrigationSchedule = {};
+            for (let day = 0; day <= daysOfHistory; day++) {
+                const daySchedule = [];
+                const numSessions = Math.random() > 0.3 ? 2 : 3; // Mostly 2 sessions, sometimes 3
 
-        // Generate varied irrigation schedule for 30 days
-        // Tomato farms typically irrigate 2-3 times per day in dry season
-        for (let day = 0; day <= daysOfHistory; day++) {
-            const daySchedule = [];
-            const numSessions = Math.random() > 0.3 ? 2 : 3; // Mostly 2 sessions, sometimes 3
+                if (numSessions >= 1) daySchedule.push(6 + Math.floor(Math.random() * 2)); // Morning 6-7am
+                if (numSessions >= 2) daySchedule.push(14 + Math.floor(Math.random() * 2)); // Afternoon 2-3pm
+                if (numSessions >= 3) daySchedule.push(18 + Math.floor(Math.random() * 2)); // Evening 6-7pm
 
-            if (numSessions >= 1) daySchedule.push(6 + Math.floor(Math.random() * 2)); // Morning 6-7am
-            if (numSessions >= 2) daySchedule.push(14 + Math.floor(Math.random() * 2)); // Afternoon 2-3pm
-            if (numSessions >= 3) daySchedule.push(18 + Math.floor(Math.random() * 2)); // Evening 6-7pm
+                irrigationSchedule[day] = daySchedule;
+            }
 
-            irrigationSchedule.push(daySchedule);
-        }
-
-        // Generate data for past 30 days
-        for (let day = daysOfHistory; day >= 0; day--) {
-            const dayIrrigationHours = irrigationSchedule[day];
+            // Generate data for past 30 days
+            for (let day = daysOfHistory; day >= 0; day--) {
+                const dayIrrigationHours = irrigationSchedule[day] || [];
 
             for (let reading = 0; reading < readingsPerDay; reading++) {
                 const timestamp = new Date(now);
@@ -151,11 +150,18 @@ const MockData = {
             }
         }
 
-        this.historicalData = data;
-        console.log(`[SUCCESS] Generated ${data.length} historical readings`);
-        console.log(`[INFO] Tank level at end: ${waterTankLevel.toFixed(0)}L (${(waterTankLevel/waterTankCapacity*100).toFixed(1)}%)`);
+            this.historicalData = data;
+            console.log(`[SUCCESS] Generated ${data.length} historical readings`);
+            console.log(`[INFO] Tank level at end: ${waterTankLevel.toFixed(0)}L (${(waterTankLevel/waterTankCapacity*100).toFixed(1)}%)`);
 
-        return data;
+            return data;
+        } catch (error) {
+            console.error('[ERROR] Failed to generate historical data:', error);
+            console.error('[ERROR] Stack trace:', error.stack);
+            // Return empty array on error to prevent module loading failure
+            this.historicalData = [];
+            return [];
+        }
     },
 
     // Generate a single realistic sensor reading
