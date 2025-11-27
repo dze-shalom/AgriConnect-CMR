@@ -83,7 +83,7 @@
                     <i data-lucide="clock"></i>
                     <span id="last-update-text">--:--</span>
                 </span>
-                <span id="online-status-badge" class="status-badge online">[ONLINE]</span>
+                <span id="online-status-badge" class="status-badge online">🟢 Online</span>
                 <button id="voice-control-btn" class="header-btn" title="Voice Control (Ctrl+Space)">
                     <i data-lucide="mic-off" id="voice-icon"></i>
                 </button>
@@ -194,7 +194,7 @@
                     <p>
                         <strong>Node Locations:</strong> View sensor placement across your farm<br>
                         <strong>Satellite Analysis:</strong> Draw field boundaries to get NDVI vegetation health analysis<br>
-                        <small>Click "Show Map" → "Draw Field" → Outline your field → Get instant vegetation health insights</small>
+                        <small>📍 Click "Show Map" → "Draw Field" → Outline your field → Get instant vegetation health insights</small>
                     </p>
                 </div>
 
@@ -206,27 +206,27 @@
                     <div class="map-legend">
                         <h4 data-i18n="legend">Legend</h4>
                         <div class="legend-item">
-                            <span class="legend-marker farm">FARM</span>
+                            <span class="legend-marker farm">🏠</span>
                             <span data-i18n="farm_location">Farm Location</span>
                         </div>
                         <div class="legend-item">
-                            <span class="legend-marker gateway online">GATEWAY</span>
+                            <span class="legend-marker gateway online">📡</span>
                             <span data-i18n="gateway_online">Gateway (Online)</span>
                         </div>
                         <div class="legend-item">
-                            <span class="legend-marker gateway offline">GATEWAY</span>
+                            <span class="legend-marker gateway offline">📡</span>
                             <span data-i18n="gateway_offline">Gateway (Offline)</span>
                         </div>
                         <div class="legend-item">
-                            <span class="legend-marker node online">NODE</span>
+                            <span class="legend-marker node online">📍</span>
                             <span data-i18n="node_optimal">Node (Optimal)</span>
                         </div>
                         <div class="legend-item">
-                            <span class="legend-marker node warning">NODE</span>
+                            <span class="legend-marker node warning">📍</span>
                             <span data-i18n="node_warning">Node (Warning)</span>
                         </div>
                         <div class="legend-item">
-                            <span class="legend-marker node offline">NODE</span>
+                            <span class="legend-marker node offline">📍</span>
                             <span data-i18n="node_offline">Node (Offline)</span>
                         </div>
                     </div>
@@ -253,7 +253,7 @@
 
                     <!-- Drawing Tools Panel -->
                     <div class="drawing-tools-panel">
-                        <h4>Field Drawing Tools</h4>
+                        <h4>🗺️ Field Drawing Tools</h4>
                         <p class="drawing-instructions">Draw field boundaries for satellite analysis</p>
                         <div class="drawing-buttons">
                             <button id="start-drawing-btn" class="btn-primary">
@@ -267,7 +267,7 @@
                         </div>
                         <div id="drawing-status" class="drawing-status hidden">
                             <div class="status-text">
-                                <strong>[DRAWING] Active</strong><br>
+                                <strong>✏️ Drawing Active</strong><br>
                                 <small>
                                     1. Click on map to add points<br>
                                     2. Continue clicking to create polygon<br>
@@ -283,7 +283,7 @@
             <!-- Weather Forecast Section -->
             <section class="section weather-section">
                 <div class="section-header">
-                    <h2 data-i18n="weather_forecast">Weather Forecast</h2>
+                    <h2 data-i18n="weather_forecast">🌤️ Weather Forecast</h2>
                     <span id="weather-location" class="weather-location">Buea, Cameroon</span>
                 </div>
                 <div id="weather-container" class="weather-container">
@@ -394,7 +394,7 @@
                                 <p class="disease-instruction" data-i18n="disease_instruction">Upload a photo of tomato leaves for AI-powered disease detection</p>
                                 <input type="file" id="disease-image-input" accept="image/*" style="display: none;">
                                 <button id="upload-disease-image" class="btn-primary" data-i18n="upload_leaf_image">
-                                    Upload Leaf Image
+                                    📸 Upload Leaf Image
                                 </button>
                             </div>
                             <div id="disease-image-preview"></div>
@@ -405,8 +405,8 @@
                     <!-- Yield Forecasting AI -->
                     <div class="intelligence-card yield-forecast-card">
                         <div class="intelligence-header">
-                            <h3>Yield Forecast</h3>
-                            <span class="help-tooltip" title="AI predicts crop yield based on soil, weather, and NDVI data"></span>
+                            <h3>🌾 Yield Forecast</h3>
+                            <span class="help-tooltip" title="AI predicts crop yield based on soil, weather, and NDVI data">ℹ️</span>
                         </div>
                         <div class="intelligence-content">
                             <p class="forecast-description">
@@ -414,10 +414,10 @@
                             </p>
                             <div class="forecast-inputs-compact">
                                 <select id="forecast-crop-select" class="form-control-sm">
-                                    <option value="maize">Maize</option>
-                                    <option value="cassava">Cassava</option>
-                                    <option value="beans">Beans</option>
-                                    <option value="tomatoes">Tomatoes</option>
+                                    <option value="maize">🌽 Maize</option>
+                                    <option value="cassava">🥔 Cassava</option>
+                                    <option value="beans">🫘 Beans</option>
+                                    <option value="tomatoes">🍅 Tomatoes</option>
                                 </select>
                                 <input type="number" id="forecast-area" class="form-control-sm" value="1.0" min="0.1" step="0.1" placeholder="Area (ha)" title="Field area in hectares">
                                 <button id="run-forecast-btn" class="btn-primary-sm">
@@ -444,7 +444,7 @@
 
                 <!-- Equipment Health & Maintenance Subsection -->
                 <div class="subsection-header">
-                    <h3>Equipment Health & Maintenance</h3>
+                    <h3>🔧 Equipment Health & Maintenance</h3>
                     <button id="refresh-health-btn" class="btn-icon">
                         <i data-lucide="refresh-cw"></i>
                     </button>
@@ -453,7 +453,7 @@
                 <div class="health-grid">
                     <div id="pump-health-card" class="health-card">
                         <div class="health-header">
-                            <span class="health-name">Water Pump</span>
+                            <span class="health-name">💧 Water Pump</span>
                             <span class="health-score">--</span>
                         </div>
                         <div class="health-bar">
@@ -465,6 +465,7 @@
                     <div id="gateway-health-card" class="health-card">
                         <div class="health-header">
                             <span class="health-name">GATEWAY Gateway</span>
+                            <span class="health-name">📡 Gateway</span>
                             <span class="health-score">--</span>
                         </div>
                         <div class="health-bar">
@@ -476,6 +477,7 @@
                     <div id="sensors-health-card" class="health-card">
                         <div class="health-header">
                             <span class="health-name">Sensors</span>
+                            <span class="health-name">📊 Sensors</span>
                             <span class="health-score">--</span>
                         </div>
                         <div class="health-bar">
@@ -487,6 +489,7 @@
 
                 <div class="maintenance-section">
                     <h4>Maintenance Tasks</h4>
+                    <h4>📋 Maintenance Tasks</h4>
                     <div id="maintenance-tasks">
                         <p class="empty-state">No maintenance tasks at this time.</p>
                     </div>

@@ -27,7 +27,7 @@ const Language = {
             'refresh': 'Refresh',
 
             // General UI
-            'weather_forecast': 'Weather Forecast',
+            'weather_forecast': '🌤️ Weather Forecast',
             'historical_trends': ' Historical Trends (7 Days)',
             'disease_risk': ' Disease Risk Timeline',
             'smart_analytics': ' Smart Analytics',
@@ -146,7 +146,7 @@ const Language = {
             'refresh': 'Actualiser',
 
             // General UI
-            'weather_forecast': 'Prévisions Météo',
+            'weather_forecast': '🌤️ Prévisions Météo',
             'historical_trends': ' Tendances Historiques (7 Jours)',
             'disease_risk': ' Risque de Maladies',
             'smart_analytics': ' Analyses Intelligentes',

@@ -274,7 +274,7 @@ const Navigation = {
         // Show notification with instructions
         if (typeof Notifications !== 'undefined') {
             Notifications.show(
-                'Satellite Analysis',
+                '🛰️ Satellite Analysis',
                 'Use "Draw Field" button to outline your field for NDVI analysis',
                 'info',
                 5000

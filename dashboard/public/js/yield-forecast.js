@@ -416,17 +416,17 @@ const YieldForecast = {
                             <span class="factor-value">${Math.round(factors.avgSoilMoisture)}%</span>
                         </div>
                         <div class="factor-item">
-                            <span class="factor-icon">TEMP</span>
+                            <span class="factor-icon">🌡️</span>
                             <span class="factor-label">Temperature</span>
                             <span class="factor-value">${Math.round(factors.avgTemperature)}°C</span>
                         </div>
                         <div class="factor-item">
-                            <span class="factor-icon">RAIN</span>
+                            <span class="factor-icon">🌧️</span>
                             <span class="factor-label">Rainfall</span>
                             <span class="factor-value">${Math.round(factors.totalRainfall)}mm</span>
                         </div>
                         <div class="factor-item">
-                            <span class="factor-icon">NDVI</span>
+                            <span class="factor-icon">🛰️</span>
                             <span class="factor-label">NDVI</span>
                             <span class="factor-value">${factors.avgNDVI.toFixed(2)}</span>
                         </div>
@@ -489,7 +489,7 @@ const YieldForecast = {
             });
         } else if (factors.avgSoilMoisture > 80) {
             recommendations.push({
-                icon: '[WARNING]',
+                icon: '⚠️',
                 text: 'Reduce irrigation to prevent waterlogging and root diseases',
                 priority: 'medium'
             });
@@ -498,7 +498,7 @@ const YieldForecast = {
         // Temperature recommendations
         if (factors.avgTemperature > 32) {
             recommendations.push({
-                icon: '[TEMP]',
+                icon: '🌡️',
                 text: 'Consider shade nets or mulching to reduce heat stress',
                 priority: 'medium'
             });
@@ -513,7 +513,7 @@ const YieldForecast = {
             });
         } else if (factors.avgNDVI > 0.8) {
             recommendations.push({
-                icon: '[OK]',
+                icon: '✅',
                 text: 'Excellent vegetation health - maintain current practices',
                 priority: 'low'
             });
@@ -522,7 +522,7 @@ const YieldForecast = {
         // Rainfall recommendations
         if (factors.totalRainfall < 300) {
             recommendations.push({
-                icon: '[RAIN]',
+                icon: '🌧️',
                 text: 'Low rainfall expected - plan for supplementary irrigation',
                 priority: 'high'
             });
