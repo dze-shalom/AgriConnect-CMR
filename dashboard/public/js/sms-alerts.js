@@ -129,13 +129,13 @@ const SMSAlerts = {
             const result = await this.sendAlert({
                 alertType: 'Welcome to AgriConnect',
                 severity: 'info',
-                message: `🌱 Welcome to AgriConnect! Your SMS alerts are now active. You'll receive critical notifications for: temperature extremes, low battery, dry soil, and system errors. Your farm is now smarter!`
+                message: `AgriConnect SMS Alerts activated successfully. You will receive critical notifications for temperature extremes, low battery levels, dry soil conditions, and system errors. For more details, visit your dashboard.`
             });
 
             if (result) {
                 if (typeof Notifications !== 'undefined') {
                     Notifications.success(
-                        '📱 Welcome SMS Sent!',
+                        'Welcome SMS Sent',
                         'Check your phone to verify SMS alerts are working'
                     );
                 }

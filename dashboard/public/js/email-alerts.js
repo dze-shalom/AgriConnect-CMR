@@ -102,9 +102,9 @@ const EmailAlerts = {
 
         try {
             await this.sendAlert({
-                alertType: '🌱 Welcome to AgriConnect',
+                alertType: 'Welcome to AgriConnect',
                 severity: 'info',
-                message: `Welcome to AgriConnect Farm Monitoring! Your email alerts are now active and working correctly.\n\nYou'll receive notifications for:\n• Critical temperature alerts (< 15°C or > 35°C)\n• Low battery warnings (< 15%)\n• Dry soil alerts (moisture < 300)\n• Sensor offline notifications\n• Daily farm summaries\n\nThank you for choosing AgriConnect. Your farm is now smarter!`,
+                message: `Welcome to AgriConnect Farm Monitoring System. Your email alert notifications have been successfully configured and are now active.\n\nYou will receive automated notifications for:\n• Critical temperature alerts (below 15°C or above 35°C)\n• Low battery warnings (below 15%)\n• Dry soil alerts (moisture below 300)\n• Sensor offline notifications (no data for 2+ hours)\n• Daily farm summary reports\n\nThank you for choosing AgriConnect for your precision agriculture needs.`,
                 sensorData: {
                     air_temperature: 25.0,
                     air_humidity: 68.0,
@@ -115,7 +115,7 @@ const EmailAlerts = {
 
             if (typeof Notifications !== 'undefined') {
                 Notifications.success(
-                    '📧 Welcome Email Sent!',
+                    'Welcome Email Sent',
                     'Check your inbox to verify email alerts are working'
                 );
             }

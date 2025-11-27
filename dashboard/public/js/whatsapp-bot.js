@@ -147,7 +147,7 @@ const WhatsAppBot = {
                 if (this.phoneNumber && !phoneRegex.test(this.phoneNumber)) {
                     if (typeof Notifications !== 'undefined') {
                         Notifications.show(
-                            '⚠️ Invalid Format',
+                            'Invalid Format',
                             'Please use E.164 format (e.g., +237670123456)',
                             'warning',
                             5000
@@ -163,7 +163,7 @@ const WhatsAppBot = {
 
                 if (typeof Notifications !== 'undefined') {
                     Notifications.show(
-                        '✅ Number Saved',
+                        'Number Saved',
                         'WhatsApp notifications will be sent to this number',
                         'success',
                         3000
@@ -678,31 +678,27 @@ const WhatsAppBot = {
     async sendWelcomeMessage() {
         if (!this.phoneNumber) return;
 
-        const welcomeMessage = `🌱 *Welcome to AgriConnect WhatsApp Bot!*
+        const welcomeMessage = `*Welcome to AgriConnect WhatsApp Bot*
 
-Your WhatsApp notifications are now active!
+Your WhatsApp notifications have been successfully activated.
 
-You can now:
-• Get farm status updates
-• Check sensor readings
-• Control irrigation
-• View weather forecasts
-• Monitor equipment
+Available Commands:
+• status - View farm overview
+• sensors - Check latest sensor readings
+• weather - View weather forecast
+• water [zone] [duration] - Control irrigation
+• help - List all available commands
 
-Try sending:
-• "status" - Farm overview
-• "sensors" - Latest readings
-• "weather" - Forecast
-• "help" - All commands
+For assistance, type "help" or visit your dashboard.
 
-Your farm is now smarter! 🚜`;
+AgriConnect - Precision Agriculture Solutions`;
 
         try {
             await this.sendMessage(welcomeMessage);
 
             if (typeof Notifications !== 'undefined') {
                 Notifications.show(
-                    '💬 Welcome Message Sent!',
+                    'Welcome Message Sent',
                     'Check WhatsApp to verify the connection',
                     'success',
                     5000
@@ -716,7 +712,7 @@ Your farm is now smarter! 🚜`;
 
             if (typeof Notifications !== 'undefined') {
                 Notifications.show(
-                    'ℹ️ Simulation Mode',
+                    'Simulation Mode Active',
                     'WhatsApp backend not configured. Message shown in dashboard only.',
                     'info',
                     5000
