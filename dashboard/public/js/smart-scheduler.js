@@ -215,12 +215,115 @@ const SmartScheduler = {
             }
         }, 3600000); // 1 hour
 
+        // Check scheduled irrigations every minute
+        setInterval(() => {
+            this.checkScheduledIrrigations();
+        }, 60000); // 1 minute
+
         // Generate daily schedule at midnight
         setInterval(() => {
             if (this.enabled) {
                 this.generateSchedule();
             }
         }, 86400000); // 24 hours
+    },
+
+    // Check and execute scheduled irrigations
+    async checkScheduledIrrigations() {
+        if (!this.enabled || this.schedule.length === 0) return;
+
+        const now = new Date();
+        console.log('[DEBUG] Checking scheduled irrigations...');
+
+        for (const item of this.schedule) {
+            // Skip if not approved or pending
+            if (item.status !== 'approved' && item.status !== 'pending') continue;
+
+            const scheduledTime = new Date(item.scheduledTime || item.time);
+
+            // Check if it's time to irrigate (within 1 minute window)
+            const timeDiff = scheduledTime - now;
+            if (timeDiff > 0 && timeDiff <= 60000) {
+                console.log('[INFO] Executing scheduled irrigation:', item);
+                await this.executeScheduledIrrigation(item);
+            }
+        }
+    },
+
+    // Execute scheduled irrigation
+    async executeScheduledIrrigation(scheduleItem) {
+        try {
+            console.log('[INFO] Starting irrigation execution...');
+
+            // Update status to executing
+            scheduleItem.status = 'executing';
+            await this.updateScheduleStatus(scheduleItem, 'executing');
+
+            // Trigger irrigation via FarmControls
+            if (typeof FarmControls !== 'undefined' && FarmControls.startIrrigation) {
+                await FarmControls.startIrrigation(scheduleItem.zone, scheduleItem.duration);
+
+                // Update status to completed
+                scheduleItem.status = 'completed';
+                scheduleItem.executedAt = new Date().toISOString();
+                await this.updateScheduleStatus(scheduleItem, 'completed');
+
+                // Show notification
+                if (typeof Notifications !== 'undefined') {
+                    Notifications.show(
+                        'Irrigation Started',
+                        `Automatic irrigation started for ${scheduleItem.zone} - ${scheduleItem.duration} minutes`,
+                        'success',
+                        5000
+                    );
+                }
+
+                console.log('[SUCCESS] Irrigation executed successfully');
+            } else {
+                console.error('[ERROR] FarmControls module not available');
+                scheduleItem.status = 'failed';
+                await this.updateScheduleStatus(scheduleItem, 'failed');
+
+                if (typeof Notifications !== 'undefined') {
+                    Notifications.show(
+                        'Irrigation Failed',
+                        'Could not trigger irrigation system',
+                        'error',
+                        5000
+                    );
+                }
+            }
+
+            // Update UI
+            this.updateStatsDisplay();
+
+        } catch (error) {
+            console.error('[ERROR] Failed to execute irrigation:', error);
+            scheduleItem.status = 'failed';
+            await this.updateScheduleStatus(scheduleItem, 'failed');
+        }
+    },
+
+    // Update schedule status in database
+    async updateScheduleStatus(scheduleItem, status) {
+        if (typeof supabase === 'undefined') return;
+
+        try {
+            const { error } = await supabase
+                .from('irrigation_schedules')
+                .update({
+                    status: status,
+                    executed_at: status === 'completed' ? new Date().toISOString() : null,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('scheduled_time', scheduleItem.scheduledTime);
+
+            if (error) throw error;
+
+            console.log(`[INFO] Schedule status updated to: ${status}`);
+        } catch (error) {
+            console.error('[ERROR] Failed to update schedule status:', error);
+        }
     },
 
     // Analyze current conditions
@@ -243,28 +346,72 @@ const SmartScheduler = {
         return recommendation;
     },
 
-    // Get soil moisture levels
+    // Get soil moisture levels from real sensor data
     async getSoilMoisture() {
-        // Get latest sensor data
-        if (typeof Dashboard !== 'undefined') {
-            const sensors = await Dashboard.fetchSensorData();
-            if (sensors && sensors.length > 0) {
-                const latest = sensors[0];
-                return {
-                    zone1: latest.soil_moisture || 65,
-                    zone2: latest.soil_moisture ? latest.soil_moisture - 5 : 60,
-                    zone3: latest.soil_moisture ? latest.soil_moisture - 10 : 55,
-                    average: latest.soil_moisture || 60
-                };
+        console.log('[INFO] Fetching soil moisture from sensor readings...');
+
+        try {
+            // Get latest sensor readings from database
+            if (typeof supabase !== 'undefined') {
+                const { data, error } = await supabase
+                    .from('sensor_readings')
+                    .select('soil_moisture, field_id, zone_id, reading_time')
+                    .order('reading_time', { ascending: false })
+                    .limit(10);
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    // Calculate average from recent readings
+                    const moistureValues = data
+                        .map(r => r.soil_moisture)
+                        .filter(m => m !== null && m !== undefined);
+
+                    if (moistureValues.length > 0) {
+                        const average = moistureValues.reduce((a, b) => a + b, 0) / moistureValues.length;
+
+                        // Convert to percentage if needed (assuming 0-1023 raw sensor values)
+                        // If values are already percentages (0-100), use as-is
+                        const isPercentage = average <= 100;
+                        const avgPercent = isPercentage ? average : (average / 1023) * 100;
+
+                        console.log(`[INFO] Soil moisture average: ${avgPercent.toFixed(1)}%`);
+
+                        return {
+                            average: avgPercent,
+                            readings: data.length,
+                            latest: data[0],
+                            timestamp: data[0].reading_time
+                        };
+                    }
+                }
             }
+
+            // Fallback: try Dashboard module
+            if (typeof Dashboard !== 'undefined') {
+                const sensors = await Dashboard.fetchSensorData();
+                if (sensors && sensors.length > 0) {
+                    const latest = sensors[0];
+                    const moisture = latest.soil_moisture || 60;
+                    return {
+                        average: moisture,
+                        readings: sensors.length,
+                        latest: latest,
+                        timestamp: latest.reading_time
+                    };
+                }
+            }
+        } catch (error) {
+            console.error('[ERROR] Failed to fetch soil moisture:', error);
         }
 
-        // Mock data if not available
+        // Default fallback for testing
+        console.warn('[WARN] Using default soil moisture values');
         return {
-            zone1: 65,
-            zone2: 60,
-            zone3: 55,
-            average: 60
+            average: 60,
+            readings: 0,
+            latest: null,
+            timestamp: new Date().toISOString()
         };
     },
 
@@ -336,17 +483,28 @@ const SmartScheduler = {
         };
     },
 
-    // Make irrigation recommendation
-    makeRecommendation(conditions) {
+    // Make irrigation recommendation for tomatoes
+    async makeRecommendation(conditions) {
         const { soilMoisture, weather, cropStage, evapotranspiration } = conditions;
 
-        // Check critical moisture rule
-        if (soilMoisture.average < 30) {
+        console.log('[INFO] Making recommendation for tomatoes...');
+        console.log('[DEBUG] Soil moisture:', soilMoisture.average.toFixed(1), '%');
+        console.log('[DEBUG] Crop stage:', cropStage.stage, '- Water requirement:', cropStage.waterRequirement);
+
+        // Tomato-specific moisture thresholds
+        const TOMATO_CRITICAL_LOW = 40;  // Below 40% is critical for tomatoes
+        const TOMATO_OPTIMAL_MIN = 60;   // Optimal range: 60-70%
+        const TOMATO_OPTIMAL_MAX = 70;
+
+        // Check critical moisture rule for tomatoes
+        if (soilMoisture.average < TOMATO_CRITICAL_LOW) {
+            const scheduledTime = await this.getOptimalTime();
             return {
                 action: 'immediate',
                 zone: 'all',
-                duration: 30,
-                reason: 'Critical low moisture detected',
+                duration: 35,
+                scheduledTime: scheduledTime,
+                reason: `Critical: Tomato moisture at ${Math.round(soilMoisture.average)}% (require ${TOMATO_OPTIMAL_MIN}%+)`,
                 urgency: 'high'
             };
         }
@@ -355,20 +513,31 @@ const SmartScheduler = {
         if (weather.rainProbability > 60) {
             return {
                 action: 'skip',
-                reason: `Rain forecast: ${weather.rainProbability}% probability`,
+                reason: `Rain forecast: ${weather.rainProbability}% probability - delaying irrigation`,
                 urgency: 'low'
             };
         }
 
-        // Check if irrigation needed based on ET and moisture
-        const targetMoisture = 60;
+        // Calculate deficit based on tomato requirements
+        const targetMoisture = cropStage.waterRequirement === 'high' ? TOMATO_OPTIMAL_MAX : TOMATO_OPTIMAL_MIN;
         const deficit = targetMoisture - soilMoisture.average;
 
-        if (deficit > 10) {
-            // Calculate duration based on deficit and ET
-            const duration = Math.min(Math.ceil(deficit * 2), 45);
+        // Check if irrigation needed
+        if (deficit > 5) {
+            // Calculate duration based on deficit, ET, and crop stage
+            let baseDuration = Math.ceil(deficit * 2);
 
-            // Get intelligent optimal time based on weather and conditions
+            // Adjust for crop stage (fruiting needs more water)
+            if (cropStage.stage === 'fruiting' || cropStage.stage === 'flowering') {
+                baseDuration *= 1.2;
+            }
+
+            // Adjust for high evapotranspiration
+            if (evapotranspiration > 5) {
+                baseDuration *= 1.1;
+            }
+
+            const duration = Math.min(Math.round(baseDuration), 45);
             const scheduledTime = await this.getOptimalTime();
 
             return {
@@ -376,14 +545,14 @@ const SmartScheduler = {
                 zone: 'all',
                 duration: duration,
                 scheduledTime: scheduledTime,
-                reason: `Moisture deficit: ${Math.round(deficit)}%`,
+                reason: `Tomato ${cropStage.stage} stage: moisture at ${Math.round(soilMoisture.average)}% (target ${targetMoisture}%)`,
                 urgency: 'medium'
             };
         }
 
         return {
             action: 'none',
-            reason: 'Soil moisture optimal',
+            reason: `Soil moisture optimal for tomatoes (${Math.round(soilMoisture.average)}%)`,
             urgency: 'low'
         };
     },

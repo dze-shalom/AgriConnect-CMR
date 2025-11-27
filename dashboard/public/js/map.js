@@ -162,7 +162,7 @@ const FarmMap = {
     addFarmMarker() {
         const el = document.createElement('div');
         el.className = 'farm-marker';
-        el.innerHTML = '🍅';
+        el.innerHTML = '📍';
         el.style.fontSize = '2.5rem';
         el.style.cursor = 'pointer';
         el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
@@ -182,8 +182,12 @@ const FarmMap = {
                         <span class="popup-value">${this.farmLocation.lat.toFixed(4)}, ${this.farmLocation.lon.toFixed(4)}</span>
                     </div>
                     <div class="popup-row">
-                        <span class="popup-label">Type:</span>
-                        <span class="popup-value">Tomato Farm</span>
+                        <span class="popup-label">Deployment:</span>
+                        <span class="popup-value">AgriConnect Node Network</span>
+                    </div>
+                    <div class="popup-row">
+                        <span class="popup-label">Crop Type:</span>
+                        <span class="popup-value">Tomatoes</span>
                     </div>
                 </div>
             `);
