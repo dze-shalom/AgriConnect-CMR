@@ -138,9 +138,28 @@ const WhatsAppBot = {
         const saveBtn = document.getElementById('save-whatsapp-number');
 
         if (saveBtn && phoneInput) {
-            saveBtn.addEventListener('click', () => {
-                this.phoneNumber = phoneInput.value;
+            saveBtn.addEventListener('click', async () => {
+                const previousPhone = this.phoneNumber;
+                this.phoneNumber = phoneInput.value.trim();
+
+                // Validate phone number format (basic E.164 validation)
+                const phoneRegex = /^\+[1-9]\d{1,14}$/;
+                if (this.phoneNumber && !phoneRegex.test(this.phoneNumber)) {
+                    if (typeof Notifications !== 'undefined') {
+                        Notifications.show(
+                            '⚠️ Invalid Format',
+                            'Please use E.164 format (e.g., +237670123456)',
+                            'warning',
+                            5000
+                        );
+                    }
+                    return;
+                }
+
                 this.saveSettings();
+
+                // Check if this is a new phone number
+                const isNewSetup = this.phoneNumber !== previousPhone && this.phoneNumber;
 
                 if (typeof Notifications !== 'undefined') {
                     Notifications.show(
@@ -149,6 +168,12 @@ const WhatsAppBot = {
                         'success',
                         3000
                     );
+                }
+
+                // Auto-send welcome message if new phone number and bot is enabled
+                if (this.enabled && isNewSetup) {
+                    console.log('[INFO] Sending welcome WhatsApp message...');
+                    await this.sendWelcomeMessage();
                 }
             });
         }
@@ -647,6 +672,57 @@ const WhatsAppBot = {
             enabled: this.enabled,
             phoneNumber: this.phoneNumber
         }));
+    },
+
+    // Send welcome message to verify setup
+    async sendWelcomeMessage() {
+        if (!this.phoneNumber) return;
+
+        const welcomeMessage = `🌱 *Welcome to AgriConnect WhatsApp Bot!*
+
+Your WhatsApp notifications are now active!
+
+You can now:
+• Get farm status updates
+• Check sensor readings
+• Control irrigation
+• View weather forecasts
+• Monitor equipment
+
+Try sending:
+• "status" - Farm overview
+• "sensors" - Latest readings
+• "weather" - Forecast
+• "help" - All commands
+
+Your farm is now smarter! 🚜`;
+
+        try {
+            await this.sendMessage(welcomeMessage);
+
+            if (typeof Notifications !== 'undefined') {
+                Notifications.show(
+                    '💬 Welcome Message Sent!',
+                    'Check WhatsApp to verify the connection',
+                    'success',
+                    5000
+                );
+            }
+
+            console.log('[SUCCESS] Welcome message sent via WhatsApp');
+
+        } catch (error) {
+            console.error('[ERROR] Failed to send welcome message:', error);
+
+            if (typeof Notifications !== 'undefined') {
+                Notifications.show(
+                    'ℹ️ Simulation Mode',
+                    'WhatsApp backend not configured. Message shown in dashboard only.',
+                    'info',
+                    5000
+                );
+            }
+        }
     },
 
     // Get status

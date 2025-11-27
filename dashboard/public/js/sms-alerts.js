@@ -72,11 +72,14 @@ const SMSAlerts = {
     },
 
     // Save settings to localStorage
-    saveSettings() {
+    async saveSettings() {
         const phoneInput = document.getElementById('alert-phone-input');
         const enableCheckbox = document.getElementById('enable-sms-alerts');
 
         if (!phoneInput || !enableCheckbox) return;
+
+        const previousPhone = this.recipientPhone;
+        const previousEnabled = this.enabled;
 
         const phone = phoneInput.value.trim();
 
@@ -98,6 +101,10 @@ const SMSAlerts = {
         localStorage.setItem('sms_alert_phone', phone);
         localStorage.setItem('sms_alerts_enabled', this.enabled.toString());
 
+        // Check if this is a new phone number or newly enabled
+        const isNewSetup = (this.recipientPhone !== previousPhone) ||
+                         (this.enabled && !previousEnabled && this.recipientPhone);
+
         if (typeof Notifications !== 'undefined') {
             Notifications.success(
                 'Settings Saved',
@@ -106,6 +113,45 @@ const SMSAlerts = {
         }
 
         this.updateUIState();
+
+        // Auto-send welcome SMS if phone is new or newly enabled
+        if (this.enabled && isNewSetup && this.recipientPhone) {
+            console.log('[INFO] Sending welcome SMS to verify setup...');
+            await this.sendWelcomeSMS();
+        }
+    },
+
+    // Send welcome SMS to verify setup
+    async sendWelcomeSMS() {
+        if (!this.recipientPhone) return;
+
+        try {
+            const result = await this.sendAlert({
+                alertType: 'Welcome to AgriConnect',
+                severity: 'info',
+                message: `🌱 Welcome to AgriConnect! Your SMS alerts are now active. You'll receive critical notifications for: temperature extremes, low battery, dry soil, and system errors. Your farm is now smarter!`
+            });
+
+            if (result) {
+                if (typeof Notifications !== 'undefined') {
+                    Notifications.success(
+                        '📱 Welcome SMS Sent!',
+                        'Check your phone to verify SMS alerts are working'
+                    );
+                }
+                console.log('[SUCCESS] Welcome SMS sent');
+            }
+
+        } catch (error) {
+            console.error('[ERROR] Failed to send welcome SMS:', error);
+
+            if (typeof Notifications !== 'undefined') {
+                Notifications.warning(
+                    'Welcome SMS Failed',
+                    'Settings saved but SMS send failed. Please check your Twilio configuration.'
+                );
+            }
+        }
     },
 
     // Update UI state based on settings
