@@ -170,14 +170,22 @@ window.initDashboardModules = async function() {
             Realtime.init();
         }
 
-        // Initialize email alerts
+        // Initialize unified alerts manager
+        if (typeof AlertsManager !== 'undefined') {
+            AlertsManager.init();
+        }
+
+        // Initialize individual alert modules (managed by AlertsManager)
         if (typeof EmailAlerts !== 'undefined') {
             EmailAlerts.init();
         }
 
-        // Initialize SMS alerts
         if (typeof SMSAlerts !== 'undefined') {
             SMSAlerts.init();
+        }
+
+        if (typeof TelegramAlerts !== 'undefined') {
+            TelegramAlerts.init();
         }
 
         // Initialize TensorFlow ML (async, runs in background)

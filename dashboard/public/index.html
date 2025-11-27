@@ -783,121 +783,122 @@
                 </div>
             </section>
 
-            <!-- Email Alert Settings -->
-            <section class="section" id="email-settings-section">
+            <!-- Unified Alert Settings -->
+            <section class="section" id="alert-settings-section">
                 <div class="section-header">
-                    <h2><i data-lucide="mail"></i> Email Alert Settings</h2>
+                    <h2><i data-lucide="bell"></i> Alert Settings</h2>
                 </div>
                 <div class="settings-card">
-                    <form id="email-alert-settings-form">
+                    <!-- Channel Selection -->
+                    <div class="form-group">
+                        <label for="alert-channels-select">
+                            <i data-lucide="message-square"></i> Alert Channels
+                        </label>
+                        <select
+                            id="alert-channels-select"
+                            class="form-input"
+                            multiple
+                            size="4"
+                            style="min-height: 120px;"
+                        >
+                            <option value="telegram">Telegram (Recommended - Free)</option>
+                            <option value="email">Email (Resend API required)</option>
+                            <option value="sms">SMS (Twilio required)</option>
+                            <option value="whatsapp">WhatsApp (Twilio required)</option>
+                        </select>
+                        <small class="form-help">Hold Ctrl/Cmd to select multiple channels</small>
+                    </div>
+
+                    <!-- Email Settings (shown when email selected) -->
+                    <div id="email-settings" style="display: none;">
+                        <h4 style="margin-top: 1.5rem; margin-bottom: 1rem;">Email Configuration</h4>
                         <div class="form-group">
                             <label for="alert-email-input">
-                                <i data-lucide="at-sign"></i> Alert Recipient Email
+                                <i data-lucide="at-sign"></i> Email Address
                             </label>
                             <input
                                 type="email"
                                 id="alert-email-input"
                                 placeholder="admin@farm.com"
                                 class="form-input"
-                                required
                             />
-                            <small class="form-help">Receive critical alerts and daily summaries</small>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="checkbox-label">
-                                <input
-                                    type="checkbox"
-                                    id="enable-email-alerts"
-                                    class="form-checkbox"
-                                />
-                                <span>Enable email alerts</span>
-                            </label>
-                        </div>
-
-                        <div class="form-actions">
-                            <button type="submit" class="btn-primary">
-                                <i data-lucide="save"></i> Save Settings
-                            </button>
-                            <button type="button" id="test-email-btn" class="btn-secondary">
-                                <i data-lucide="send"></i> Send Test Email
-                            </button>
-                        </div>
-                    </form>
-
-                    <div class="alert-info">
-                        <i data-lucide="info"></i>
-                        <div>
-                            <strong>Email alerts will be sent for:</strong>
-                            <ul>
-                                <li>Critical temperature thresholds (< 15°C or > 35°C)</li>
-                                <li>Low battery warnings (< 15%)</li>
-                                <li>Extreme soil dryness (< 300)</li>
-                                <li>Sensor offline for > 2 hours</li>
-                                <li>Daily farm summary reports</li>
-                            </ul>
                         </div>
                     </div>
-                </div>
-            </section>
 
-            <!-- SMS Alert Settings -->
-            <section class="section" id="sms-settings-section">
-                <div class="section-header">
-                    <h2><i data-lucide="smartphone"></i> SMS Alert Settings</h2>
-                </div>
-                <div class="settings-card">
-                    <form id="sms-alert-settings-form">
+                    <!-- SMS Settings (shown when SMS selected) -->
+                    <div id="sms-settings" style="display: none;">
+                        <h4 style="margin-top: 1.5rem; margin-bottom: 1rem;">SMS Configuration</h4>
                         <div class="form-group">
-                            <label for="alert-phone-input">
-                                <i data-lucide="phone"></i> Alert Recipient Phone (E.164 format)
+                            <label for="alert-sms-input">
+                                <i data-lucide="phone"></i> Phone Number (E.164 format)
                             </label>
                             <input
                                 type="tel"
-                                id="alert-phone-input"
-                                placeholder="+1234567890"
+                                id="alert-sms-input"
+                                placeholder="+237612345678"
                                 class="form-input"
                                 pattern="^\+[1-9]\d{1,14}$"
-                                title="Phone number must be in E.164 format (e.g., +1234567890)"
                             />
-                            <small class="form-help">Enter phone number with country code (e.g., +1 for USA)</small>
+                            <small class="form-help">Example: +237612345678</small>
                         </div>
+                    </div>
 
+                    <!-- Telegram Settings (shown when Telegram selected) -->
+                    <div id="telegram-settings" style="display: none;">
+                        <h4 style="margin-top: 1.5rem; margin-bottom: 1rem;">Telegram Configuration</h4>
                         <div class="form-group">
-                            <label class="checkbox-label">
-                                <input
-                                    type="checkbox"
-                                    id="enable-sms-alerts"
-                                    class="form-checkbox"
-                                />
-                                <span>Enable SMS alerts</span>
+                            <label for="alert-telegram-input">
+                                <i data-lucide="message-circle"></i> Chat ID
                             </label>
+                            <input
+                                type="text"
+                                id="alert-telegram-input"
+                                placeholder="5417539145"
+                                class="form-input"
+                            />
+                            <small class="form-help">Get your Chat ID from @userinfobot on Telegram</small>
                         </div>
+                    </div>
 
-                        <div class="form-actions">
-                            <button type="submit" class="btn-primary">
-                                <i data-lucide="save"></i> Save Settings
-                            </button>
-                            <button type="button" id="test-sms-btn" class="btn-secondary" disabled>
-                                <i data-lucide="send"></i> Send Test SMS
-                            </button>
+                    <!-- WhatsApp Settings (shown when WhatsApp selected) -->
+                    <div id="whatsapp-settings" style="display: none;">
+                        <h4 style="margin-top: 1.5rem; margin-bottom: 1rem;">WhatsApp Configuration</h4>
+                        <div class="form-group">
+                            <label for="alert-whatsapp-input">
+                                <i data-lucide="phone"></i> WhatsApp Number
+                            </label>
+                            <input
+                                type="tel"
+                                id="alert-whatsapp-input"
+                                placeholder="+237612345678"
+                                class="form-input"
+                            />
                         </div>
-                    </form>
+                    </div>
 
-                    <div class="alert-info">
+                    <!-- Alert Types Info -->
+                    <div class="alert-info" style="margin-top: 1.5rem;">
                         <i data-lucide="info"></i>
                         <div>
-                            <strong>SMS alerts will be sent for:</strong>
+                            <strong>Alerts will be sent for:</strong>
                             <ul>
-                                <li>Critical temperature emergencies (< 10°C or > 40°C)</li>
-                                <li>Severe soil drought conditions</li>
-                                <li>Sensor battery failure (< 10%)</li>
-                                <li>System critical errors</li>
+                                <li>Critical temperature (< 15°C or > 35°C for tomatoes)</li>
+                                <li>Low soil moisture (< 40%)</li>
+                                <li>Irrigation start/complete notifications</li>
+                                <li>Sensor battery warnings (< 15%)</li>
+                                <li>System errors and offline sensors</li>
                             </ul>
-                            <p style="margin-top: 0.5rem; font-size: 0.85rem; color: #666;">
-                                <strong>Note:</strong> Requires Twilio account setup with valid credentials.
-                            </p>
                         </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="form-actions" style="margin-top: 1.5rem;">
+                        <button type="button" id="save-alert-settings-btn" class="btn-primary">
+                            <i data-lucide="save"></i> Save Settings
+                        </button>
+                        <button type="button" id="test-alerts-btn" class="btn-secondary">
+                            <i data-lucide="send"></i> Test Alerts
+                        </button>
                     </div>
                 </div>
             </section>
@@ -1115,6 +1116,8 @@
     <script src="js/realtime.js"></script>
     <script src="js/email-alerts.js"></script>
     <script src="js/sms-alerts.js"></script>
+    <script src="js/telegram-alerts.js"></script>
+    <script src="js/alerts-manager.js"></script>
     <script src="js/global-alerts.js"></script>
     <script src="js/mock-data.js"></script>
     <script src="js/dashboard.js"></script>
