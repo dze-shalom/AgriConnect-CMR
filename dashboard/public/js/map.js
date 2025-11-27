@@ -162,11 +162,11 @@ const FarmMap = {
     addFarmMarker() {
         const el = document.createElement('div');
         el.className = 'farm-marker';
-        el.innerHTML = 'FARM';
+        el.innerHTML = '🍅';
         el.style.fontSize = '2.5rem';
         el.style.cursor = 'pointer';
         el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
-        
+
         const popup = new mapboxgl.Popup({ offset: 25 })
             .setHTML(`
                 <div class="popup-header">
@@ -187,12 +187,12 @@ const FarmMap = {
                     </div>
                 </div>
             `);
-        
+
         const marker = new mapboxgl.Marker(el)
             .setLngLat([this.farmLocation.lon, this.farmLocation.lat])
             .setPopup(popup)
             .addTo(this.map);
-        
+
         this.markers.push({ marker, type: 'farm', status: 'online' });
     },
     
