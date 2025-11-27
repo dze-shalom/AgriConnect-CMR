@@ -298,7 +298,7 @@ const Intelligence = {
                     </div>
                     ${mlInsights.anomalyDetection ? `
                         <div class="intelligence-recommendation ${mlInsights.anomalyDetection.isAnomaly ? 'anomaly-warning' : ''}">
-                            ${mlInsights.anomalyDetection.isAnomaly ? '⚠️' : '✅'}
+                            ${mlInsights.anomalyDetection.isAnomaly ? '[ANOMALY]' : '[OK]'}
                             ${mlInsights.anomalyDetection.message}
                             ${mlInsights.anomalyDetection.isAnomaly ? ` (Severity: ${mlInsights.anomalyDetection.severity})` : ''}
                         </div>

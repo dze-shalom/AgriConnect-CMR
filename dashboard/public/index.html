@@ -128,42 +128,42 @@
                 <nav class="sidebar-nav">
                     <a href="#" class="nav-item active" data-view="overview">
                         <i data-lucide="layout-dashboard"></i>
-                        <span>Overview</span>
+                        <span data-i18n="nav_overview">Overview</span>
                     </a>
                     <a href="#" class="nav-item" data-view="monitoring">
                         <i data-lucide="activity"></i>
-                        <span>Monitoring</span>
-                        <small class="nav-subtitle">Sensors & Weather</small>
+                        <span data-i18n="nav_monitoring">Monitoring</span>
+                        <small class="nav-subtitle" data-i18n="nav_monitoring_sub">Sensors & Weather</small>
                     </a>
                     <a href="#" class="nav-item" data-view="analytics">
                         <i data-lucide="bar-chart-2"></i>
-                        <span>Analytics</span>
-                        <small class="nav-subtitle">Charts & Reports</small>
+                        <span data-i18n="nav_analytics">Analytics</span>
+                        <small class="nav-subtitle" data-i18n="nav_analytics_sub">Charts & Reports</small>
                     </a>
                     <a href="#" class="nav-item" data-view="intelligence">
                         <i data-lucide="brain"></i>
-                        <span>AI Insights</span>
-                        <small class="nav-subtitle">Predictions & Analysis</small>
+                        <span data-i18n="nav_intelligence">AI Insights</span>
+                        <small class="nav-subtitle" data-i18n="nav_intelligence_sub">Predictions & Analysis</small>
                     </a>
                     <a href="#" class="nav-item" data-view="automation">
                         <i data-lucide="sliders"></i>
-                        <span>Automation</span>
-                        <small class="nav-subtitle">Controls & Scheduling</small>
+                        <span data-i18n="nav_automation">Automation</span>
+                        <small class="nav-subtitle" data-i18n="nav_automation_sub">Controls & Scheduling</small>
                     </a>
                     <a href="#" class="nav-item" data-view="satellite">
                         <i data-lucide="satellite"></i>
-                        <span>Satellite</span>
-                        <small class="nav-subtitle">NDVI & Field Mapping</small>
+                        <span data-i18n="nav_satellite">Satellite</span>
+                        <small class="nav-subtitle" data-i18n="nav_satellite_sub">NDVI & Field Mapping</small>
                     </a>
                     <a href="#" class="nav-item" data-view="alerts">
                         <i data-lucide="bell"></i>
-                        <span>Alerts & Maintenance</span>
+                        <span data-i18n="nav_alerts">Alerts & Maintenance</span>
                         <span id="alerts-badge" class="nav-badge">0</span>
                     </a>
                     <a href="#" class="nav-item" data-view="settings">
                         <i data-lucide="settings"></i>
-                        <span>Settings</span>
-                        <small class="nav-subtitle">Notifications & Config</small>
+                        <span data-i18n="nav_settings">Settings</span>
+                        <small class="nav-subtitle" data-i18n="nav_settings_sub">Notifications & Config</small>
                     </a>
                 </nav>
             </div>
@@ -188,6 +188,14 @@
                             <span id="toggle-map-text" data-i18n="show_map">Show Map</span>
                         </button>
                     </div>
+                </div>
+
+                <div class="section-description">
+                    <p>
+                        <strong>Node Locations:</strong> View sensor placement across your farm<br>
+                        <strong>Satellite Analysis:</strong> Draw field boundaries to get NDVI vegetation health analysis<br>
+                        <small>📍 Click "Show Map" → "Draw Field" → Outline your field → Get instant vegetation health insights</small>
+                    </p>
                 </div>
 
                 <!-- Map Container (initially hidden) -->
@@ -258,7 +266,15 @@
                             </button>
                         </div>
                         <div id="drawing-status" class="drawing-status hidden">
-                            <span class="status-text">✏️ Click on map to add points. Double-click to finish.</span>
+                            <div class="status-text">
+                                <strong>✏️ Drawing Active</strong><br>
+                                <small>
+                                    1. Click on map to add points<br>
+                                    2. Continue clicking to create polygon<br>
+                                    3. <strong>Double-click</strong> the last point to finish<br>
+                                    4. Or press <strong>Enter</strong> key to complete
+                                </small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -390,16 +406,20 @@
                     <div class="intelligence-card yield-forecast-card">
                         <div class="intelligence-header">
                             <h3>🌾 Yield Forecast</h3>
+                            <span class="help-tooltip" title="AI predicts crop yield based on soil, weather, and NDVI data">ℹ️</span>
                         </div>
                         <div class="intelligence-content">
+                            <p class="forecast-description">
+                                <small>Select crop and area to predict harvest yield using AI analysis of current field conditions.</small>
+                            </p>
                             <div class="forecast-inputs-compact">
                                 <select id="forecast-crop-select" class="form-control-sm">
-                                    <option value="maize">Maize</option>
-                                    <option value="cassava">Cassava</option>
-                                    <option value="beans">Beans</option>
-                                    <option value="tomatoes">Tomatoes</option>
+                                    <option value="maize">🌽 Maize</option>
+                                    <option value="cassava">🥔 Cassava</option>
+                                    <option value="beans">🫘 Beans</option>
+                                    <option value="tomatoes">🍅 Tomatoes</option>
                                 </select>
-                                <input type="number" id="forecast-area" class="form-control-sm" value="1.0" min="0.1" step="0.1" placeholder="Area (ha)">
+                                <input type="number" id="forecast-area" class="form-control-sm" value="1.0" min="0.1" step="0.1" placeholder="Area (ha)" title="Field area in hectares">
                                 <button id="run-forecast-btn" class="btn-primary-sm">
                                     <i data-lucide="zap"></i> Forecast
                                 </button>
@@ -624,7 +644,7 @@
                                 <div class="recommendation-details">
                                     <div class="detail-row">
                                         <span class="detail-label">Optimal Time:</span>
-                                        <span class="detail-value" id="optimal-time">Tonight at 11:00 PM</span>
+                                        <span class="detail-value" id="optimal-time">Tomorrow at 6:00 AM</span>
                                     </div>
                                     <div class="detail-row">
                                         <span class="detail-label">Water Needed:</span>

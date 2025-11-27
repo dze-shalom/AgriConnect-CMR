@@ -48,17 +48,36 @@ const EmailAlerts = {
     },
 
     // Save email settings
-    saveEmailSettings() {
+    async saveEmailSettings() {
         const emailInput = document.getElementById('alert-email-input');
         const enableCheckbox = document.getElementById('enable-email-alerts');
 
         if (emailInput && enableCheckbox) {
+            const previousEmail = this.recipientEmail;
+            const previousEnabled = this.enabled;
+
             this.recipientEmail = emailInput.value.trim();
             this.enabled = enableCheckbox.checked;
+
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (this.recipientEmail && !emailRegex.test(this.recipientEmail)) {
+                if (typeof Notifications !== 'undefined') {
+                    Notifications.error(
+                        'Invalid Email',
+                        'Please enter a valid email address'
+                    );
+                }
+                return;
+            }
 
             // Save to localStorage
             localStorage.setItem('alertRecipientEmail', this.recipientEmail);
             localStorage.setItem('emailAlertsEnabled', this.enabled.toString());
+
+            // Check if this is a new email or newly enabled
+            const isNewSetup = (this.recipientEmail !== previousEmail) ||
+                             (this.enabled && !previousEnabled && this.recipientEmail);
 
             if (typeof Notifications !== 'undefined') {
                 Notifications.success(
@@ -68,6 +87,50 @@ const EmailAlerts = {
             }
 
             console.log('[INFO] Email alert settings saved');
+
+            // Auto-send welcome message if email is new or newly enabled
+            if (this.enabled && isNewSetup && this.recipientEmail) {
+                console.log('[INFO] Sending welcome email to verify setup...');
+                await this.sendWelcomeEmail();
+            }
+        }
+    },
+
+    // Send welcome email to verify setup
+    async sendWelcomeEmail() {
+        if (!this.recipientEmail) return;
+
+        try {
+            await this.sendAlert({
+                alertType: 'Welcome to AgriConnect',
+                severity: 'info',
+                message: `Welcome to AgriConnect Farm Monitoring System. Your email alert notifications have been successfully configured and are now active.\n\nYou will receive automated notifications for:\n• Critical temperature alerts (below 15°C or above 35°C)\n• Low battery warnings (below 15%)\n• Dry soil alerts (moisture below 300)\n• Sensor offline notifications (no data for 2+ hours)\n• Daily farm summary reports\n\nThank you for choosing AgriConnect for your precision agriculture needs.`,
+                sensorData: {
+                    air_temperature: 25.0,
+                    air_humidity: 68.0,
+                    soil_moisture: 520,
+                    battery_level: 95
+                }
+            });
+
+            if (typeof Notifications !== 'undefined') {
+                Notifications.success(
+                    'Welcome Email Sent',
+                    'Check your inbox to verify email alerts are working'
+                );
+            }
+
+            console.log('[SUCCESS] Welcome email sent');
+
+        } catch (error) {
+            console.error('[ERROR] Failed to send welcome email:', error);
+
+            if (typeof Notifications !== 'undefined') {
+                Notifications.warning(
+                    'Welcome Email Failed',
+                    'Settings saved but email send failed. Please check your Supabase configuration.'
+                );
+            }
         }
     },
 

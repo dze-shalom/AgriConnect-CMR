@@ -108,7 +108,7 @@ const OfflineManager = {
         // Show notification
         if (typeof Notifications !== 'undefined') {
             Notifications.show(
-                '🌐 Back Online',
+                '[NETWORK] Back Online',
                 'Syncing pending data...',
                 'success',
                 3000
@@ -125,7 +125,7 @@ const OfflineManager = {
         // Show notification
         if (typeof Notifications !== 'undefined') {
             Notifications.show(
-                '📴 Offline Mode',
+                '[OFFLINE] Offline Mode',
                 'Changes will sync when connection restored',
                 'warning',
                 5000
@@ -138,10 +138,10 @@ const OfflineManager = {
         const badge = document.getElementById('online-status-badge');
         if (badge) {
             if (this.isOnline) {
-                badge.textContent = '🟢 Online';
+                badge.textContent = '[ONLINE]';
                 badge.className = 'status-badge online';
             } else {
-                badge.textContent = '🔴 Offline';
+                badge.textContent = '[OFFLINE]';
                 badge.className = 'status-badge offline';
             }
         }
@@ -257,14 +257,14 @@ const OfflineManager = {
             if (typeof Notifications !== 'undefined') {
                 if (failCount === 0) {
                     Notifications.show(
-                        '✅ Sync Complete',
+                        '[SUCCESS] Sync Complete',
                         `${successCount} commands synced successfully`,
                         'success',
                         3000
                     );
                 } else {
                     Notifications.show(
-                        '⚠️ Sync Partial',
+                        '[WARNING] Sync Partial',
                         `${successCount} synced, ${failCount} failed`,
                         'warning',
                         4000
@@ -373,7 +373,7 @@ const OfflineManager = {
         if (!this.isOnline) {
             if (typeof Notifications !== 'undefined') {
                 Notifications.show(
-                    '📴 Offline',
+                    '[OFFLINE] Offline',
                     'Cannot sync while offline',
                     'warning',
                     3000

@@ -222,11 +222,14 @@ const SmartScheduler = {
             // Calculate duration based on deficit and ET
             const duration = Math.min(Math.ceil(deficit * 2), 45);
 
+            // Get intelligent optimal time based on weather and conditions
+            const scheduledTime = await this.getOptimalTime();
+
             return {
                 action: 'schedule',
                 zone: 'all',
                 duration: duration,
-                scheduledTime: this.getOptimalTime(),
+                scheduledTime: scheduledTime,
                 reason: `Moisture deficit: ${Math.round(deficit)}%`,
                 urgency: 'medium'
             };
@@ -239,19 +242,147 @@ const SmartScheduler = {
         };
     },
 
-    // Get optimal irrigation time
-    getOptimalTime() {
+    // Get optimal irrigation time based on weather, soil moisture, and environmental conditions
+    async getOptimalTime() {
         const now = new Date();
-        const nextNight = new Date(now);
+        const currentHour = now.getHours();
 
-        // Schedule for 11 PM (cheaper electricity, less evaporation)
-        nextNight.setHours(23, 0, 0, 0);
+        console.log('[INFO] Calculating optimal irrigation time...');
 
-        if (nextNight < now) {
-            nextNight.setDate(nextNight.getDate() + 1);
+        // Get current conditions
+        const soilMoisture = await this.getSoilMoisture();
+        const weather = await this.getWeatherForecast();
+
+        console.log('[DEBUG] Soil moisture:', soilMoisture.average, '%');
+        console.log('[DEBUG] Weather:', weather);
+
+        // Check if rain is expected in next 24 hours
+        const rainExpected = this.isRainExpected(weather);
+        if (rainExpected) {
+            console.log('[INFO] Rain expected - delaying irrigation by 24 hours');
+            const delayedTime = new Date(now);
+            delayedTime.setDate(delayedTime.getDate() + 1);
+            delayedTime.setHours(6, 0, 0, 0);
+            return delayedTime;
         }
 
-        return nextNight;
+        // Critical moisture - irrigate at next available optimal window
+        if (soilMoisture.average < 30) {
+            console.log('[WARN] Critical soil moisture - scheduling urgent irrigation');
+            return this.getNextOptimalWindow(now, true); // urgent = true
+        }
+
+        // Determine optimal time based on temperature and evaporation
+        const optimalTime = this.calculateOptimalWindow(now, weather);
+        console.log('[INFO] Optimal irrigation time:', optimalTime.toLocaleString());
+
+        return optimalTime;
+    },
+
+    // Check if rain is expected based on weather forecast
+    isRainExpected(weather) {
+        // Check rain probability
+        if (weather.rainProbability && weather.rainProbability > 60) {
+            return true;
+        }
+
+        // Check if weather description indicates rain
+        if (weather.rainfall && weather.rainfall > 5) {
+            return true;
+        }
+
+        // Check Weather.forecastData for upcoming rain
+        if (typeof Weather !== 'undefined' && Weather.forecastData) {
+            const nextDay = Weather.forecastData[1]; // Tomorrow's forecast
+            if (nextDay) {
+                // Check if description contains rain keywords
+                const rainKeywords = ['rain', 'rainy', 'thunderstorm', 'storm', 'drizzle'];
+                const desc = (nextDay.desc || '').toLowerCase();
+                if (rainKeywords.some(keyword => desc.includes(keyword))) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    },
+
+    // Get next optimal irrigation window
+    getNextOptimalWindow(now, urgent = false) {
+        const currentHour = now.getHours();
+
+        // Optimal windows:
+        // - Early morning: 5 AM - 7 AM (best for absorption, minimal evaporation)
+        // - Late afternoon/evening: 5 PM - 7 PM (secondary option)
+        // - Avoid: 10 AM - 4 PM (high evaporation, water waste)
+
+        const optimalTime = new Date(now);
+
+        // If urgent and current time is reasonable (5 AM - 9 PM), irrigate in 30 minutes
+        if (urgent && currentHour >= 5 && currentHour <= 21) {
+            optimalTime.setMinutes(optimalTime.getMinutes() + 30);
+            return optimalTime;
+        }
+
+        // Early morning window (5 AM - 7 AM)
+        if (currentHour < 5) {
+            // Before 5 AM - schedule for 6 AM today
+            optimalTime.setHours(6, 0, 0, 0);
+        } else if (currentHour >= 5 && currentHour < 10) {
+            // Morning window still available - schedule for 6 AM today
+            optimalTime.setHours(6, 0, 0, 0);
+        } else if (currentHour >= 10 && currentHour < 17) {
+            // Midday heat - schedule for late afternoon (6 PM)
+            optimalTime.setHours(18, 0, 0, 0);
+        } else if (currentHour >= 17 && currentHour < 19) {
+            // Late afternoon window - schedule for 6 PM today
+            optimalTime.setHours(18, 0, 0, 0);
+        } else {
+            // After evening window - schedule for next morning (6 AM)
+            optimalTime.setDate(optimalTime.getDate() + 1);
+            optimalTime.setHours(6, 0, 0, 0);
+        }
+
+        // If calculated time is in the past, move to next day
+        if (optimalTime < now) {
+            optimalTime.setDate(optimalTime.getDate() + 1);
+        }
+
+        return optimalTime;
+    },
+
+    // Calculate optimal window based on weather conditions
+    calculateOptimalWindow(now, weather) {
+        const currentHour = now.getHours();
+        const temp = weather.temp || 28;
+        const humidity = weather.humidity || 65;
+
+        console.log('[DEBUG] Temp:', temp, '°C, Humidity:', humidity, '%');
+
+        // High temperature (>30°C) - prefer early morning only
+        if (temp > 30) {
+            console.log('[INFO] High temperature detected - scheduling early morning only');
+            const morningTime = new Date(now);
+            morningTime.setHours(5, 30, 0, 0);
+            if (morningTime < now) {
+                morningTime.setDate(morningTime.getDate() + 1);
+            }
+            return morningTime;
+        }
+
+        // Low humidity (<50%) - high evaporation risk, prefer early morning
+        if (humidity < 50) {
+            console.log('[INFO] Low humidity - scheduling early morning to minimize evaporation');
+            const morningTime = new Date(now);
+            morningTime.setHours(6, 0, 0, 0);
+            if (morningTime < now) {
+                morningTime.setDate(morningTime.getDate() + 1);
+            }
+            return morningTime;
+        }
+
+        // Moderate conditions - use standard optimal window
+        return this.getNextOptimalWindow(now, false);
     },
 
     // Generate 7-day schedule

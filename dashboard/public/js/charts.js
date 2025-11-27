@@ -70,10 +70,10 @@ const Charts = {
         else if (hours === 2160) {
             return this.aggregateByMonth(data);
         }
-        // Default: return as-is
+        // Default: return as-is with Date objects as labels
         else {
             return {
-                labels: data.map(d => new Date(d.timestamp || d.reading_time).toLocaleString()),
+                labels: data.map(d => new Date(d.timestamp || d.reading_time)),
                 data: data
             };
         }
@@ -85,7 +85,8 @@ const Charts = {
 
         data.forEach(reading => {
             const date = new Date(reading.timestamp || reading.reading_time);
-            const hourKey = `${date.getHours()}:00`;
+            // Round to the nearest hour
+            const hourKey = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 0, 0);
 
             if (!hourlyData[hourKey]) {
                 hourlyData[hourKey] = [];
@@ -93,8 +94,10 @@ const Charts = {
             hourlyData[hourKey].push(reading);
         });
 
-        const labels = Object.keys(hourlyData).sort();
-        const aggregated = labels.map(label => this.averageReadings(hourlyData[label]));
+        // Sort by timestamp
+        const sortedKeys = Object.keys(hourlyData).sort((a, b) => new Date(a) - new Date(b));
+        const labels = sortedKeys.map(key => new Date(key));
+        const aggregated = sortedKeys.map(key => this.averageReadings(hourlyData[key]));
 
         return { labels, data: aggregated };
     },
@@ -102,7 +105,6 @@ const Charts = {
     // Aggregate by day (for 7-day view)
     aggregateByDay(data, useDayNames = false) {
         const dailyData = {};
-        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
         data.forEach(reading => {
             const date = new Date(reading.timestamp || reading.reading_time);
@@ -111,18 +113,14 @@ const Charts = {
             if (!dailyData[dayKey]) {
                 dailyData[dayKey] = {
                     readings: [],
-                    dayName: dayNames[date.getDay()],
-                    date: date
+                    date: new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0) // Noon of that day
                 };
             }
             dailyData[dayKey].readings.push(reading);
         });
 
         const sortedDays = Object.keys(dailyData).sort();
-        const labels = useDayNames
-            ? sortedDays.map(key => dailyData[key].dayName)
-            : sortedDays.map(key => new Date(key).toLocaleDateString());
-
+        const labels = sortedDays.map(key => dailyData[key].date);
         const aggregated = sortedDays.map(key => this.averageReadings(dailyData[key].readings));
 
         return { labels, data: aggregated };
@@ -135,21 +133,22 @@ const Charts = {
         data.forEach(reading => {
             const date = new Date(reading.timestamp || reading.reading_time);
             const weekNumber = this.getWeekNumber(date);
-            const weekKey = `Week ${weekNumber}`;
+            const year = date.getFullYear();
+            const weekKey = `${year}-W${weekNumber}`;
 
             if (!weeklyData[weekKey]) {
-                weeklyData[weekKey] = [];
+                weeklyData[weekKey] = {
+                    readings: [],
+                    // Use the first day of the week as the timestamp
+                    date: this.getFirstDayOfWeek(date)
+                };
             }
-            weeklyData[weekKey].push(reading);
+            weeklyData[weekKey].readings.push(reading);
         });
 
-        const labels = Object.keys(weeklyData).sort((a, b) => {
-            const weekA = parseInt(a.split(' ')[1]);
-            const weekB = parseInt(b.split(' ')[1]);
-            return weekA - weekB;
-        });
-
-        const aggregated = labels.map(label => this.averageReadings(weeklyData[label]));
+        const sortedKeys = Object.keys(weeklyData).sort();
+        const labels = sortedKeys.map(key => weeklyData[key].date);
+        const aggregated = sortedKeys.map(key => this.averageReadings(weeklyData[key].readings));
 
         return { labels, data: aggregated };
     },
@@ -157,27 +156,24 @@ const Charts = {
     // Aggregate by month (for 90-day view)
     aggregateByMonth(data) {
         const monthlyData = {};
-        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
         data.forEach(reading => {
             const date = new Date(reading.timestamp || reading.reading_time);
-            const monthKey = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 
             if (!monthlyData[monthKey]) {
                 monthlyData[monthKey] = {
                     readings: [],
-                    sortKey: date.getTime()
+                    // Use the 15th of the month as the representative timestamp
+                    date: new Date(date.getFullYear(), date.getMonth(), 15, 12, 0, 0)
                 };
             }
             monthlyData[monthKey].readings.push(reading);
         });
 
-        const sortedMonths = Object.keys(monthlyData).sort((a, b) =>
-            monthlyData[a].sortKey - monthlyData[b].sortKey
-        );
-
-        const labels = sortedMonths;
-        const aggregated = sortedMonths.map(key => this.averageReadings(monthlyData[key].readings));
+        const sortedKeys = Object.keys(monthlyData).sort();
+        const labels = sortedKeys.map(key => monthlyData[key].date);
+        const aggregated = sortedKeys.map(key => this.averageReadings(monthlyData[key].readings));
 
         return { labels, data: aggregated };
     },
@@ -187,6 +183,13 @@ const Charts = {
         const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
         const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
         return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+    },
+
+    // Helper: Get first day of week (Monday)
+    getFirstDayOfWeek(date) {
+        const day = date.getDay();
+        const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+        return new Date(date.getFullYear(), date.getMonth(), diff, 12, 0, 0);
     },
 
     // Helper: Average multiple readings
@@ -681,19 +684,11 @@ const Charts = {
         const { labels, data } = processed;
 
         // Calculate disease risk scores based on conditions
-        const diseaseRisks = data.map(d => {
-            const risks = this.calculateDiseaseRisks(d);
-            return {
-                time: new Date(d.reading_time),
-                lateBlight: risks.lateBlight,
-                earlyBlight: risks.earlyBlight,
-                powderyMildew: risks.powderyMildew
-            };
-        });
+        const diseaseRisks = data.map(d => this.calculateDiseaseRisks(d));
 
         // Update existing chart if it exists
         if (this.charts.diseaseRisk) {
-            this.charts.diseaseRisk.data.labels = diseaseRisks.map(d => d.time);
+            this.charts.diseaseRisk.data.labels = labels;
             this.charts.diseaseRisk.data.datasets[0].data = diseaseRisks.map(d => d.lateBlight);
             this.charts.diseaseRisk.data.datasets[1].data = diseaseRisks.map(d => d.earlyBlight);
             this.charts.diseaseRisk.data.datasets[2].data = diseaseRisks.map(d => d.powderyMildew);
@@ -704,7 +699,7 @@ const Charts = {
         this.charts.diseaseRisk = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: diseaseRisks.map(d => d.time),
+                labels: labels,
                 datasets: [
                     {
                         label: 'Late Blight Risk',

@@ -138,28 +138,53 @@ const WhatsAppBot = {
         const saveBtn = document.getElementById('save-whatsapp-number');
 
         if (saveBtn && phoneInput) {
-            saveBtn.addEventListener('click', () => {
-                this.phoneNumber = phoneInput.value;
+            saveBtn.addEventListener('click', async () => {
+                const previousPhone = this.phoneNumber;
+                this.phoneNumber = phoneInput.value.trim();
+
+                // Validate phone number format (basic E.164 validation)
+                const phoneRegex = /^\+[1-9]\d{1,14}$/;
+                if (this.phoneNumber && !phoneRegex.test(this.phoneNumber)) {
+                    if (typeof Notifications !== 'undefined') {
+                        Notifications.show(
+                            'Invalid Format',
+                            'Please use E.164 format (e.g., +237670123456)',
+                            'warning',
+                            5000
+                        );
+                    }
+                    return;
+                }
+
                 this.saveSettings();
+
+                // Check if this is a new phone number
+                const isNewSetup = this.phoneNumber !== previousPhone && this.phoneNumber;
 
                 if (typeof Notifications !== 'undefined') {
                     Notifications.show(
-                        '✅ Number Saved',
+                        'Number Saved',
                         'WhatsApp notifications will be sent to this number',
                         'success',
                         3000
                     );
+                }
+
+                // Auto-send welcome message if new phone number and bot is enabled
+                if (this.enabled && isNewSetup) {
+                    console.log('[INFO] Sending welcome WhatsApp message...');
+                    await this.sendWelcomeMessage();
                 }
             });
         }
 
         // Listen for farm events to send notifications
         document.addEventListener('pump-activated', () => {
-            this.sendNotification('💧 Water pump is now ON');
+            this.sendNotification('[PUMP] Water pump is now ON');
         });
 
         document.addEventListener('pump-deactivated', () => {
-            this.sendNotification('💧 Water pump is now OFF');
+            this.sendNotification('[PUMP] Water pump is now OFF');
         });
 
         document.addEventListener('irrigation-started', (e) => {
@@ -175,8 +200,8 @@ const WhatsAppBot = {
             const zoneName = zone ? zone.name : e.detail.zone;
 
             this.sendNotification(
-                `💦 Irrigation started: ${zoneName}, ${e.detail.duration || 15} min\n` +
-                `Water needed: ~${waterNeeded}L`
+                `[IRRIGATION] Started: ${zoneName}, ${e.detail.duration || 15} min\n` +
+                `Water needed: ${waterNeeded}L`
             );
 
             console.log(`[INFO] Active irrigation zone set: ${zoneName} (${waterNeeded}L needed)`);
@@ -257,7 +282,7 @@ const WhatsAppBot = {
         if (!this.phoneNumber) {
             if (typeof Notifications !== 'undefined') {
                 Notifications.show(
-                    '⚠️ Setup Required',
+                    '[SETUP] Setup Required',
                     'Please enter your phone number first',
                     'warning',
                     4000
@@ -376,7 +401,7 @@ const WhatsAppBot = {
 
         // Pump status
         const pumpStatus = document.getElementById('pump-status-indicator')?.textContent || 'Unknown';
-        status += `💧 Water Pump: ${pumpStatus}\n`;
+        status += `[PUMP] Water Pump: ${pumpStatus}\n`;
 
         // Sensor data
         if (typeof Dashboard !== 'undefined') {
@@ -384,12 +409,12 @@ const WhatsAppBot = {
                 const sensors = await Dashboard.fetchSensorData();
                 if (sensors && sensors.length > 0) {
                     const latest = sensors[0];
-                    status += `🌡️ Temperature: ${Math.round(latest.temperature)}°C\n`;
-                    status += `💦 Soil Moisture: ${Math.round(latest.soil_moisture)}%\n`;
+                    status += `Temperature: ${Math.round(latest.temperature)}°C\n`;
+                    status += `Soil Moisture: ${Math.round(latest.soil_moisture)}%\n`;
                     status += `💨 Humidity: ${Math.round(latest.humidity)}%\n`;
                 }
             } catch (error) {
-                status += '⚠️ Sensor data unavailable\n';
+                status += '[WARNING] Sensor data unavailable\n';
             }
         }
 
@@ -397,7 +422,7 @@ const WhatsAppBot = {
         const alertsCount = document.getElementById('alerts-count')?.textContent || '0';
         status += `\n🔔 Active Alerts: ${alertsCount}\n`;
 
-        status += `\n✅ All systems operational`;
+        status += `\n[OK] All systems operational`;
 
         return status;
     },
@@ -411,26 +436,26 @@ const WhatsAppBot = {
                 if (sensors && sensors.length > 0) {
                     sensors.slice(0, 3).forEach((sensor, i) => {
                         response += `*Sensor ${i + 1}*\n`;
-                        response += `🌡️ Temp: ${Math.round(sensor.temperature)}°C\n`;
-                        response += `💦 Moisture: ${Math.round(sensor.soil_moisture)}%\n`;
+                        response += `Temp: ${Math.round(sensor.temperature)}°C\n`;
+                        response += `Soil Moisture: ${Math.round(sensor.soil_moisture)}%\n`;
                         response += `💨 Humidity: ${Math.round(sensor.humidity)}%\n`;
                         response += `🔋 Battery: ${Math.round(sensor.battery)}%\n\n`;
                     });
                 } else {
-                    response += '⚠️ No sensor data available';
+                    response += '[INFO] No sensor data available';
                 }
             } catch (error) {
                 response += '❌ Failed to fetch sensor data';
             }
         } else {
-            response += '⚠️ Sensor system not initialized';
+            response += '[WARNING] Sensor system not initialized';
         }
 
         return response;
     },
 
     async handleWeatherQuery() {
-        let response = '🌤️ *Weather Forecast*\n\n';
+        let response = '*Weather Forecast*\n\n';
 
         if (typeof Weather !== 'undefined' && Weather.forecastData) {
             const forecast = Weather.forecastData.slice(0, 3);
@@ -439,10 +464,10 @@ const WhatsAppBot = {
                 const date = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : `Day ${i + 1}`;
                 response += `*${date}*\n`;
                 response += `🌡️ ${Math.round(day.temp)}°C | ${day.condition}\n`;
-                response += `💧 Rain: ${day.rain_probability}% | ${day.rainfall}mm\n\n`;
+                response += `Rain: ${day.rain_probability}% | ${day.rainfall}mm\n\n`;
             });
         } else {
-            response += '⚠️ Weather data unavailable';
+            response += '[INFO] Weather data unavailable';
         }
 
         return response;
@@ -455,12 +480,12 @@ const WhatsAppBot = {
         if (typeof FarmControls !== 'undefined') {
             try {
                 await FarmControls.startIrrigation(zone, duration);
-                return `✅ *Irrigation Started*\n\nZone: ${zone}\nDuration: ${duration} minutes\n\nYou'll receive a notification when complete.`;
+                return `[SUCCESS] Irrigation Started\n\nZone: ${zone}\nDuration: ${duration} minutes\n\nYou'll receive a notification when complete.`;
             } catch (error) {
                 return `❌ Failed to start irrigation: ${error.message}`;
             }
         } else {
-            return '⚠️ Irrigation system not available';
+            return '[INFO] Irrigation system not available';
         }
     },
 
@@ -469,16 +494,16 @@ const WhatsAppBot = {
             try {
                 if (action === 'on') {
                     await FarmControls.activatePump();
-                    return '✅ *Water Pump Activated*\n\nPump is now running';
+                    return '[SUCCESS] Water Pump Activated\n\nPump is now running';
                 } else {
                     await FarmControls.deactivatePump();
-                    return '✅ *Water Pump Deactivated*\n\nPump has been turned off';
+                    return '[SUCCESS] Water Pump Deactivated\n\nPump has been turned off';
                 }
             } catch (error) {
                 return `❌ Failed to control pump: ${error.message}`;
             }
         } else {
-            return '⚠️ Pump control system not available';
+            return '[INFO] Pump control system not available';
         }
     },
 
@@ -510,7 +535,7 @@ const WhatsAppBot = {
         const alertsCount = parseInt(document.getElementById('alerts-count')?.textContent || '0');
 
         if (alertsCount === 0) {
-            return '✅ *No Active Alerts*\n\nAll systems normal';
+            return '[OK] No Active Alerts\n\nAll systems normal';
         }
 
         let response = `🔔 *Active Alerts* (${alertsCount})\n\n`;
@@ -542,14 +567,14 @@ const WhatsAppBot = {
                     response += `Next: ${status.nextScheduled.toLocaleString()}\n`;
                 }
 
-                response += `\n💧 Water Saved: ${status.waterSaved}L this month`;
+                response += `\nWater Saved: ${status.waterSaved}L this month`;
             } else {
                 response += 'No irrigations scheduled\n\nSmart scheduler will analyze conditions and schedule as needed.';
             }
 
             return response;
         } else {
-            return '⚠️ Smart Scheduler is not enabled';
+            return '[INFO] Smart Scheduler is not enabled';
         }
     },
 
@@ -567,10 +592,10 @@ const WhatsAppBot = {
 
                 return response;
             } else {
-                return '⚠️ No yield forecast available\n\nRun forecast analysis from dashboard first';
+                return '[INFO] No yield forecast available\n\nRun forecast analysis from dashboard first';
             }
         } else {
-            return '⚠️ Yield Forecasting not initialized';
+            return '[INFO] Yield Forecasting not initialized';
         }
     },
 
@@ -647,6 +672,53 @@ const WhatsAppBot = {
             enabled: this.enabled,
             phoneNumber: this.phoneNumber
         }));
+    },
+
+    // Send welcome message to verify setup
+    async sendWelcomeMessage() {
+        if (!this.phoneNumber) return;
+
+        const welcomeMessage = `*Welcome to AgriConnect WhatsApp Bot*
+
+Your WhatsApp notifications have been successfully activated.
+
+Available Commands:
+• status - View farm overview
+• sensors - Check latest sensor readings
+• weather - View weather forecast
+• water [zone] [duration] - Control irrigation
+• help - List all available commands
+
+For assistance, type "help" or visit your dashboard.
+
+AgriConnect - Precision Agriculture Solutions`;
+
+        try {
+            await this.sendMessage(welcomeMessage);
+
+            if (typeof Notifications !== 'undefined') {
+                Notifications.show(
+                    'Welcome Message Sent',
+                    'Check WhatsApp to verify the connection',
+                    'success',
+                    5000
+                );
+            }
+
+            console.log('[SUCCESS] Welcome message sent via WhatsApp');
+
+        } catch (error) {
+            console.error('[ERROR] Failed to send welcome message:', error);
+
+            if (typeof Notifications !== 'undefined') {
+                Notifications.show(
+                    'Simulation Mode Active',
+                    'WhatsApp backend not configured. Message shown in dashboard only.',
+                    'info',
+                    5000
+                );
+            }
+        }
     },
 
     // Get status
@@ -787,7 +859,7 @@ const WhatsAppBot = {
                 const deficit = totalWaterNeeded - this.waterTank.currentLevel;
 
                 await this.sendAlert(
-                    '💧 *Insufficient Water for Scheduled Irrigation*\n\n' +
+                    '[ALERT] Insufficient Water for Scheduled Irrigation*\n\n' +
                     `Upcoming Irrigations: ${upcomingCount}\n` +
                     `Water Needed: ${totalWaterNeeded}L\n` +
                     `Current Level: ${Math.round(this.waterTank.currentLevel)}L\n` +
@@ -820,7 +892,7 @@ const WhatsAppBot = {
                             `🔋 *Sensor Battery Critical*\n\n` +
                             `Sensor #${index + 1}\n` +
                             `Battery: ${Math.round(sensor.battery)}%\n\n` +
-                            '⚠️ Sensor may stop reporting soon. Please replace battery.',
+                            '[WARNING] Sensor may stop reporting soon. Please replace battery.',
                             'warning'
                         );
                         this.alertsSent.add(alertKey);
@@ -835,7 +907,7 @@ const WhatsAppBot = {
                             `🌵 *Severe Drought Detected*\n\n` +
                             `Sensor #${index + 1}\n` +
                             `Soil Moisture: ${Math.round(sensor.soil_moisture)}%\n\n` +
-                            '💧 Immediate irrigation recommended to prevent crop damage.',
+                            '[CRITICAL] Immediate irrigation recommended to prevent crop damage.',
                             'critical'
                         );
                         this.alertsSent.add(alertKey);
@@ -847,10 +919,10 @@ const WhatsAppBot = {
                     const alertKey = `heat-sensor${index}-${new Date().toDateString()}`;
                     if (!this.alertsSent.has(alertKey)) {
                         await this.sendAlert(
-                            `🌡️ *Extreme Heat Alert*\n\n` +
+                            `[ALERT] Extreme Heat Alert*\n\n` +
                             `Sensor #${index + 1}\n` +
                             `Temperature: ${Math.round(sensor.temperature)}°C\n\n` +
-                            '⚠️ High heat stress on crops. Consider additional irrigation or shade.',
+                            '[WARNING] High heat stress on crops. Consider additional irrigation or shade.',
                             'warning'
                         );
                         this.alertsSent.add(alertKey);
@@ -878,7 +950,7 @@ const WhatsAppBot = {
                         `Equipment: ${task.equipment}\n` +
                         `Issue: ${task.reason}\n` +
                         `Priority: ${task.priority.toUpperCase()}\n\n` +
-                        '⚠️ Please schedule maintenance to prevent equipment failure.',
+                        '[WARNING] Please schedule maintenance to prevent equipment failure.',
                         'warning'
                     );
                     this.alertsSent.add(alertKey);
@@ -892,7 +964,7 @@ const WhatsAppBot = {
             const alertKey = `pump-health-${new Date().toDateString()}`;
             if (!this.alertsSent.has(alertKey)) {
                 await this.sendAlert(
-                    `💧 *Water Pump Health Declining*\n\n` +
+                    `[ALERT] Water Pump Health Declining*\n\n` +
                     `Health Score: ${pumpHealth.health}%\n` +
                     `Runtime: ${pumpHealth.runtime} hours\n\n` +
                     '🔧 Service recommended to prevent breakdown.',
@@ -916,10 +988,10 @@ const WhatsAppBot = {
         }
 
         // Map severity to icon
-        let icon = 'ℹ️';
+        let icon = '[INFO]';
         if (severity === 'critical') icon = '🚨';
-        else if (severity === 'warning') icon = '⚠️';
-        else if (severity === 'success' || severity === 'info') icon = '✅';
+        else if (severity === 'warning') icon = '[WARNING]';
+        else if (severity === 'success' || severity === 'info') icon = '[INFO]';
 
         // Format message
         const timestamp = new Date().toLocaleTimeString();
@@ -959,10 +1031,10 @@ const WhatsAppBot = {
 
         if (this.enabled && this.sessionActive) {
             this.sendAlert(
-                `💧 *Water Tank Refilled*\n\n` +
+                `[INFO] Water Tank Refilled*\n\n` +
                 `Added: ${amount}L\n` +
                 `Current Level: ${Math.round(this.waterTank.currentLevel)}L (${Math.round(percentage)}%)\n\n` +
-                '✅ Tank is ready for irrigation.',
+                '[OK] Tank is ready for irrigation.',
                 'success'
             );
         }

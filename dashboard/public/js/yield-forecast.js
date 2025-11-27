@@ -84,7 +84,19 @@ const YieldForecast = {
     setupEventListeners() {
         const predictBtn = document.getElementById('run-forecast-btn');
         if (predictBtn) {
-            predictBtn.addEventListener('click', () => this.runForecast());
+            predictBtn.addEventListener('click', () => {
+                console.log('[DEBUG] Forecast button clicked');
+                try {
+                    this.runForecast();
+                } catch (error) {
+                    console.error('[ERROR] Forecast failed:', error);
+                    if (typeof Notifications !== 'undefined') {
+                        Notifications.error('Forecast Error', 'Failed to run forecast: ' + error.message);
+                    }
+                }
+            });
+        } else {
+            console.error('[ERROR] Forecast button not found');
         }
 
         const cropSelect = document.getElementById('forecast-crop-select');
@@ -160,45 +172,69 @@ const YieldForecast = {
     async runForecast() {
         console.log('[INFO] Running yield forecast...');
 
-        // Get current conditions
-        const conditions = await this.getCurrentConditions();
+        try {
+            // Get current conditions
+            console.log('[DEBUG] Getting current conditions...');
+            const conditions = await this.getCurrentConditions();
+            console.log('[DEBUG] Conditions:', conditions);
 
-        // Get forecast inputs
-        const crop = document.getElementById('forecast-crop-select')?.value || 'maize';
-        const area = parseFloat(document.getElementById('forecast-area')?.value) || 1.0;
+            // Get forecast inputs
+            const crop = document.getElementById('forecast-crop-select')?.value || 'maize';
+            const area = parseFloat(document.getElementById('forecast-area')?.value) || 1.0;
+            console.log('[DEBUG] Crop:', crop, 'Area:', area);
 
-        // Make prediction
-        const prediction = this.predict(crop, conditions);
+            // Make prediction
+            console.log('[DEBUG] Making prediction...');
+            const prediction = this.predict(crop, conditions);
+            console.log('[DEBUG] Prediction:', prediction);
 
-        // Calculate confidence based on data quality
-        const confidence = this.calculateConfidence(conditions);
+            // Calculate confidence based on data quality
+            const confidence = this.calculateConfidence(conditions);
+            console.log('[DEBUG] Confidence:', confidence);
 
-        // Store prediction
-        this.predictions = {
-            crop: crop,
-            area: area,
-            predictedYield: prediction.yield,
-            yieldPerHectare: prediction.yieldPerHa,
-            confidence: confidence,
-            revenue: this.calculateRevenue(crop, prediction.yield),
-            factors: conditions,
-            timestamp: new Date()
-        };
+            // Calculate revenue
+            console.log('[DEBUG] Calculating revenue...');
+            const revenue = this.calculateRevenue(crop, prediction.yield);
+            console.log('[DEBUG] Revenue:', revenue);
 
-        // Update UI
-        this.displayForecast();
+            // Store prediction
+            this.predictions = {
+                crop: crop,
+                area: area,
+                predictedYield: prediction.yield,
+                yieldPerHectare: prediction.yieldPerHa,
+                confidence: confidence,
+                revenue: revenue,
+                factors: conditions,
+                timestamp: new Date()
+            };
 
-        // Show notification
-        if (typeof Notifications !== 'undefined') {
-            Notifications.show(
-                '📊 Forecast Complete',
-                `Expected yield: ${Math.round(prediction.yield)} kg (${confidence}% confidence)`,
-                'success',
-                5000
-            );
+            console.log('[DEBUG] Stored predictions:', this.predictions);
+
+            // Update UI
+            console.log('[DEBUG] Displaying forecast...');
+            this.displayForecast();
+            console.log('[SUCCESS] Forecast displayed');
+
+            // Show notification
+            if (typeof Notifications !== 'undefined') {
+                Notifications.show(
+                    '📊 Forecast Complete',
+                    `Expected yield: ${Math.round(prediction.yield)} kg (${confidence}% confidence)`,
+                    'success',
+                    5000
+                );
+            }
+
+            return this.predictions;
+        } catch (error) {
+            console.error('[ERROR] Forecast failed:', error);
+            console.error('[ERROR] Stack trace:', error.stack);
+            if (typeof Notifications !== 'undefined') {
+                Notifications.error('Forecast Error', 'Failed to generate forecast: ' + error.message);
+            }
+            throw error;
         }
-
-        return this.predictions;
     },
 
     // Get current field conditions
@@ -332,10 +368,23 @@ const YieldForecast = {
 
     // Display forecast results
     displayForecast() {
+        console.log('[DEBUG] displayForecast called');
+
         const container = document.getElementById('forecast-results-container');
-        if (!container) return;
+        if (!container) {
+            console.error('[ERROR] Forecast results container not found');
+            return;
+        }
+
+        console.log('[DEBUG] Container found:', container);
+        console.log('[DEBUG] Predictions data:', this.predictions);
 
         const { crop, predictedYield, yieldPerHa, confidence, revenue, factors, area } = this.predictions;
+
+        if (!crop || !predictedYield || !revenue) {
+            console.error('[ERROR] Missing required prediction data:', { crop, predictedYield, revenue });
+            return;
+        }
 
         container.innerHTML = `
             <div class="forecast-results">
