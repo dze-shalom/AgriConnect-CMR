@@ -15,6 +15,9 @@ const Weather = {
     // For demo, using mock data
     apiKey: 'DEMO_MODE', // Replace with actual API key
 
+    // Store forecast data for other modules to access
+    forecastData: null,
+
     // Initialize weather
     async init() {
         console.log('[INFO] Initializing weather module...');
@@ -35,7 +38,9 @@ const Weather = {
             // For demo purposes, using mock data
             // In production, fetch from OpenWeather API
             if (this.apiKey === 'DEMO_MODE') {
-                this.renderWeather(this.getMockWeatherData());
+                const weatherData = this.getMockWeatherData();
+                this.forecastData = weatherData; // Store for other modules
+                this.renderWeather(weatherData);
                 return;
             }
 
@@ -44,7 +49,9 @@ const Weather = {
             const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${this.location.lat}&lon=${this.location.lon}&units=metric&appid=${this.apiKey}`;
             const response = await fetch(url);
             const data = await response.json();
-            this.renderWeather(this.parseOpenWeatherData(data));
+            const weatherData = this.parseOpenWeatherData(data);
+            this.forecastData = weatherData; // Store for other modules
+            this.renderWeather(weatherData);
             */
 
         } catch (error) {
@@ -60,13 +67,13 @@ const Weather = {
         const days = this.getRelativeDayNames(7);
 
         const conditions = [
-            { icon: '🌤️', desc: 'Partly Cloudy', temp: 27, humidity: 68, wind: 12 },
-            { icon: '⛅', desc: 'Cloudy', temp: 25, humidity: 72, wind: 15 },
-            { icon: '🌧️', desc: 'Rainy', temp: 23, humidity: 85, wind: 18 },
-            { icon: '🌤️', desc: 'Partly Cloudy', temp: 26, humidity: 70, wind: 10 },
-            { icon: '☀️', desc: 'Sunny', temp: 28, humidity: 65, wind: 8 },
-            { icon: '⛈️', desc: 'Thunderstorm', temp: 24, humidity: 88, wind: 22 },
-            { icon: '🌤️', desc: 'Partly Cloudy', temp: 26, humidity: 69, wind: 13 }
+            { icon: '🌤️', desc: 'Partly Cloudy', temp: 27, humidity: 68, wind: 12, rain_probability: 20, rainfall: 0 },
+            { icon: '⛅', desc: 'Cloudy', temp: 25, humidity: 72, wind: 15, rain_probability: 40, rainfall: 0 },
+            { icon: '🌧️', desc: 'Rainy', temp: 23, humidity: 85, wind: 18, rain_probability: 85, rainfall: 12 },
+            { icon: '🌤️', desc: 'Partly Cloudy', temp: 26, humidity: 70, wind: 10, rain_probability: 25, rainfall: 0 },
+            { icon: '☀️', desc: 'Sunny', temp: 28, humidity: 65, wind: 8, rain_probability: 10, rainfall: 0 },
+            { icon: '⛈️', desc: 'Thunderstorm', temp: 24, humidity: 88, wind: 22, rain_probability: 90, rainfall: 25 },
+            { icon: '🌤️', desc: 'Partly Cloudy', temp: 26, humidity: 69, wind: 13, rain_probability: 30, rainfall: 0 }
         ];
 
         return days.map((day, i) => ({
