@@ -82,7 +82,7 @@ const Weather = {
         }));
     },
 
-    // Get relative day names (Today, Tomorrow, Mon, Tue, etc.)
+    // Get relative day names (Today, Mon 27 | Tomorrow, Tue 28 | Wed 29, etc.)
     getRelativeDayNames(count = 7) {
         const dayNames = [];
         const today = new Date();
@@ -91,14 +91,16 @@ const Weather = {
             const futureDate = new Date(today);
             futureDate.setDate(today.getDate() + i);
 
+            const dayOfWeek = futureDate.toLocaleDateString('en-US', { weekday: 'short' });
+            const dayOfMonth = futureDate.getDate();
+
             let dayName;
             if (i === 0) {
-                dayName = 'Today';
+                dayName = `Today, ${dayOfWeek} ${dayOfMonth}`;
             } else if (i === 1) {
-                dayName = 'Tomorrow';
+                dayName = `Tomorrow, ${dayOfWeek} ${dayOfMonth}`;
             } else {
-                // Get short day name (Mon, Tue, Wed, etc.)
-                dayName = futureDate.toLocaleDateString('en-US', { weekday: 'short' });
+                dayName = `${dayOfWeek} ${dayOfMonth}`;
             }
 
             dayNames.push(dayName);
@@ -125,13 +127,16 @@ const Weather = {
                 itemDate.setHours(0, 0, 0, 0);
                 const dayOffset = Math.floor((itemDate - today) / (1000 * 60 * 60 * 24));
 
+                const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'short' });
+                const dayOfMonth = date.getDate();
+
                 let dayName;
                 if (dayOffset === 0) {
-                    dayName = 'Today';
+                    dayName = `Today, ${dayOfWeek} ${dayOfMonth}`;
                 } else if (dayOffset === 1) {
-                    dayName = 'Tomorrow';
+                    dayName = `Tomorrow, ${dayOfWeek} ${dayOfMonth}`;
                 } else {
-                    dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                    dayName = `${dayOfWeek} ${dayOfMonth}`;
                 }
 
                 dailyMap[dateKey] = {

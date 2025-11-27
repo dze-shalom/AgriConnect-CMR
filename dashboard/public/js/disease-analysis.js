@@ -180,7 +180,7 @@ const DiseaseAnalysis = {
                 'No insect vector - mechanical transmission'
             ],
             treatment: [
-                '⚠️ NO CURE - remove infected plants immediately',
+                '[WARNING] NO CURE - remove infected plants immediately',
                 'Destroy infected plants (do not compost)',
                 'Disinfect all tools with bleach solution',
                 'Wash hands with soap after handling',
@@ -536,10 +536,10 @@ const DiseaseAnalysis = {
         const severityClass = disease.severity || 'none';
         const severityIcon = {
             'critical': '🚨',
-            'high': '⚠️',
+            'high': '[HIGH]',
             'moderate': '⚡',
-            'low': 'ℹ️',
-            'none': '✅'
+            'low': '[LOW]',
+            'none': '[NONE]'
         }[disease.severity] || 'ℹ️';
 
         let symptomsHTML = '';

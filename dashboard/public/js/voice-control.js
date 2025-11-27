@@ -334,7 +334,7 @@ const VoiceControl = {
 
         // Show as notification
         if (typeof Notifications !== 'undefined') {
-            Notifications.show('🎤 Voice Assistant', text, 'info', 4000);
+            Notifications.show('[VOICE] Voice Assistant', text, 'info', 4000);
         }
     },
 

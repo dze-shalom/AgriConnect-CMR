@@ -322,7 +322,7 @@ const FarmMap = {
                     <span class="popup-value">${nodeData.ph_value?.toFixed(1) || 'N/A'}</span>
                 </div>
                 <div class="popup-row">
-                    <span class="popup-label">🔋 Battery:</span>
+                    <span class="popup-label">Battery:</span>
                     <span class="popup-value">${nodeData.battery_level || 'N/A'} %</span>
                 </div>
             </div>

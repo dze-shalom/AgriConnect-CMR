@@ -150,7 +150,7 @@ const Satellite = {
                     console.log('[INFO] Drawing cancelled');
 
                     if (typeof Notifications !== 'undefined') {
-                        Notifications.show('✖️ Cancelled', 'Drawing cancelled', 'info', 2000);
+                        Notifications.show('[CANCELLED] Cancelled', 'Drawing cancelled', 'info', 2000);
                     }
 
                     // Reset button style and hide status
@@ -184,7 +184,7 @@ const Satellite = {
                 if (!this.draw) {
                     console.error('[ERROR] MapboxDraw not initialized');
                     if (typeof Notifications !== 'undefined') {
-                        Notifications.show('⚠️ Error', 'Drawing tools not ready. Please wait for map to load.', 'error', 3000);
+                        Notifications.show('[ERROR] Error', 'Drawing tools not ready. Please wait for map to load.', 'error', 3000);
                     }
                     return;
                 }
@@ -192,7 +192,7 @@ const Satellite = {
                 if (!FarmMap.map || !FarmMap.map.loaded()) {
                     console.error('[ERROR] Map not fully loaded');
                     if (typeof Notifications !== 'undefined') {
-                        Notifications.show('⚠️ Wait', 'Map is still loading. Please wait a moment.', 'warning', 3000);
+                        Notifications.show('[INFO] Wait', 'Map is still loading. Please wait a moment.', 'warning', 3000);
                     }
                     return;
                 }
@@ -213,12 +213,12 @@ const Satellite = {
                     startBtn.textContent = 'Drawing...';
 
                     if (typeof Notifications !== 'undefined') {
-                        Notifications.show('✏️ Drawing Active', 'Click on map to draw. Double-click to finish.', 'info', 4000);
+                        Notifications.show('[DRAWING] Drawing Active', 'Click on map to draw. Double-click to finish.', 'info', 4000);
                     }
                 } catch (error) {
                     console.error('[ERROR] Failed to activate drawing mode:', error);
                     if (typeof Notifications !== 'undefined') {
-                        Notifications.show('⚠️ Error', 'Failed to activate drawing: ' + error.message, 'error', 3000);
+                        Notifications.show('[ERROR] Error', 'Failed to activate drawing: ' + error.message, 'error', 3000);
                     }
                 }
             });
@@ -255,7 +255,7 @@ const Satellite = {
                     console.log('[INFO] All drawings cleared');
 
                     if (typeof Notifications !== 'undefined') {
-                        Notifications.show('🗑️ Cleared', 'All field boundaries removed', 'info', 2000);
+                        Notifications.show('[SUCCESS] Cleared', 'All field boundaries removed', 'info', 2000);
                     }
                 }
             });

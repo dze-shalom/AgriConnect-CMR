@@ -311,7 +311,7 @@ const PredictiveMaintenance = {
             // Show notification for high priority
             if (priority === 'high' && typeof Notifications !== 'undefined') {
                 Notifications.show(
-                    '🔧 Maintenance Due',
+                    '[MAINTENANCE] Maintenance Due',
                     `${this.getEquipmentName(equipmentId)}: ${reason}`,
                     'warning',
                     8000
@@ -439,7 +439,7 @@ const PredictiveMaintenance = {
             this.updateUI();
 
             if (typeof Notifications !== 'undefined') {
-                Notifications.show('✅ Maintenance Complete', 'Equipment serviced successfully', 'success', 3000);
+                Notifications.show('[SUCCESS] Maintenance Complete', 'Equipment serviced successfully', 'success', 3000);
             }
         }
     },
