@@ -372,7 +372,7 @@ const Realtime = {
     sendBrowserNotification(title, body, type = 'info') {
         if (Notification.permission !== 'granted') return;
 
-        const icon = type === 'alert' ? '⚠️' : type === 'warning' ? '🔔' : '✅';
+        const icon = type === 'alert' ? '[ALERT]' : type === 'warning' ? '[WARNING]' : '[INFO]';
 
         const notification = new Notification(title, {
             body: body,

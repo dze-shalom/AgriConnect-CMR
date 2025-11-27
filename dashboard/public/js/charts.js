@@ -5,7 +5,7 @@
 
 const Charts = {
     charts: {},
-    timeRange: 0, // 0 = Show all available data (changed from 7 days)
+    timeRange: 168, // Default to 7 days to match HTML select
 
     // Initialize charts
     async init() {
@@ -15,6 +15,13 @@ const Charts = {
             // Verify Chart.js is loaded
             if (typeof Chart === 'undefined') {
                 throw new Error('Chart.js library not loaded');
+            }
+
+            // Read initial timeRange from select element
+            const timeRangeSelect = document.getElementById('chart-timerange');
+            if (timeRangeSelect) {
+                this.timeRange = parseInt(timeRangeSelect.value);
+                console.log(`[INFO] Chart timeRange set to ${this.timeRange} hours`);
             }
 
             // Setup event listeners
@@ -43,26 +50,225 @@ const Charts = {
         }
     },
 
+    // Aggregate data and create smart labels based on time period
+    processDataForTimeRange(data) {
+        const hours = this.timeRange;
+
+        // 24 hours: Show hourly data
+        if (hours === 24) {
+            return this.aggregateByHour(data);
+        }
+        // 7 days: Show daily data with day names
+        else if (hours === 168) {
+            return this.aggregateByDay(data, true); // true = use day names
+        }
+        // 30 days: Show weekly data
+        else if (hours === 720) {
+            return this.aggregateByWeek(data);
+        }
+        // 90 days: Show monthly data
+        else if (hours === 2160) {
+            return this.aggregateByMonth(data);
+        }
+        // Default: return as-is with Date objects as labels
+        else {
+            return {
+                labels: data.map(d => new Date(d.timestamp || d.reading_time)),
+                data: data
+            };
+        }
+    },
+
+    // Aggregate by hour (for 24-hour view)
+    aggregateByHour(data) {
+        const hourlyData = {};
+
+        data.forEach(reading => {
+            const date = new Date(reading.timestamp || reading.reading_time);
+            // Round to the nearest hour
+            const hourKey = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), 0, 0);
+
+            if (!hourlyData[hourKey]) {
+                hourlyData[hourKey] = [];
+            }
+            hourlyData[hourKey].push(reading);
+        });
+
+        // Sort by timestamp
+        const sortedKeys = Object.keys(hourlyData).sort((a, b) => new Date(a) - new Date(b));
+        const labels = sortedKeys.map(key => new Date(key));
+        const aggregated = sortedKeys.map(key => this.averageReadings(hourlyData[key]));
+
+        return { labels, data: aggregated };
+    },
+
+    // Aggregate by day (for 7-day view)
+    aggregateByDay(data, useDayNames = false) {
+        const dailyData = {};
+
+        data.forEach(reading => {
+            const date = new Date(reading.timestamp || reading.reading_time);
+            const dayKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
+
+            if (!dailyData[dayKey]) {
+                dailyData[dayKey] = {
+                    readings: [],
+                    date: new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0) // Noon of that day
+                };
+            }
+            dailyData[dayKey].readings.push(reading);
+        });
+
+        const sortedDays = Object.keys(dailyData).sort();
+        const labels = sortedDays.map(key => dailyData[key].date);
+        const aggregated = sortedDays.map(key => this.averageReadings(dailyData[key].readings));
+
+        return { labels, data: aggregated };
+    },
+
+    // Aggregate by week (for 30-day view)
+    aggregateByWeek(data) {
+        const weeklyData = {};
+
+        data.forEach(reading => {
+            const date = new Date(reading.timestamp || reading.reading_time);
+            const weekNumber = this.getWeekNumber(date);
+            const year = date.getFullYear();
+            const weekKey = `${year}-W${weekNumber}`;
+
+            if (!weeklyData[weekKey]) {
+                weeklyData[weekKey] = {
+                    readings: [],
+                    // Use the first day of the week as the timestamp
+                    date: this.getFirstDayOfWeek(date)
+                };
+            }
+            weeklyData[weekKey].readings.push(reading);
+        });
+
+        const sortedKeys = Object.keys(weeklyData).sort();
+        const labels = sortedKeys.map(key => weeklyData[key].date);
+        const aggregated = sortedKeys.map(key => this.averageReadings(weeklyData[key].readings));
+
+        return { labels, data: aggregated };
+    },
+
+    // Aggregate by month (for 90-day view)
+    aggregateByMonth(data) {
+        const monthlyData = {};
+
+        data.forEach(reading => {
+            const date = new Date(reading.timestamp || reading.reading_time);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+            if (!monthlyData[monthKey]) {
+                monthlyData[monthKey] = {
+                    readings: [],
+                    // Use the 15th of the month as the representative timestamp
+                    date: new Date(date.getFullYear(), date.getMonth(), 15, 12, 0, 0)
+                };
+            }
+            monthlyData[monthKey].readings.push(reading);
+        });
+
+        const sortedKeys = Object.keys(monthlyData).sort();
+        const labels = sortedKeys.map(key => monthlyData[key].date);
+        const aggregated = sortedKeys.map(key => this.averageReadings(monthlyData[key].readings));
+
+        return { labels, data: aggregated };
+    },
+
+    // Helper: Get week number
+    getWeekNumber(date) {
+        const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+        const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+        return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+    },
+
+    // Helper: Get first day of week (Monday)
+    getFirstDayOfWeek(date) {
+        const day = date.getDay();
+        const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+        return new Date(date.getFullYear(), date.getMonth(), diff, 12, 0, 0);
+    },
+
+    // Helper: Average multiple readings
+    averageReadings(readings) {
+        if (!readings || readings.length === 0) return null;
+
+        const averaged = {
+            timestamp: readings[0].timestamp || readings[0].reading_time,
+            air_temperature: 0,
+            air_humidity: 0,
+            soil_moisture: 0,
+            ph: 0,
+            ec: 0,
+            nitrogen: 0,
+            phosphorus: 0,
+            potassium: 0
+        };
+
+        readings.forEach(r => {
+            averaged.air_temperature += r.air_temperature || 0;
+            averaged.air_humidity += r.air_humidity || 0;
+            averaged.soil_moisture += r.soil_moisture || 0;
+            averaged.ph += r.ph || 0;
+            averaged.ec += r.ec || 0;
+            averaged.nitrogen += r.nitrogen || 0;
+            averaged.phosphorus += r.phosphorus || 0;
+            averaged.potassium += r.potassium || 0;
+        });
+
+        const count = readings.length;
+        averaged.air_temperature = parseFloat((averaged.air_temperature / count).toFixed(1));
+        averaged.air_humidity = parseFloat((averaged.air_humidity / count).toFixed(1));
+        averaged.soil_moisture = parseFloat((averaged.soil_moisture / count).toFixed(1));
+        averaged.ph = parseFloat((averaged.ph / count).toFixed(2));
+        averaged.ec = parseFloat((averaged.ec / count).toFixed(2));
+        averaged.nitrogen = parseFloat((averaged.nitrogen / count).toFixed(1));
+        averaged.phosphorus = parseFloat((averaged.phosphorus / count).toFixed(1));
+        averaged.potassium = parseFloat((averaged.potassium / count).toFixed(1));
+
+        return averaged;
+    },
+
     // Load all charts
     async loadCharts() {
         try {
             console.log('[INFO] Loading chart data...');
 
-            // Fetch historical data
-            let query = window.supabase
-                .from('sensor_readings')
-                .select('*')
-                .order('reading_time', { ascending: true })
-                .limit(500);
+            // Fetch historical data using MockData if available
+            let data, error;
 
-            // If timeRange is set (not 0), filter by date
-            if (this.timeRange > 0) {
-                const hoursAgo = this.timeRange;
-                const since = new Date(Date.now() - hoursAgo * 60 * 60 * 1000).toISOString();
-                query = query.gte('reading_time', since);
+            if (typeof MockData !== 'undefined') {
+                // Use MockData (handles both mock and real data)
+                const hours = this.timeRange > 0 ? this.timeRange : 720; // Default to 30 days
+                console.log(`[INFO] Fetching ${hours} hours of data from MockData...`);
+                const result = await MockData.getHistoricalData(hours);
+                data = result.data;
+                error = result.error;
+                console.log(`[INFO] Received ${data ? data.length : 0} data points from MockData`);
+                if (data && data.length > 0) {
+                    console.log('[INFO] Sample data point:', data[0]);
+                }
+            } else {
+                // Fallback to direct Supabase
+                let query = window.supabase
+                    .from('sensor_readings')
+                    .select('*')
+                    .order('reading_time', { ascending: true })
+                    .limit(500);
+
+                if (this.timeRange > 0) {
+                    const hoursAgo = this.timeRange;
+                    const since = new Date(Date.now() - hoursAgo * 60 * 60 * 1000).toISOString();
+                    query = query.gte('reading_time', since);
+                }
+
+                const result = await query;
+                data = result.data;
+                error = result.error;
             }
-
-            const { data, error } = await query;
 
             if (error) throw error;
 
@@ -86,13 +292,25 @@ const Charts = {
             }
 
             console.log(`[INFO] Rendering charts with ${data.length} data points`);
+            if (data.length > 0) {
+                console.log(`[DEBUG] First data point:`, data[0]);
+                console.log(`[DEBUG] Last data point:`, data[data.length-1]);
+            }
 
-            // Render all charts
-            this.renderTempHumidityChart(data);
-            this.renderSoilMoistureChart(data);
-            this.renderPhEcChart(data);
-            this.renderNpkChart(data);
-            this.renderDiseaseRiskChart(data);
+            // Process data for time range (aggregate and create smart labels)
+            const processed = this.processDataForTimeRange(data);
+            console.log(`[INFO] Aggregated to ${processed.data.length} data points`);
+            console.log(`[DEBUG] Labels:`, processed.labels);
+            if (processed.data.length > 0) {
+                console.log(`[DEBUG] First processed point:`, processed.data[0]);
+            }
+
+            // Render all charts with processed data
+            this.renderTempHumidityChart(processed);
+            this.renderSoilMoistureChart(processed);
+            this.renderPhEcChart(processed);
+            this.renderNpkChart(processed);
+            this.renderDiseaseRiskChart(processed);
 
             console.log('[SUCCESS] All charts rendered');
 
@@ -105,7 +323,7 @@ const Charts = {
     },
 
     // Render Temperature & Humidity Chart
-    renderTempHumidityChart(data) {
+    renderTempHumidityChart(processed) {
         const ctx = document.getElementById('temp-humidity-chart');
         if (!ctx) return;
 
@@ -113,9 +331,12 @@ const Charts = {
         const textColor = isDark ? '#E0E0E0' : '#212121';
         const gridColor = isDark ? '#333333' : '#E0E0E0';
 
+        // Extract labels and data
+        const { labels, data } = processed;
+
         // Update existing chart if it exists, otherwise create new
         if (this.charts.tempHumidity) {
-            this.charts.tempHumidity.data.labels = data.map(d => new Date(d.reading_time));
+            this.charts.tempHumidity.data.labels = labels;
             this.charts.tempHumidity.data.datasets[0].data = data.map(d => d.air_temperature);
             this.charts.tempHumidity.data.datasets[1].data = data.map(d => d.air_humidity);
             this.charts.tempHumidity.update('none'); // 'none' mode for faster updates
@@ -125,7 +346,7 @@ const Charts = {
         this.charts.tempHumidity = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: data.map(d => new Date(d.reading_time)),
+                labels: labels,
                 datasets: [
                     {
                         label: 'Temperature (°C)',
@@ -194,7 +415,7 @@ const Charts = {
     },
 
     // Render Soil Moisture Chart
-    renderSoilMoistureChart(data) {
+    renderSoilMoistureChart(processed) {
         const ctx = document.getElementById('soil-moisture-chart');
         if (!ctx) return;
 
@@ -202,9 +423,12 @@ const Charts = {
         const textColor = isDark ? '#E0E0E0' : '#212121';
         const gridColor = isDark ? '#333333' : '#E0E0E0';
 
+        // Extract labels and data
+        const { labels, data } = processed;
+
         // Update existing chart if it exists
         if (this.charts.soilMoisture) {
-            this.charts.soilMoisture.data.labels = data.map(d => new Date(d.reading_time));
+            this.charts.soilMoisture.data.labels = labels;
             this.charts.soilMoisture.data.datasets[0].data = data.map(d => d.soil_moisture);
             this.charts.soilMoisture.update('none');
             return;
@@ -213,7 +437,7 @@ const Charts = {
         this.charts.soilMoisture = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: data.map(d => new Date(d.reading_time)),
+                labels: labels,
                 datasets: [{
                     label: 'Soil Moisture',
                     data: data.map(d => d.soil_moisture),
@@ -271,7 +495,7 @@ const Charts = {
     },
 
     // Render pH & EC Chart
-    renderPhEcChart(data) {
+    renderPhEcChart(processed) {
         const ctx = document.getElementById('ph-ec-chart');
         if (!ctx) return;
 
@@ -279,11 +503,14 @@ const Charts = {
         const textColor = isDark ? '#E0E0E0' : '#212121';
         const gridColor = isDark ? '#333333' : '#E0E0E0';
 
+        // Extract labels and data
+        const { labels, data } = processed;
+
         // Update existing chart if it exists
         if (this.charts.phEc) {
-            this.charts.phEc.data.labels = data.map(d => new Date(d.reading_time));
-            this.charts.phEc.data.datasets[0].data = data.map(d => d.ph_value);
-            this.charts.phEc.data.datasets[1].data = data.map(d => d.ec_value);
+            this.charts.phEc.data.labels = labels;
+            this.charts.phEc.data.datasets[0].data = data.map(d => d.ph_value !== undefined ? d.ph_value : d.ph);
+            this.charts.phEc.data.datasets[1].data = data.map(d => d.ec_value !== undefined ? d.ec_value : d.ec);
             this.charts.phEc.update('none');
             return;
         }
@@ -291,11 +518,11 @@ const Charts = {
         this.charts.phEc = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: data.map(d => new Date(d.reading_time)),
+                labels: labels,
                 datasets: [
                     {
                         label: 'pH Level',
-                        data: data.map(d => d.ph_value),
+                        data: data.map(d => d.ph_value !== undefined ? d.ph_value : d.ph),
                         borderColor: '#FF9800',
                         backgroundColor: 'rgba(255, 152, 0, 0.1)',
                         yAxisID: 'y',
@@ -303,7 +530,7 @@ const Charts = {
                     },
                     {
                         label: 'EC (mS/cm)',
-                        data: data.map(d => d.ec_value),
+                        data: data.map(d => d.ec_value !== undefined ? d.ec_value : d.ec),
                         borderColor: '#9C27B0',
                         backgroundColor: 'rgba(156, 39, 176, 0.1)',
                         yAxisID: 'y1',
@@ -360,7 +587,7 @@ const Charts = {
     },
 
     // Render NPK Chart
-    renderNpkChart(data) {
+    renderNpkChart(processed) {
         const ctx = document.getElementById('npk-chart');
         if (!ctx) return;
 
@@ -368,12 +595,15 @@ const Charts = {
         const textColor = isDark ? '#E0E0E0' : '#212121';
         const gridColor = isDark ? '#333333' : '#E0E0E0';
 
+        // Extract labels and data
+        const { labels, data } = processed;
+
         // Update existing chart if it exists
         if (this.charts.npk) {
-            this.charts.npk.data.labels = data.map(d => new Date(d.reading_time));
-            this.charts.npk.data.datasets[0].data = data.map(d => d.nitrogen_ppm);
-            this.charts.npk.data.datasets[1].data = data.map(d => d.phosphorus_ppm);
-            this.charts.npk.data.datasets[2].data = data.map(d => d.potassium_ppm);
+            this.charts.npk.data.labels = labels;
+            this.charts.npk.data.datasets[0].data = data.map(d => d.nitrogen_ppm !== undefined ? d.nitrogen_ppm : d.nitrogen);
+            this.charts.npk.data.datasets[1].data = data.map(d => d.phosphorus_ppm !== undefined ? d.phosphorus_ppm : d.phosphorus);
+            this.charts.npk.data.datasets[2].data = data.map(d => d.potassium_ppm !== undefined ? d.potassium_ppm : d.potassium);
             this.charts.npk.update('none');
             return;
         }
@@ -381,25 +611,25 @@ const Charts = {
         this.charts.npk = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: data.map(d => new Date(d.reading_time)),
+                labels: labels,
                 datasets: [
                     {
                         label: 'Nitrogen (ppm)',
-                        data: data.map(d => d.nitrogen_ppm),
+                        data: data.map(d => d.nitrogen_ppm !== undefined ? d.nitrogen_ppm : d.nitrogen),
                         borderColor: '#4CAF50',
                         backgroundColor: 'rgba(76, 175, 80, 0.1)',
                         tension: 0.4
                     },
                     {
                         label: 'Phosphorus (ppm)',
-                        data: data.map(d => d.phosphorus_ppm),
+                        data: data.map(d => d.phosphorus_ppm !== undefined ? d.phosphorus_ppm : d.phosphorus),
                         borderColor: '#FFC107',
                         backgroundColor: 'rgba(255, 193, 7, 0.1)',
                         tension: 0.4
                     },
                     {
                         label: 'Potassium (ppm)',
-                        data: data.map(d => d.potassium_ppm),
+                        data: data.map(d => d.potassium_ppm !== undefined ? d.potassium_ppm : d.potassium),
                         borderColor: '#FF5722',
                         backgroundColor: 'rgba(255, 87, 34, 0.1)',
                         tension: 0.4
@@ -442,7 +672,7 @@ const Charts = {
     },
 
     // Render Disease Risk Timeline Chart
-    renderDiseaseRiskChart(data) {
+    renderDiseaseRiskChart(processed) {
         const ctx = document.getElementById('disease-risk-chart');
         if (!ctx) return;
 
@@ -450,20 +680,15 @@ const Charts = {
         const textColor = isDark ? '#E0E0E0' : '#212121';
         const gridColor = isDark ? '#333333' : '#E0E0E0';
 
+        // Extract labels and data
+        const { labels, data } = processed;
+
         // Calculate disease risk scores based on conditions
-        const diseaseRisks = data.map(d => {
-            const risks = this.calculateDiseaseRisks(d);
-            return {
-                time: new Date(d.reading_time),
-                lateBlight: risks.lateBlight,
-                earlyBlight: risks.earlyBlight,
-                powderyMildew: risks.powderyMildew
-            };
-        });
+        const diseaseRisks = data.map(d => this.calculateDiseaseRisks(d));
 
         // Update existing chart if it exists
         if (this.charts.diseaseRisk) {
-            this.charts.diseaseRisk.data.labels = diseaseRisks.map(d => d.time);
+            this.charts.diseaseRisk.data.labels = labels;
             this.charts.diseaseRisk.data.datasets[0].data = diseaseRisks.map(d => d.lateBlight);
             this.charts.diseaseRisk.data.datasets[1].data = diseaseRisks.map(d => d.earlyBlight);
             this.charts.diseaseRisk.data.datasets[2].data = diseaseRisks.map(d => d.powderyMildew);
@@ -474,7 +699,7 @@ const Charts = {
         this.charts.diseaseRisk = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: diseaseRisks.map(d => d.time),
+                labels: labels,
                 datasets: [
                     {
                         label: 'Late Blight Risk',

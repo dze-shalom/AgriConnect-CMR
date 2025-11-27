@@ -51,12 +51,18 @@ const FarmMap = {
         const container = document.getElementById('map-container');
         const toggleBtn = document.getElementById('toggle-map-btn');
         const toggleText = document.getElementById('toggle-map-text');
-        
+
         if (container.classList.contains('hidden')) {
             // Show map
             container.classList.remove('hidden');
-            toggleText.textContent = 'Hide Map';
-            
+
+            // Use translation if available
+            if (typeof Language !== 'undefined') {
+                toggleText.textContent = Language.get('hide_map');
+            } else {
+                toggleText.textContent = 'Hide Map';
+            }
+
             // Initialize map if not already done
             if (!this.map) {
                 this.initializeMap();
@@ -64,7 +70,13 @@ const FarmMap = {
         } else {
             // Hide map
             container.classList.add('hidden');
-            toggleText.textContent = 'Show Map';
+
+            // Use translation if available
+            if (typeof Language !== 'undefined') {
+                toggleText.textContent = Language.get('show_map');
+            } else {
+                toggleText.textContent = 'Show Map';
+            }
         }
     },
     
@@ -150,7 +162,7 @@ const FarmMap = {
     addFarmMarker() {
         const el = document.createElement('div');
         el.className = 'farm-marker';
-        el.innerHTML = '🏠';
+        el.innerHTML = 'FARM';
         el.style.fontSize = '2.5rem';
         el.style.cursor = 'pointer';
         el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
@@ -192,7 +204,7 @@ const FarmMap = {
         // Create marker element
         const el = document.createElement('div');
         el.className = `node-marker ${status}`;
-        el.innerHTML = '📍';
+        el.innerHTML = 'NODE';
         el.style.fontSize = '1.8rem';
         el.style.cursor = 'pointer';
         el.style.transition = 'all 0.3s';
@@ -310,7 +322,7 @@ const FarmMap = {
                     <span class="popup-value">${nodeData.ph_value?.toFixed(1) || 'N/A'}</span>
                 </div>
                 <div class="popup-row">
-                    <span class="popup-label">🔋 Battery:</span>
+                    <span class="popup-label">Battery:</span>
                     <span class="popup-value">${nodeData.battery_level || 'N/A'} %</span>
                 </div>
             </div>

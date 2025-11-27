@@ -83,6 +83,10 @@ const Navigation = {
         if (typeof lucide !== 'undefined') {
             setTimeout(() => {
                 lucide.createIcons();
+                // Refresh translations after icons are created
+                if (typeof Language !== 'undefined') {
+                    Language.refresh();
+                }
             }, 100);
         }
     },
@@ -134,15 +138,23 @@ const Navigation = {
 
     // Scroll to section
     scrollToSection(view) {
-        // Map view names to section classes/IDs
+        // Map view names to section classes/IDs (Consolidated Structure)
         const sectionMap = {
+            // Main consolidated views
             'overview': '.map-section',
+            'monitoring': '#live-sensors-section',  // Sensors & Weather
+            'analytics': '.charts-section',          // Charts & Reports
+            'intelligence': '.intelligence-section', // AI Insights (includes Yield Forecast)
+            'automation': '.control-panel-section',  // Farm Controls (includes Smart Scheduler)
+            'satellite': '.map-section',             // Satellite & NDVI (opens fullscreen map)
+            'alerts': '.alerts-section',             // Alerts & Maintenance (includes Equipment Health)
+            'settings': '.settings-section',         // Settings & Notifications (WhatsApp, Email, SMS)
+
+            // Legacy mappings for backward compatibility
             'sensors': '#live-sensors-section',
             'charts': '.charts-section',
             'weather': '.weather-section',
-            'intelligence': '.intelligence-section',
             'controls': '.control-panel-section',
-            'alerts': '.alerts-section',
             'reports': '#recent-readings-section'
         };
 
@@ -184,13 +196,29 @@ const Navigation = {
         const mapContainer = document.getElementById('map-container');
         const fullscreenMapContainer = document.getElementById('map-fullscreen-container');
         const mapCanvas = document.getElementById('map');
+        const drawingTools = document.querySelector('.drawing-tools-panel');
+        const mapLegend = document.querySelector('.map-legend');
+        const mapStats = document.querySelector('.map-stats');
 
         if (fullscreenOverlay && mapCanvas && fullscreenMapContainer) {
-            // Move map to fullscreen container
+            // Show map container first to ensure elements are accessible
+            if (mapContainer && mapContainer.classList.contains('hidden')) {
+                mapContainer.classList.remove('hidden');
+            }
+
+            // Move map and tools to fullscreen container
             fullscreenMapContainer.appendChild(mapCanvas);
+            if (drawingTools) fullscreenMapContainer.appendChild(drawingTools);
+            if (mapLegend) fullscreenMapContainer.appendChild(mapLegend);
+            if (mapStats) fullscreenMapContainer.appendChild(mapStats);
 
             // Show fullscreen overlay
             fullscreenOverlay.classList.remove('hidden');
+
+            // Initialize map if not already done
+            if (typeof FarmMap !== 'undefined' && !FarmMap.map) {
+                FarmMap.initializeMap();
+            }
 
             // Resize map if Mapbox is available
             if (typeof FarmMap !== 'undefined' && FarmMap.map) {
@@ -210,10 +238,16 @@ const Navigation = {
         const mapContainer = document.getElementById('map-container');
         const fullscreenMapContainer = document.getElementById('map-fullscreen-container');
         const mapCanvas = document.getElementById('map');
+        const drawingTools = document.querySelector('.drawing-tools-panel');
+        const mapLegend = document.querySelector('.map-legend');
+        const mapStats = document.querySelector('.map-stats');
 
         if (fullscreenOverlay && mapCanvas && mapContainer) {
-            // Move map back to original container
+            // Move elements back to original container
             mapContainer.appendChild(mapCanvas);
+            if (drawingTools) mapContainer.appendChild(drawingTools);
+            if (mapLegend) mapContainer.appendChild(mapLegend);
+            if (mapStats) mapContainer.appendChild(mapStats);
 
             // Hide fullscreen overlay
             fullscreenOverlay.classList.add('hidden');
@@ -232,17 +266,28 @@ const Navigation = {
 
     // Show satellite view with drawing tools
     showSatelliteView() {
-        // Open fullscreen map for satellite analysis
+        console.log('[INFO] Showing satellite view');
+
+        // Open fullscreen map for better drawing experience
         this.openFullscreenMap();
 
-        // Notification removed - drawing tools are visible on map if user needs them
-        console.log('[INFO] Satellite view opened - drawing tools available on map');
+        // Show notification with instructions
+        if (typeof Notifications !== 'undefined') {
+            Notifications.show(
+                'Satellite Analysis',
+                'Use "Draw Field" button to outline your field for NDVI analysis',
+                'info',
+                5000
+            );
+        }
 
-        // Show satellite panel (will populate when fields are drawn)
+        // Show satellite panel if there are existing analyses
         const panel = document.getElementById('satellite-analysis-panel');
         if (panel && typeof Satellite !== 'undefined' && Satellite.analysisResults.size > 0) {
             panel.classList.remove('hidden');
         }
+
+        console.log('[SUCCESS] Satellite view opened in fullscreen');
     },
 
     // Update alerts badge

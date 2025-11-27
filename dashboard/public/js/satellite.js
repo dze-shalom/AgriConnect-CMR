@@ -102,22 +102,164 @@ const Satellite = {
         // Initialize Mapbox Draw
         this.draw = new MapboxDraw({
             displayControlsDefault: false,
-            controls: {
-                polygon: true,
-                trash: true
-            },
+            controls: {},  // Disable all built-in controls, use custom buttons instead
             styles: this.getDrawStyles()
         });
 
-        // Add draw control to map
-        FarmMap.map.addControl(this.draw, 'top-right');
+        // Add draw control to map (invisible controls, just for drawing functionality)
+        FarmMap.map.addControl(this.draw);
 
         // Listen for draw events
         FarmMap.map.on('draw.create', (e) => this.onDrawCreate(e));
         FarmMap.map.on('draw.delete', (e) => this.onDrawDelete(e));
         FarmMap.map.on('draw.update', (e) => this.onDrawUpdate(e));
 
+        // Add keyboard shortcuts for drawing
+        this.setupKeyboardShortcuts();
+
         console.log('[SUCCESS] Drawing tools ready');
+
+        // Setup UI button event listeners
+        this.setupDrawingButtons();
+    },
+
+    // Setup keyboard shortcuts for drawing
+    setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            if (!this.draw) return;
+
+            // Enter key to finish polygon
+            if (e.key === 'Enter') {
+                const mode = this.draw.getMode();
+                if (mode === 'draw_polygon') {
+                    // Try to finish the current drawing
+                    const data = this.draw.getAll();
+                    if (data && data.features && data.features.length > 0) {
+                        // Switch to simple_select mode to finish
+                        this.draw.changeMode('simple_select');
+                        console.log('[INFO] Polygon completed via Enter key');
+                    }
+                }
+            }
+
+            // Escape key to cancel drawing
+            if (e.key === 'Escape') {
+                const mode = this.draw.getMode();
+                if (mode === 'draw_polygon') {
+                    this.draw.changeMode('simple_select');
+                    console.log('[INFO] Drawing cancelled');
+
+                    if (typeof Notifications !== 'undefined') {
+                        Notifications.show('[CANCELLED] Cancelled', 'Drawing cancelled', 'info', 2000);
+                    }
+
+                    // Reset button style and hide status
+                    const startBtn = document.getElementById('start-drawing-btn');
+                    const statusDiv = document.getElementById('drawing-status');
+                    if (startBtn) {
+                        startBtn.style.background = '';
+                        startBtn.style.color = '';
+                    }
+                    if (statusDiv) {
+                        statusDiv.classList.add('hidden');
+                    }
+                }
+            }
+        });
+    },
+
+    // Setup drawing button event listeners
+    setupDrawingButtons() {
+        const startBtn = document.getElementById('start-drawing-btn');
+        const clearBtn = document.getElementById('clear-drawings-btn');
+        const statusDiv = document.getElementById('drawing-status');
+
+        if (startBtn) {
+            startBtn.addEventListener('click', () => {
+                console.log('[DEBUG] Draw button clicked');
+                console.log('[DEBUG] Map object:', FarmMap.map);
+                console.log('[DEBUG] Draw object:', this.draw);
+                console.log('[DEBUG] Map loaded:', FarmMap.map ? FarmMap.map.loaded() : 'N/A');
+
+                if (!this.draw) {
+                    console.error('[ERROR] MapboxDraw not initialized');
+                    if (typeof Notifications !== 'undefined') {
+                        Notifications.show('[ERROR] Error', 'Drawing tools not ready. Please wait for map to load.', 'error', 3000);
+                    }
+                    return;
+                }
+
+                if (!FarmMap.map || !FarmMap.map.loaded()) {
+                    console.error('[ERROR] Map not fully loaded');
+                    if (typeof Notifications !== 'undefined') {
+                        Notifications.show('[INFO] Wait', 'Map is still loading. Please wait a moment.', 'warning', 3000);
+                    }
+                    return;
+                }
+
+                try {
+                    // Activate polygon drawing mode
+                    this.draw.changeMode('draw_polygon');
+                    console.log('[SUCCESS] Drawing mode activated');
+
+                    // Show status message
+                    if (statusDiv) {
+                        statusDiv.classList.remove('hidden');
+                    }
+
+                    // Visual feedback
+                    startBtn.style.background = 'var(--success)';
+                    startBtn.style.color = 'white';
+                    startBtn.textContent = 'Drawing...';
+
+                    if (typeof Notifications !== 'undefined') {
+                        Notifications.show('[DRAWING] Drawing Active', 'Click on map to draw. Double-click to finish.', 'info', 4000);
+                    }
+                } catch (error) {
+                    console.error('[ERROR] Failed to activate drawing mode:', error);
+                    if (typeof Notifications !== 'undefined') {
+                        Notifications.show('[ERROR] Error', 'Failed to activate drawing: ' + error.message, 'error', 3000);
+                    }
+                }
+            });
+        } else {
+            console.error('[ERROR] Start drawing button not found');
+        }
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                if (this.draw) {
+                    // Delete all drawn features
+                    this.draw.deleteAll();
+                    this.drawnFeatures = [];
+                    this.analysisResults.clear();
+
+                    // Hide status
+                    if (statusDiv) {
+                        statusDiv.classList.add('hidden');
+                    }
+
+                    // Reset button style
+                    const startBtn = document.getElementById('start-drawing-btn');
+                    if (startBtn) {
+                        startBtn.style.background = '';
+                        startBtn.style.color = '';
+                    }
+
+                    // Hide satellite panel
+                    const panel = document.getElementById('satellite-analysis-panel');
+                    if (panel) {
+                        panel.classList.add('hidden');
+                    }
+
+                    console.log('[INFO] All drawings cleared');
+
+                    if (typeof Notifications !== 'undefined') {
+                        Notifications.show('[SUCCESS] Cleared', 'All field boundaries removed', 'info', 2000);
+                    }
+                }
+            });
+        }
     },
 
     // Custom draw styles for better visibility
@@ -171,6 +313,22 @@ const Satellite = {
 
         const feature = e.features[0];
         this.drawnFeatures.push(feature);
+
+        // Reset button state
+        const startBtn = document.getElementById('start-drawing-btn');
+        const statusDiv = document.getElementById('drawing-status');
+        if (startBtn) {
+            startBtn.style.background = '';
+            startBtn.style.color = '';
+            startBtn.innerHTML = '<i data-lucide="pentagon"></i><span>Draw Field</span>';
+            // Reinitialize lucide icons
+            if (typeof lucide !== 'undefined') {
+                setTimeout(() => lucide.createIcons(), 50);
+            }
+        }
+        if (statusDiv) {
+            statusDiv.classList.add('hidden');
+        }
 
         // Calculate area
         const area = this.calculateArea(feature);
