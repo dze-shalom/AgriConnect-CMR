@@ -162,7 +162,7 @@ const FarmMap = {
     addFarmMarker() {
         const el = document.createElement('div');
         el.className = 'farm-marker';
-        el.innerHTML = '🏠';
+        el.innerHTML = 'FARM';
         el.style.fontSize = '2.5rem';
         el.style.cursor = 'pointer';
         el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
@@ -204,7 +204,7 @@ const FarmMap = {
         // Create marker element
         const el = document.createElement('div');
         el.className = `node-marker ${status}`;
-        el.innerHTML = '📍';
+        el.innerHTML = 'NODE';
         el.style.fontSize = '1.8rem';
         el.style.cursor = 'pointer';
         el.style.transition = 'all 0.3s';

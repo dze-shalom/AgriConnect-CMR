@@ -35,7 +35,7 @@ const Theme = {
 
         // Show toast notification
         if (typeof Notifications !== 'undefined') {
-            const emoji = newTheme === 'dark' ? '🌙' : '☀️';
+            const emoji = newTheme === 'dark' ? 'DARK' : 'LIGHT';
             Notifications.show(
                 `${emoji} Theme Changed`,
                 `Switched to ${newTheme} mode`,

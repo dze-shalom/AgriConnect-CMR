@@ -96,42 +96,42 @@ const Intelligence = {
         if (gdd < 100) {
             return {
                 name: 'Germination',
-                emoji: '🌱',
+                emoji: 'SEEDLING',
                 description: 'Seeds are sprouting, roots developing',
                 action: 'Keep soil moist, ensure temperature 20-25°C'
             };
         } else if (gdd < 300) {
             return {
                 name: 'Seedling',
-                emoji: '🌿',
+                emoji: 'VEGETATIVE',
                 description: 'First true leaves appearing',
                 action: 'Provide adequate light, start light fertilization'
             };
         } else if (gdd < 600) {
             return {
                 name: 'Vegetative Growth',
-                emoji: '🪴',
+                emoji: 'FLOWERING',
                 description: 'Rapid leaf and stem development',
                 action: 'Increase nitrogen fertilizer, ensure proper watering'
             };
         } else if (gdd < 900) {
             return {
                 name: 'Flowering',
-                emoji: '🌸',
+                emoji: 'POLLINATION',
                 description: 'Flowers blooming, pollination occurring',
                 action: 'Reduce nitrogen, increase phosphorus and potassium'
             };
         } else if (gdd < 1400) {
             return {
                 name: 'Fruit Development',
-                emoji: '🍅',
+                emoji: 'FRUITING',
                 description: 'Fruits forming and growing',
                 action: 'Maintain consistent watering, monitor for diseases'
             };
         } else {
             return {
                 name: 'Ripening',
-                emoji: '🍅',
+                emoji: 'FRUITING',
                 description: 'Fruits maturing and ripening',
                 action: 'Reduce watering slightly, prepare for harvest'
             };
