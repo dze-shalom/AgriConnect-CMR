@@ -627,7 +627,7 @@
                     <!-- Smart Irrigation Scheduler Card -->
                     <div class="control-card scheduler-card">
                         <div class="control-header">
-                            <h3>🤖 Smart Irrigation Scheduler</h3>
+                            <h3>Smart Irrigation Scheduler</h3>
                             <label class="toggle-switch">
                                 <input type="checkbox" id="scheduler-toggle">
                                 <span class="toggle-slider"></span>
@@ -637,52 +637,51 @@
                             <!-- Recommendation Display -->
                             <div id="scheduler-recommendation" class="scheduler-recommendation hidden">
                                 <div class="recommendation-header">
-                                    <span class="recommendation-icon">💧</span>
                                     <div>
                                         <h4 id="recommendation-title">Irrigation Recommended</h4>
-                                        <p id="recommendation-subtitle">Zone: Field 1, Zone 1 • Duration: 20 min</p>
+                                        <p id="recommendation-subtitle">Zone: Tomato Field • Duration: 20 min</p>
                                     </div>
                                 </div>
 
                                 <div class="recommendation-details">
                                     <div class="detail-row">
                                         <span class="detail-label">Optimal Time:</span>
-                                        <span class="detail-value" id="optimal-time">Tomorrow at 6:00 AM</span>
+                                        <span class="detail-value" id="optimal-time">Tomorrow at 7:00 AM</span>
                                     </div>
                                     <div class="detail-row">
                                         <span class="detail-label">Water Needed:</span>
-                                        <span class="detail-value" id="water-needed">500L</span>
+                                        <span class="detail-value" id="water-needed">1000L</span>
                                     </div>
                                 </div>
 
                                 <div class="reasoning-box">
-                                    <strong>📊 Reasoning:</strong>
+                                    <strong>Analysis:</strong>
                                     <ul id="reasoning-list">
-                                        <li>Soil moisture: 35% (below optimal)</li>
+                                        <li>Soil moisture: 55% (optimal for tomatoes)</li>
                                         <li>No rain forecast (next 3 days)</li>
                                         <li>ET rate: 4.2mm/day (moderate)</li>
-                                        <li>Water available: 4200L (sufficient)</li>
+                                        <li>Crop stage: Fruiting - high water requirement</li>
                                     </ul>
                                 </div>
 
                                 <div class="recommendation-actions">
                                     <button id="approve-schedule-btn" class="control-btn success">
-                                        ✅ Approve & Schedule
+                                        Approve & Schedule
                                     </button>
                                     <button id="decline-schedule-btn" class="control-btn secondary">
-                                        ❌ Decline
+                                        Decline
                                     </button>
                                     <button id="schedule-later-btn" class="control-btn secondary">
-                                        ⏰ Schedule for Later
+                                        Schedule for Later
                                     </button>
                                 </div>
                             </div>
 
                             <!-- No Recommendation State -->
                             <div id="no-recommendation" class="no-recommendation">
-                                <p>🌱 No irrigation recommendation at this time.</p>
+                                <p>No irrigation recommendation at this time.</p>
                                 <button id="analyze-conditions-btn" class="control-btn primary">
-                                    🔍 Analyze Conditions
+                                    Analyze Conditions
                                 </button>
                             </div>
 

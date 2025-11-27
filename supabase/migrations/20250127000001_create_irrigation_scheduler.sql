@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS irrigation_preferences (
     preferred_evening_start INTEGER DEFAULT 17 CHECK (preferred_evening_start >= 0 AND preferred_evening_start < 24),
     preferred_evening_end INTEGER DEFAULT 19 CHECK (preferred_evening_end >= 0 AND preferred_evening_end < 24),
     avoid_noon_hours BOOLEAN DEFAULT TRUE,
-    crop_type VARCHAR(50) DEFAULT 'mixed' CHECK (crop_type IN ('mixed', 'vegetables', 'fruits', 'grains', 'flowers', 'herbs')),
+    crop_type VARCHAR(50) DEFAULT 'tomatoes' CHECK (crop_type IN ('tomatoes', 'vegetables', 'fruits', 'grains', 'flowers', 'herbs', 'mixed')),
     max_daily_irrigations INTEGER DEFAULT 2 CHECK (max_daily_irrigations > 0 AND max_daily_irrigations <= 5),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

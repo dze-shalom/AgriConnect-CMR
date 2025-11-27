@@ -10,12 +10,12 @@ const SmartScheduler = {
     waterSavings: 0,
     currentRecommendation: null,
     userPreferences: {
-        preferredMorningStart: 5,  // 5 AM
-        preferredMorningEnd: 8,     // 8 AM
+        preferredMorningStart: 6,  // 6 AM - optimal for tomatoes
+        preferredMorningEnd: 9,     // 9 AM
         preferredEveningStart: 17,  // 5 PM
         preferredEveningEnd: 19,    // 7 PM
-        avoidNoonHours: true,       // Avoid 11 AM - 3 PM
-        cropType: 'mixed',          // mixed, vegetables, fruits, grains
+        avoidNoonHours: true,       // Avoid 11 AM - 3 PM to prevent leaf burn and water waste
+        cropType: 'tomatoes',       // tomatoes, vegetables, fruits, grains, mixed
         maxDailyIrrigations: 2
     },
 
@@ -306,12 +306,33 @@ const SmartScheduler = {
 
     // Get crop growth stage
     getCropStage() {
-        // This would integrate with crop calendar
-        // For now, return mock stage
+        // For tomatoes: Different stages have different water requirements
+        // This would integrate with crop calendar in production
+        // Using estimation based on typical growing season
+
+        const cropType = this.userPreferences.cropType;
+
+        if (cropType === 'tomatoes') {
+            // Tomato growth stages and water requirements:
+            // 1. Seedling (0-2 weeks): low - moderate watering
+            // 2. Vegetative (2-6 weeks): high - rapid growth
+            // 3. Flowering (6-8 weeks): critical - consistent moisture needed
+            // 4. Fruiting (8-12 weeks): high - fruits developing
+            // 5. Ripening (12+ weeks): moderate - reduce to improve flavor
+
+            return {
+                stage: 'fruiting',
+                daysFromPlanting: 65,
+                waterRequirement: 'high',
+                notes: 'Critical phase - maintain consistent soil moisture at 60-70%'
+            };
+        }
+
+        // Default for other crops
         return {
             stage: 'vegetative',
             daysFromPlanting: 45,
-            waterRequirement: 'medium' // low, medium, high
+            waterRequirement: 'medium'
         };
     },
 
@@ -497,8 +518,9 @@ const SmartScheduler = {
     getCropOptimalTime() {
         const cropType = this.userPreferences.cropType;
 
-        // Crop-specific irrigation timing
+        // Crop-specific irrigation timing based on agricultural research
         const cropTiming = {
+            'tomatoes': 7,      // 7 AM - allows foliage to dry before heat, reduces disease risk
             'vegetables': 6,    // Early morning (6 AM) - leafy greens need cool temps
             'fruits': 7,        // Mid-morning (7 AM) - fruit trees can handle slightly warmer
             'grains': 5,        // Very early (5 AM) - grains prefer early irrigation
@@ -507,7 +529,7 @@ const SmartScheduler = {
             'herbs': 8          // Later morning - many herbs prefer drier conditions
         };
 
-        return cropTiming[cropType] || 6;
+        return cropTiming[cropType] || 7;
     },
 
     // Calculate optimal window based on weather conditions
@@ -583,7 +605,7 @@ const SmartScheduler = {
     showLoadingState() {
         const noRecommendationDiv = document.getElementById('no-recommendation');
         if (noRecommendationDiv) {
-            noRecommendationDiv.innerHTML = '<p>🔄 Analyzing conditions...</p>';
+            noRecommendationDiv.innerHTML = '<p>Analyzing conditions...</p>';
         }
     },
 
@@ -598,9 +620,9 @@ const SmartScheduler = {
 
         if (noRecommendationDiv) {
             noRecommendationDiv.innerHTML = `
-                <p>🌱 ${reason || 'No irrigation recommendation at this time.'}</p>
+                <p>${reason || 'No irrigation recommendation at this time.'}</p>
                 <button id="analyze-conditions-btn" class="control-btn primary">
-                    🔍 Analyze Conditions
+                    Analyze Conditions
                 </button>
             `;
             noRecommendationDiv.classList.remove('hidden');
@@ -640,8 +662,8 @@ const SmartScheduler = {
 
         if (titleEl) {
             titleEl.textContent = recommendation.action === 'immediate'
-                ? '⚠️ Urgent Irrigation Required'
-                : '💧 Irrigation Recommended';
+                ? 'URGENT: Irrigation Required'
+                : 'Irrigation Recommended';
         }
 
         if (subtitleEl) {
@@ -734,7 +756,7 @@ const SmartScheduler = {
             // Show success notification
             if (typeof Notifications !== 'undefined') {
                 Notifications.show(
-                    '✅ Schedule Approved',
+                    'Schedule Approved',
                     `Irrigation scheduled for ${new Date(this.currentRecommendation.scheduledTime).toLocaleString()}`,
                     'success',
                     4000
@@ -753,7 +775,7 @@ const SmartScheduler = {
         } catch (error) {
             console.error('[ERROR] Failed to approve schedule:', error);
             if (typeof Notifications !== 'undefined') {
-                Notifications.show('❌ Error', 'Failed to approve schedule', 'error', 3000);
+                Notifications.show('Error', 'Failed to approve schedule', 'error', 3000);
             }
         }
     },
@@ -773,7 +795,7 @@ const SmartScheduler = {
         // Show notification
         if (typeof Notifications !== 'undefined') {
             Notifications.show(
-                '❌ Schedule Declined',
+                'Schedule Declined',
                 'You can analyze conditions again anytime',
                 'info',
                 3000
@@ -805,7 +827,7 @@ const SmartScheduler = {
         // Show updated time
         if (typeof Notifications !== 'undefined') {
             Notifications.show(
-                '⏰ Rescheduled',
+                'Schedule Updated',
                 `Moved to ${nextWindow.toLocaleString()}`,
                 'info',
                 3000
@@ -954,8 +976,8 @@ const SmartScheduler = {
             // Show notification
             if (typeof Notifications !== 'undefined') {
                 Notifications.show(
-                    '💧 Smart Irrigation',
-                    `${recommendation.zone} - ${recommendation.duration} min\n${recommendation.reason}`,
+                    'Irrigation Started',
+                    `Zone: ${recommendation.zone} - Duration: ${recommendation.duration} min\n${recommendation.reason}`,
                     'success',
                     5000
                 );
